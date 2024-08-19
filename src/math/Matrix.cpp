@@ -136,13 +136,13 @@ Vector Matrix::operator* (
         const Vector &vec
 ) const {
 #if defined DEBUG_MODE_ENABLED || defined DISABLE_AVX512
-        if (vec.size() != m_width)
+        if (vec.m_size != m_width)
                 throw Logger::fatal_error("Matrix width and vector size must match.");
 
         Vector result(m_height);
         for (uint32_t i { 0 }; i < m_height; i++)
                 for (uint32_t j { 0 }; j < m_width; j++)
-                        result.data()[i] += this->operator[](i)[j] * vec[j];
+                        result.m_data[i] += this->operator[](i)[j] * vec[j];
 
         return result;
 #else
@@ -154,15 +154,15 @@ Vector Matrix::operator* (
 
                 for (uint32_t j { 0 }; j < END; j+=SIMD_WIDTH) {
                         __m512 values { _mm512_loadu_ps(&m_data[i * m_width + j]) };
-                        __m512 vectorValues { _mm512_loadu_ps(&vec.data()[j]) };
+                        __m512 vectorValues { _mm512_loadu_ps(&vec.m_data[j]) };
                         __m512 product { _mm512_mul_ps(values, vectorValues) };
                         sum = _mm512_add_ps(sum, product);
                 }
 
-                result.data()[i] = _mm512_reduce_add_ps(sum);
+                result.m_data[i] = _mm512_reduce_add_ps(sum);
 
                 for (uint32_t j { END }; j < m_width; j++)
-                        result.data()[i] += m_data[i * m_width * j] * vec[j];
+                        result.m_data[i] += m_data[i * m_width * j] * vec[j];
         }
 
         return result;

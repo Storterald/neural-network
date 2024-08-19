@@ -9,6 +9,9 @@
 #endif // DEBUG_MODE_ENABLED
 
 struct Vector {
+        friend class Matrix;
+        friend Vector operator* (const float *array, const Vector &vec);
+
 private:
         uint32_t m_size { 0 };
         float *m_data { nullptr };

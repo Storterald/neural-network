@@ -133,45 +133,40 @@ private:
                         weightOffset -= m_w[L].size();
                         biasesOffset -= m_b[L].size();
 
-                        Vector nonLinearDerivatives{};
+                        //  ∂Ce      ∂zjL    ∂ajL   ∂Ce
+                        // ⎯⎯⎯⎯⎯ = ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯
+                        //  ∂bL       ∂bL    ∂zjL   ∂ajL
+                        Vector dbL{};
                         CONSTEXPR_SWITCH(type,
-                                CASE(TANH, nonLinearDerivatives = Fast::tanhDerivative(zL)),
-                                CASE(RELU, nonLinearDerivatives = Fast::reluDerivative(zL))
+                                CASE(TANH, dbL = aLCosts * Fast::tanhDerivative(zL)),
+                                CASE(RELU, dbL = aLCosts * Fast::reluDerivative(zL))
                         );
+                        std::memcpy(db.data() + biasesOffset, dbL.data(), nL * sizeof(float));
 
                         // The backward step cycles in the opposite way as the forward step,
                         // it cycles 'k' times 'j' times, instead of 'j' times 'k' times.
                         // Unfortunately this slows things down since the matrices are cycled
-                        // through on columns not rows.
+                        // through based on columns not rows.
                         for (uint32_t k { 0 }; k < nL1; k++) {
-                                //   ∂Ce     nL - 1   ∂zjL    ∂ajL    ∂Ce
-                                // ⎯⎯⎯⎯⎯⎯⎯ =   Σ    ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯
-                                // ∂ak(L-1)    j=0   ∂ak(L-1) ∂zjL   ∂ajL
+                                //   ∂Ce     nL - 1    ∂zjL    ∂ajL    ∂Ce
+                                // ⎯⎯⎯⎯⎯⎯⎯ =   Σ    ⎯⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯
+                                // ∂ak(L-1)    j=0   ∂ak(L-1)  ∂zjL   ∂ajL
                                 float dCe { 0 };
 
                                 for (uint32_t j { 0 }; j < nL; j++) {
                                         // Not computing dbL and the non linear derivatives here since it would
                                         // be computed 'k' more times than necessary, with the same output.
 
-                                        const float ajLCost { aLCosts[j] };
-                                        const float nonLinearDerivative { nonLinearDerivatives[j] };
-
-                                        dCe += m_w[L][j][k] * ajLCost * nonLinearDerivative;
+                                        dCe += m_w[L][j][k] * dbL[j];
 
                                         //  ∂Ce      ∂zjL    ∂ajL   ∂Ce
                                         // ⎯⎯⎯⎯⎯ = ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯
                                         //  ∂wjkL    ∂wjkL   ∂zjL   ∂ajL
-                                        dw.data()[j * nL1 + k + weightOffset] = a[L - 1][k] * ajLCost * nonLinearDerivative;
+                                        dw.data()[j * nL1 + k + weightOffset] = a[L - 1][k] * dbL[j];
                                 }
 
                                 aL1Costs[k] = dCe;
                         }
-
-                        Vector dbL(nL);
-                        std::memcpy(dbL.data(), aLCosts, nL * sizeof(float));
-                        dbL *= nonLinearDerivatives;
-
-                        std::memcpy(db.data() + biasesOffset, dbL.data(), nL * sizeof(float));
                 }
 
                 Vector result(WEIGHTS_COUNT + BIASES_COUNT);

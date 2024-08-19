@@ -3,6 +3,8 @@
 #include "Vector.h"
 
 struct Matrix {
+        friend class Vector;
+
 private:
         uint32_t m_width { 0 };
         uint32_t m_height { 0 };

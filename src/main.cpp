@@ -4,12 +4,26 @@
 
 #include "Network.h"
 #include "utils/Logger.h"
-#include "../decoder/Values.h"
 
 #define __BENCHMARK_START(__NAME__) auto __NAME__ = std::chrono::high_resolution_clock::now()
 #define __BENCHMARK_END(__START_NAME__, __OUT_NAME__) std::chrono::duration<double> __OUT_NAME__ = std::chrono::high_resolution_clock::now() - __START_NAME__;
 
-std::vector<float> weights(12960U), biases(42U);
+constexpr uint32_t LAYER_COUNT { 4 };
+constexpr uint32_t SIZES[LAYER_COUNT] { 784, 16, 16, 10 };
+
+std::vector<float> weights([] -> uint32_t {
+        uint32_t count { 0 };
+        for (uint32_t i { 0 }; i < LAYER_COUNT - 1; i++)
+                count += SIZES[i] * SIZES[i+1];
+
+        return count;
+}(), 0.0f), biases([] -> uint32_t {
+        uint32_t count { 0 };
+        for (uint32_t i { 1 }; i < LAYER_COUNT; i++)
+                count += SIZES[i];
+
+        return count;
+}(), 0.0f);
 
 bool loadValues()
 {
@@ -70,12 +84,9 @@ inline bool mainImpl(
         if constexpr (afk && training) {
                 if (!loadValues())
                         return false;
-        } else {
-                std::memcpy(weights.data(), Values::weights.data(), Values::weights.size() * sizeof(float));
-                std::memcpy(biases.data(), Values::biases.data(), Values::biases.size() * sizeof(float));
         }
 
-        Network<TANH, INPUT_NEURONS, 16, 16, OUTPUT_NEURONS> network(weights.data(), biases.data());
+        Network<TANH, INPUT_NEURONS, SIZES[1], SIZES[2], OUTPUT_NEURONS> network(weights.data(), biases.data());
 
         __BENCHMARK_START(start);
 
@@ -113,9 +124,7 @@ inline bool mainImpl(
                         Log << Logger::pref<INFO>() << "Correct answer: " << index << ", confidence: " << output[index] << ", best option: "
                             << (output[index] == *std::max_element(output.data(), output.data() + OUTPUT_NEURONS) ? "true" : "false") << "\n";
 
-
                 }
-
         }
 
         __BENCHMARK_END(start, time)
@@ -137,8 +146,8 @@ int main()
         constexpr uint32_t SAMPLE_COUNT { IN_TRAINING ? 60000 : 10000 };
         constexpr uint32_t BATCH_SIZE { 30 };
         constexpr uint32_t ITERATIONS_COUNT { IN_TRAINING ? 60000 / BATCH_SIZE : SAMPLE_COUNT };
-        constexpr uint32_t INPUT_NEURONS { 784 };
-        constexpr uint32_t OUTPUT_NEURONS { 10 };
+        constexpr uint32_t INPUT_NEURONS { SIZES[0] };
+        constexpr uint32_t OUTPUT_NEURONS { SIZES[LAYER_COUNT - 1] };
 
         std::vector<float> inputs(SAMPLE_COUNT * INPUT_NEURONS, 0.0f);
         std::vector<float> outputs(SAMPLE_COUNT * OUTPUT_NEURONS, 0.0f);

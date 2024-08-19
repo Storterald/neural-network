@@ -195,3 +195,29 @@ void Vector::operator/= (
                 m_data[i] /= scalar;
 #endif // DEBUG_MODE_ENABLED || DISABLE_AVX512
 }
+
+Vector operator* (const float *array, const Vector &vec)
+{
+#if defined DEBUG_MODE_ENABLED || defined DISABLE_AVX512
+        Vector result(vec.m_size);
+        for (uint32_t i { 0 }; i < vec.m_size; i++)
+                result.m_data[i] = vec[i] * array[i];
+
+        return result;
+#else
+        const uint32_t END { (vec.m_size / SIMD_WIDTH) * SIMD_WIDTH };
+
+        Vector result(vec.m_size);
+        for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
+                __m512 values { _mm512_loadu_ps(&array[i]) };
+                __m512 otherValues { _mm512_loadu_ps(&vec.m_data[i]) };
+                __m512 mulResult { _mm512_mul_ps(values, otherValues) };
+                _mm512_storeu_ps(&result.m_data[i], mulResult);
+        }
+
+        for (uint32_t i { END }; i < vec.m_size; i++)
+                result.m_data[i] = vec[i] * array[i];
+
+        return result;
+#endif // DEBUG_MODE_ENABLED || DISABLE_AVX512
+}
