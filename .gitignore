@@ -9,5 +9,8 @@ build/
 bin/
 logs/
 
+# files
+decoder/*.h
 **/*.csv
 **/*.nntv
+**/*.nnv
