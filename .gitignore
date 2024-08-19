@@ -1,0 +1,13 @@
+# IDEs directories
+.idea/
+.vscode/
+
+# build
+build/
+
+# other
+bin/
+logs/
+
+**/*.csv
+**/*.nntv
