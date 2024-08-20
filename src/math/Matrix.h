@@ -2,7 +2,7 @@
 
 #include "Vector.h"
 
-struct Matrix {
+class Matrix {
         friend class Vector;
 
 private:

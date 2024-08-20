@@ -96,10 +96,11 @@ Matrix Matrix::operator* (
 
         Matrix result(m_width, m_height);
 
-        __m512 scalarMatrix { _mm512_set1_ps(scalar) };
+        const __m512 scalarMatrix { _mm512_set1_ps(scalar) };
         for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
-                __m512 values { _mm512_loadu_ps(&m_data[i]) };
-                __m512 mulResult { _mm512_mul_ps(values, scalarMatrix) };
+                const __m512 values { _mm512_loadu_ps(&m_data[i]) };
+                const __m512 mulResult { _mm512_mul_ps(values, scalarMatrix) };
+
                 _mm512_storeu_ps(&result.m_data[i], mulResult);
         }
 
@@ -123,9 +124,10 @@ void Matrix::operator+= (
         const uint32_t END { (m_width * m_height / SIMD_WIDTH) * SIMD_WIDTH };
 
         for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
-                __m512 values { _mm512_loadu_ps(&m_data[i]) };
-                __m512 otherValues { _mm512_loadu_ps(&other.m_data[i]) };
-                __m512 addResult { _mm512_add_ps(values, otherValues) };
+                const __m512 values { _mm512_loadu_ps(&m_data[i]) };
+                const __m512 otherValues { _mm512_loadu_ps(&other.m_data[i]) };
+                const __m512 addResult { _mm512_add_ps(values, otherValues) };
+
                 _mm512_storeu_ps(&m_data[i], addResult);
         }
 
@@ -155,9 +157,10 @@ Vector Matrix::operator* (
                 __m512 sum { _mm512_setzero_ps() };
 
                 for (uint32_t j { 0 }; j < END; j+=SIMD_WIDTH) {
-                        __m512 values { _mm512_loadu_ps(&m_data[i * m_width + j]) };
-                        __m512 vectorValues { _mm512_loadu_ps(&vec.m_data[j]) };
-                        __m512 product { _mm512_mul_ps(values, vectorValues) };
+                        const __m512 values { _mm512_loadu_ps(&m_data[i * m_width + j]) };
+                        const __m512 vectorValues { _mm512_loadu_ps(&vec.m_data[j]) };
+                        const __m512 product { _mm512_mul_ps(values, vectorValues) };
+
                         sum = _mm512_add_ps(sum, product);
                 }
 

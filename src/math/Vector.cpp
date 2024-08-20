@@ -85,9 +85,9 @@ Vector Vector::operator+ (
 
         Vector result(m_size);
         for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
-                __m512 values { _mm512_loadu_ps(&m_data[i]) };
-                __m512 otherValues { _mm512_loadu_ps(&other.m_data[i]) };
-                __m512 addResult { _mm512_add_ps(values, otherValues) };
+                const __m512 values { _mm512_loadu_ps(&m_data[i]) };
+                const __m512 otherValues { _mm512_loadu_ps(&other.m_data[i]) };
+                const __m512 addResult { _mm512_add_ps(values, otherValues) };
 
                 _mm512_storeu_ps(&result.m_data[i], addResult);
         }
@@ -112,9 +112,9 @@ void Vector::operator+= (
         const uint32_t END { (m_size / SIMD_WIDTH) * SIMD_WIDTH };
 
         for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
-                __m512 values { _mm512_loadu_ps(&m_data[i]) };
-                __m512 otherValues { _mm512_loadu_ps(&other.m_data[i]) };
-                __m512 addResult { _mm512_add_ps(values, otherValues) };
+                const __m512 values { _mm512_loadu_ps(&m_data[i]) };
+                const __m512 otherValues { _mm512_loadu_ps(&other.m_data[i]) };
+                const __m512 addResult { _mm512_add_ps(values, otherValues) };
 
                 _mm512_storeu_ps(&m_data[i], addResult);
         }
@@ -137,9 +137,9 @@ void Vector::operator*= (
         const uint32_t END { (m_size / SIMD_WIDTH) * SIMD_WIDTH };
 
         for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
-                __m512 values { _mm512_loadu_ps(&m_data[i]) };
-                __m512 otherValues { _mm512_loadu_ps(&other.m_data[i]) };
-                __m512 mulResult { _mm512_mul_ps(values, otherValues) };
+                const __m512 values { _mm512_loadu_ps(&m_data[i]) };
+                const __m512 otherValues { _mm512_loadu_ps(&other.m_data[i]) };
+                const __m512 mulResult { _mm512_mul_ps(values, otherValues) };
 
                 _mm512_storeu_ps(&m_data[i], mulResult);
         }
@@ -161,10 +161,10 @@ void Vector::operator/= (
 #else
         const uint32_t END { (m_size / SIMD_WIDTH) * SIMD_WIDTH };
 
-        __m512 scalarValues { _mm512_set1_ps(scalar) };
+        const __m512 scalarValues { _mm512_set1_ps(scalar) };
         for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
-                __m512 values { _mm512_loadu_ps(&m_data[i]) };
-                __m512 divResult { _mm512_div_ps(values, scalarValues) };
+                const __m512 values { _mm512_loadu_ps(&m_data[i]) };
+                const __m512 divResult { _mm512_div_ps(values, scalarValues) };
 
                 _mm512_storeu_ps(&m_data[i], divResult);
         }
@@ -188,10 +188,10 @@ Vector Vector::operator* (
 
         Vector result(m_size);
 
-        __m512 scalarValues { _mm512_set1_ps(scalar) };
+        const __m512 scalarValues { _mm512_set1_ps(scalar) };
         for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
-                __m512 values { _mm512_loadu_ps(&m_data[i]) };
-                __m512 mulResult { _mm512_mul_ps(values, scalarValues) };
+                const __m512 values { _mm512_loadu_ps(&m_data[i]) };
+                const __m512 mulResult { _mm512_mul_ps(values, scalarValues) };
 
                 _mm512_storeu_ps(&result.m_data[i], mulResult);
         }
@@ -217,9 +217,9 @@ Vector Vector::operator* (
 
         Vector result(m_size);
         for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
-                __m512 values { _mm512_loadu_ps(&m_data[i]) };
-                __m512 otherValues { _mm512_loadu_ps(&array[i]) };
-                __m512 mulResult { _mm512_mul_ps(values, otherValues) };
+                const __m512 values { _mm512_loadu_ps(&m_data[i]) };
+                const __m512 otherValues { _mm512_loadu_ps(&array[i]) };
+                const __m512 mulResult { _mm512_mul_ps(values, otherValues) };
 
                 _mm512_storeu_ps(&result.m_data[i], mulResult);
         }
@@ -245,9 +245,9 @@ Vector Vector::operator- (
 
         Vector result(m_size);
         for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
-                __m512 values { _mm512_loadu_ps(&m_data[i]) };
-                __m512 otherValues { _mm512_loadu_ps(&array[i]) };
-                __m512 addResult { _mm512_sub_ps(values, otherValues) };
+                const __m512 values { _mm512_loadu_ps(&m_data[i]) };
+                const __m512 otherValues { _mm512_loadu_ps(&array[i]) };
+                const __m512 addResult { _mm512_sub_ps(values, otherValues) };
 
                 _mm512_storeu_ps(&result.m_data[i], addResult);
         }

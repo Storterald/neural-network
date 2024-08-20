@@ -35,7 +35,7 @@ bool load(
         uint32_t OUTPUT_NEURONS,
         float *outputs
 ) {
-        constexpr const char *PATH { training ? (BASE_PATH "/mnist/mnist_train.nntv") : (BASE_PATH "/mnist/mnist_test.nntv") };
+        constexpr const char *PATH { training ? BASE_PATH "/mnist/mnist_train.nntv" : BASE_PATH "/mnist/mnist_test.nntv" };
 
         std::ifstream inFile(PATH, std::ios::binary);
         if (!inFile)
@@ -89,7 +89,7 @@ void logComputeInfo(
         Log << Logger::pref<INFO>() << "Iteration [" << i << "]...\n";
 
         // Copying output from array to vector for faster math.
-        Vector expectedOutput(OUTPUT_NEURONS);
+        const Vector expectedOutput(OUTPUT_NEURONS);
         std::memcpy(expectedOutput.data(), outputs + i * OUTPUT_NEURONS, OUTPUT_NEURONS * sizeof(float));
 
         Log << Logger::pref() << "Inputs [" << i << "]: ";
@@ -105,7 +105,7 @@ void logComputeInfo(
 
         Vector fixedResults { Fast::relu(result) };
 
-        uint32_t index{(uint32_t) std::distance(
+        const uint32_t index { (uint32_t)std::distance(
                 expectedOutput.data(), std::find(expectedOutput.data(), expectedOutput.data() + OUTPUT_NEURONS, 1.0f)
         )};
         Log << Logger::pref<INFO>() << "Correct answer: " << index << ", confidence: " << result[index] << ", best option: "
@@ -124,7 +124,7 @@ int main()
         constexpr uint32_t INPUT_NEURONS { SIZES[0] };
         constexpr uint32_t OUTPUT_NEURONS { SIZES[LAYER_COUNT - 1] };
 
-        std::vector<float> inputs(SAMPLE_COUNT * INPUT_NEURONS, 0.0f), outputs(SAMPLE_COUNT * OUTPUT_NEURONS, 0.0f);
+        std::vector inputs(SAMPLE_COUNT * INPUT_NEURONS, 0.0f), outputs(SAMPLE_COUNT * OUTPUT_NEURONS, 0.0f);
         if(!load<IN_TRAINING>(SAMPLE_COUNT, INPUT_NEURONS, inputs.data(), OUTPUT_NEURONS, outputs.data()))
                 return EXIT_FAILURE;
 
@@ -152,7 +152,7 @@ int main()
                                          outputs.data() + i * BATCH_SIZE * OUTPUT_NEURONS
                                 );
                         } else {
-                                Vector result { network.compute(inputs.data() + i * INPUT_NEURONS) };
+                                const Vector result { network.compute(inputs.data() + i * INPUT_NEURONS) };
                                 logComputeInfo(INPUT_NEURONS, OUTPUT_NEURONS, inputs.data(), outputs.data(), result, i);
                         }
                 }

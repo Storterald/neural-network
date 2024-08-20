@@ -91,7 +91,7 @@ private:
 
                 // The cost of the last layer neurons is calculated with (ajL - yj) ^ 2,
                 // this mean that the derivative is equal to 2 * (ajL - y)
-                Vector outputCosts { (a[LAYER_COUNT - 1] - y) * 2.0f };
+                const Vector outputCosts { (a[LAYER_COUNT - 1] - y) * 2.0f };
                 std::memcpy(costsDerivatives, outputCosts.data(), OUTPUT_NEURONS * sizeof(float));
 #ifdef DEBUG_MODE_ENABLED
                 for (uint32_t L { LAYER_COUNT - 1 }, j { 0 }; j < OUTPUT_NEURONS; j++)
@@ -179,7 +179,7 @@ private:
                 const uint32_t REMAINDER { count % THREAD_COUNT };
 
                 std::barrier sync(THREAD_COUNT);
-                std::vector<Vector> results(THREAD_COUNT, Vector(WEIGHTS_COUNT + BIASES_COUNT));
+                const std::vector results(THREAD_COUNT, Vector(WEIGHTS_COUNT + BIASES_COUNT));
                 
                 auto worker = [&](uint32_t start, uint32_t end, uint32_t thread) {
                         for (uint32_t i { start }; i < end; i++)
@@ -210,7 +210,7 @@ public:
                 const float *biases
         ) {
                 // Initializing compute buffer index 0
-                Vector *const computeBuffer { (Vector *)m_buffer.template get<0>() };
+                const auto computeBuffer { (Vector *const)m_buffer.template get<0>() };
                 computeBuffer[0] = Vector(s_n[0]);
 
                 // Initialize all weight matrices and bias vectors
@@ -236,7 +236,7 @@ public:
         ) {
                 constexpr uint32_t INPUT_NEURONS { s_n[0] };
 
-                Vector *const a { (Vector *)m_buffer.template get<0>() };
+                auto a { (Vector *const)m_buffer.template get<0>() };
 
                 // Copying inputs to a0.
                 std::memcpy(a[0].data(), inputs, INPUT_NEURONS * sizeof(float));
@@ -264,7 +264,7 @@ public:
                 const float *pOutputs
         ) {
                 // Gets the influences using all threads.
-                Vector negativeGradientVector { _dispatchWorkers(sampleSize, pInputs, pOutputs) };
+                const Vector negativeGradientVector { _dispatchWorkers(sampleSize, pInputs, pOutputs) };
 
                 // Since the values are in a single vector of size WEIGHTS_COUNT + BIASES_COUNT,
                 // the vector is split in 2 and then split in the sub-matrices and sub-vectors it contains.

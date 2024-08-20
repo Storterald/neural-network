@@ -8,7 +8,7 @@
 #include "../utils/Logger.h"
 #endif // DEBUG_MODE_ENABLED
 
-struct Vector {
+class Vector {
         friend class Matrix;
 
 private:

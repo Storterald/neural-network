@@ -22,13 +22,12 @@ if __name__ == "__main__":
                 f.write('#pragma once\n'
                         '\n'
                         '#include <vector>\n'
-                        '#include <cstdint>\n'
                         '\n'
                         'namespace Values {\n'
                         '\n')
 
                 # Write all weights
-                f.write('        const std::vector<float> weights {{\n                '.format(WEIGHTS_COUNT))
+                f.write('        const std::vector weights {{\n                '.format(WEIGHTS_COUNT))
                 for i, value in enumerate(weights):
                         f.write(f'{value:.6f}f')
                         if i < WEIGHTS_COUNT - 1:
@@ -41,6 +40,8 @@ if __name__ == "__main__":
                 f.write('        };\n\n')
 
                 # Write all biases
-                f.write(f'        const std::vector<float> biases({BIASES_COUNT}, 0.0f);\n\n''}')
+                f.write(f'        const std::vector biases({BIASES_COUNT}, 0.0f);\n'
+                        '\n'
+                        '} // namespace Values')
 
         print("Generated initial random values for sizes:", sizes)

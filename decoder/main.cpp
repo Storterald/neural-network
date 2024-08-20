@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <iostream>
 #include <ctime>
+#include <iomanip>
 
 int main()
 {
@@ -35,32 +36,57 @@ int main()
         // File const prefix
         outFile << "#pragma once\n"
                    "\n"
-                   "#include <array>\n"
-                   "#include <cstdint>\n"
+                   "#include <vector>\n"
                    "\n"
                    "namespace Values {\n"
                    "\n";
 
         // Weights array declaration
-        outFile << "        const std::vector<float> weights {\n";
+        outFile << "        const std::vector weights {\n                ";
 
-        for (uint32_t i { 0 }; i < infos[1] - 1; i++)
-                outFile << "                " << weights[i] << ",\n";
+        for (uint32_t i { 0 }; i < infos[1] - 1; i++) {
+                outFile << std::setprecision(6) << weights[i];
+                if (weights[i] == 0.0f)
+                        outFile << ", ";
+                else
+                        outFile << "f, ";
+
+                if ((i + 1) % 10 == 0)
+                        outFile << "\n                ";
+        }
 
         // Weights array end
-        outFile << "                " << weights[infos[1] - 1] << "\n" << "        };\n\n";
+        outFile << std::setprecision(6) << weights[infos[1] - 1];
+        if (weights[infos[1] - 1] == 0.0f)
+                outFile << "\n";
+        else
+                outFile << "f\n";
+        outFile << "        };\n\n";
 
         // Biases array declaration
-        outFile << "        const std::vector<float> biases {\n";
+        outFile << "        const std::vector biases {\n                ";
 
-        for (uint32_t i { 0 }; i < infos[2] - 1; i++)
-                outFile << "                " << biases[i] << ",\n";
+        for (uint32_t i { 0 }; i < infos[2] - 1; i++) {
+                outFile << std::setprecision(6) << biases[i];
+                if (biases[i] == 0.0f)
+                        outFile << ", ";
+                else
+                        outFile << "f, ";
 
-        // Weights array end
-        outFile << "                " << biases[infos[2] - 1] << "\n" << "        };\n\n";
+                if ((i + 1) % 10 == 0)
+                        outFile << "\n                ";
+        }
+
+        // biases array end
+        outFile << std::setprecision(6) << biases[infos[2] - 1];
+        if (biases[infos[2] - 1] == 0.0f)
+                outFile << "\n";
+        else
+                outFile << "f\n";
+        outFile << "        };\n\n";
 
         // File const suffix;
-        outFile << "}";
+        outFile << "} // namespace Values";
         outFile.close();
 
         delete [] sizes;

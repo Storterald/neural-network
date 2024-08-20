@@ -29,14 +29,15 @@ constexpr uint32_t MAX_FILE_SIZE { (uint32_t)1e9f };
 // Creates a constexpr if else chain inside a do { ... } while(false) block
 // to allow the macro to be inside a block without {}. Also obligates the user
 // to put ';' after it keeping a cleaner and more uniform syntax.
-#define CONSTEXPR_SWITCH(var, ...) do { __VA_OPT__(EXPAND(__CONSTEXPR_SWITCH(var, __VA_ARGS__))) } while (false)
+#define CONSTEXPR_SWITCH(var, ...)                                              \
+        do {                                                                    \
+                __VA_OPT__(EXPAND(__CONSTEXPR_SWITCH(var, __VA_ARGS__)))        \
+        } while (false)
 
 // The actual macro definition.
 #define __CONSTEXPR_SWITCH(var, case1, codeBlock1, ...)                         \
         if constexpr (var == case1)                                             \
                 codeBlock1                                                      \
-        else {                                                                  \
-                __VA_OPT__(__CONSTEXPR_SWITCH2 PARENS (var, __VA_ARGS__))       \
-        }
+        __VA_OPT__(else __CONSTEXPR_SWITCH2 PARENS (var, __VA_ARGS__))
 
 #define __CONSTEXPR_SWITCH2() __CONSTEXPR_SWITCH

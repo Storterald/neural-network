@@ -27,7 +27,7 @@ public:
 
         // Gives the log string prefix, contains time, log type, thread and application.
         template<LogType type = DEBUG>
-        static inline std::string pref()
+        static std::string pref()
         {
                 // Converts type enum to string, constexpr switch macro
                 // instead of series of constexpr if.
@@ -44,12 +44,12 @@ public:
 
         static std::string fixTime(double t);
 
-        struct fatal_error : std::exception {
+        struct fatal_error final : std::exception {
                 explicit fatal_error(const char* message);
         };
 
         template<typename T>
-        inline std::ofstream &operator<< (const T &value)
+        std::ofstream &operator<< (const T &value)
         {
                 // Limits the log file size to avoid IDEs crashes.
                 if (file.tellp() >= MAX_FILE_SIZE) {
