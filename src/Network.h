@@ -65,7 +65,7 @@ private:
                 constexpr uint32_t INPUT_NEURONS { s_n[0] };
                 constexpr uint32_t OUTPUT_NEURONS { s_n[LAYER_COUNT - 1] };
 
-                Vector z[LAYER_COUNT]{}, a[LAYER_COUNT]{}, dw(WEIGHTS_COUNT), db(BIASES_COUNT);
+                Vector z[LAYER_COUNT]{}, a[LAYER_COUNT]{};
                 for (uintptr_t L { 0 }; L < LAYER_COUNT; L++) {
                         z[L] = Vector(s_n[L]);
                         a[L] = Vector(s_n[L]);
@@ -91,39 +91,29 @@ private:
 
                 // The cost of the last layer neurons is calculated with (ajL - yj) ^ 2,
                 // this mean that the derivative is equal to 2 * (ajL - y)
-                for (uint32_t j { 0 }; j < OUTPUT_NEURONS; j++) {
-                        constexpr uint32_t L { LAYER_COUNT - 1 };
-                        float halfCostDerivative { a[L][j] - y[j] };
-
-                        // Costs of < 'EPSILON' are rounded to 0.0f since they are probably
-                        // rounding errors or insignificant anyway.
-                        if (std::abs(halfCostDerivative) < EPSILON)
-                                halfCostDerivative = 0.0f;
-
-                        costsDerivatives[j] = 2.0f * halfCostDerivative;
+                Vector outputCosts { (a[LAYER_COUNT - 1] - y) * 2.0f };
+                std::memcpy(costsDerivatives, outputCosts.data(), OUTPUT_NEURONS * sizeof(float));
 #ifdef DEBUG_MODE_ENABLED
+                for (uint32_t L { LAYER_COUNT - 1 }, j { 0 }; j < OUTPUT_NEURONS; j++)
                         Log << Logger::pref() << "Cost for output neuron [" << j << "] has value of: " << std::pow(a[L][j] - y[j], 2.0f)
-                            << ", and it's derivative has value of: " << costsDerivatives[j] << ". Formulas: (" << a[L][j] << " - " << y[j]
+                            << ", and it's derivative has value of: " << outputCosts[j] << ". Formulas: (" << a[L][j] << " - " << y[j]
                             << ")^2, 2 * (" << a[L][j] << " - " << y[j] << ").\n";
 #endif // DEBUG_MODE_ENABLED
-                }
 
                 // If all costs are less then 'EPSILON', the function returns all 0s.
-                if (std::all_of(costsDerivatives, costsDerivatives + OUTPUT_NEURONS, [](float v) -> bool { return std::abs(v) < EPSILON; })) {
-#ifdef DEBUG_MODE_ENABLED
-                        Log << Logger::pref() << "All costs have a value of approximately 0. Returning 0 vector.\n";
-#endif // DEBUG_MODE_ENABLED
+                if (std::all_of(costsDerivatives, costsDerivatives + OUTPUT_NEURONS, [](float v) -> bool { return std::abs(v) < EPSILON; }))
                         return Vector(WEIGHTS_COUNT + BIASES_COUNT);
-                }
+
+                // Weights and biases influences
+                Vector result(WEIGHTS_COUNT + BIASES_COUNT);
+                float *const dw { result.data() }, *const db { result.data() + WEIGHTS_COUNT };
 
                 // Cycle trough all layers 'L', reading layer 'L' and 'L-1' going backward
                 for (uint32_t costOffset { 0 }, weightOffset { WEIGHTS_COUNT }, biasesOffset { BIASES_COUNT }, L { LAYER_COUNT - 1 }; L >= 1; L--) {
                         // Since the loop is going backward and changing 2 layers at a time,
                         // the 'L' layer costs have already been calculated in the previous
-                        // iteration or when initializing the cost derivatives. For this
-                        // reason all previous layer infos are declared as const.
+                        // iteration or when initializing the cost derivatives.
                         const uint32_t nL { s_n[L] };
-                        const Vector &zL { z[L] };
                         const float *const aLCosts { costsDerivatives + costOffset };
 
                         const uint32_t nL1 { s_n[L - 1] };
@@ -133,15 +123,16 @@ private:
                         weightOffset -= m_w[L].size();
                         biasesOffset -= m_b[L].size();
 
-                        //  ∂Ce      ∂zjL    ∂ajL   ∂Ce
-                        // ⎯⎯⎯⎯⎯ = ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯
-                        //  ∂bL       ∂bL    ∂zjL   ∂ajL
+                        //  ∂Ce      ∂zjL   ∂ajL   ∂Ce
+                        // ⎯⎯⎯⎯⎯ = ⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯
+                        //  ∂bL      ∂bL    ∂zjL   ∂ajL
                         Vector dbL{};
                         CONSTEXPR_SWITCH(type,
-                                CASE(TANH, dbL = aLCosts * Fast::tanhDerivative(zL)),
-                                CASE(RELU, dbL = aLCosts * Fast::reluDerivative(zL))
+                                // Avoid extra calculations using the already existing tanh values stored in a[L]
+                                CASE(TANH, dbL = Fast::tanhDerivativeFromTanh(a[L]) * aLCosts),
+                                CASE(RELU, dbL = Fast::reluDerivative(z[L]) * aLCosts)
                         );
-                        std::memcpy(db.data() + biasesOffset, dbL.data(), nL * sizeof(float));
+                        std::memcpy(db + biasesOffset, dbL.data(), nL * sizeof(float));
 
                         // The backward step cycles in the opposite way as the forward step,
                         // it cycles 'k' times 'j' times, instead of 'j' times 'k' times.
@@ -162,18 +153,12 @@ private:
                                         //  ∂Ce      ∂zjL    ∂ajL   ∂Ce
                                         // ⎯⎯⎯⎯⎯ = ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯
                                         //  ∂wjkL    ∂wjkL   ∂zjL   ∂ajL
-                                        dw.data()[j * nL1 + k + weightOffset] = a[L - 1][k] * dbL[j];
+                                        dw[j * nL1 + k + weightOffset] = a[L - 1][k] * dbL[j];
                                 }
 
                                 aL1Costs[k] = dCe;
                         }
                 }
-
-                Vector result(WEIGHTS_COUNT + BIASES_COUNT);
-
-                // Merging the vectors
-                std::memcpy(result.data(), dw.data(), WEIGHTS_COUNT * sizeof(float));
-                std::memcpy(result.data() + WEIGHTS_COUNT, db.data(), BIASES_COUNT * sizeof(float));
 
                 return result;
         }

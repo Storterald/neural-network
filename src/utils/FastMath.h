@@ -28,7 +28,7 @@ namespace Fast {
                 // 7th-order approximation (accurate within 0.000085).
                 // https://www.desmos.com/calculator/2myik1oe4x
                 const float x2 { x * x };
-                return  x * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2))) / (135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f)));
+                return x * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2))) / (135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f)));
         }
 
         inline float tanhDerivative(float x)
@@ -62,5 +62,6 @@ namespace Fast {
         Vector reluDerivative(const Vector &vec);
         Vector tanh(const Vector &vec);
         Vector tanhDerivative(const Vector &vec);
+        Vector tanhDerivativeFromTanh(const Vector &tanh);
 
 }

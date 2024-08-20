@@ -96,34 +96,6 @@ Vector Vector::operator+ (
 #endif  // DEBUG_MODE_ENABLED || DISABLE_AVX512
 }
 
-Vector Vector::operator* (
-        float scalar
-) const noexcept {
-#if defined DEBUG_MODE_ENABLED || defined DISABLE_AVX512
-        Vector result(m_size);
-        for (uint32_t i { 0 }; i < m_size; i++)
-                result.m_data[i] = m_data[i] * scalar;
-
-        return result;
-#else
-        const uint32_t END { (m_size / SIMD_WIDTH) * SIMD_WIDTH };
-
-        Vector result(m_size);
-
-        __m512 scalarValues { _mm512_set1_ps(scalar) };
-        for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
-                __m512 values { _mm512_loadu_ps(&m_data[i]) };
-                __m512 mulResult { _mm512_mul_ps(values, scalarValues) };
-                _mm512_storeu_ps(&result.m_data[i], mulResult);
-        }
-
-        for (uint32_t i { END }; i < m_size; i++)
-                result.m_data[i] = m_data[i] * scalar;
-
-        return result;
-#endif  // DEBUG_MODE_ENABLED || DISABLE_AVX512
-}
-
 void Vector::operator+= (
         const Vector &other
 ) const {
@@ -196,27 +168,83 @@ void Vector::operator/= (
 #endif // DEBUG_MODE_ENABLED || DISABLE_AVX512
 }
 
-Vector operator* (const float *array, const Vector &vec)
-{
+Vector Vector::operator* (
+        float scalar
+) const noexcept {
 #if defined DEBUG_MODE_ENABLED || defined DISABLE_AVX512
-        Vector result(vec.m_size);
-        for (uint32_t i { 0 }; i < vec.m_size; i++)
-                result.m_data[i] = vec[i] * array[i];
+        Vector result(m_size);
+        for (uint32_t i { 0 }; i < m_size; i++)
+                result.m_data[i] = m_data[i] * scalar;
 
         return result;
 #else
-        const uint32_t END { (vec.m_size / SIMD_WIDTH) * SIMD_WIDTH };
+        const uint32_t END { (m_size / SIMD_WIDTH) * SIMD_WIDTH };
 
-        Vector result(vec.m_size);
+        Vector result(m_size);
+
+        __m512 scalarValues { _mm512_set1_ps(scalar) };
+        for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
+                __m512 values { _mm512_loadu_ps(&m_data[i]) };
+                __m512 mulResult { _mm512_mul_ps(values, scalarValues) };
+                _mm512_storeu_ps(&result.m_data[i], mulResult);
+        }
+
+        for (uint32_t i { END }; i < m_size; i++)
+                result.m_data[i] = m_data[i] * scalar;
+
+        return result;
+#endif  // DEBUG_MODE_ENABLED || DISABLE_AVX512
+}
+
+Vector Vector::operator* (
+        const float *array
+) const noexcept {
+#if defined DEBUG_MODE_ENABLED || defined DISABLE_AVX512
+        Vector result(m_size);
+        for (uint32_t i { 0 }; i < m_size; i++)
+                result.m_data[i] = m_data[i] * array[i];
+
+        return result;
+#else
+        const uint32_t END { (m_size / SIMD_WIDTH) * SIMD_WIDTH };
+
+        Vector result(m_size);
         for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
                 __m512 values { _mm512_loadu_ps(&array[i]) };
-                __m512 otherValues { _mm512_loadu_ps(&vec.m_data[i]) };
+                __m512 otherValues { _mm512_loadu_ps(&m_data[i]) };
                 __m512 mulResult { _mm512_mul_ps(values, otherValues) };
                 _mm512_storeu_ps(&result.m_data[i], mulResult);
         }
 
-        for (uint32_t i { END }; i < vec.m_size; i++)
-                result.m_data[i] = vec[i] * array[i];
+        for (uint32_t i { END }; i < m_size; i++)
+                result.m_data[i] = m_data[i] * array[i];
+
+        return result;
+#endif // DEBUG_MODE_ENABLED || DISABLE_AVX512
+}
+
+Vector Vector::operator- (
+        const float *array
+) const noexcept {
+#if defined DEBUG_MODE_ENABLED || defined DISABLE_AVX512
+        Vector result(m_size);
+        for (uint32_t i { 0 }; i < m_size; i++)
+                result.m_data[i] = m_data[i] - array[i];
+
+        return result;
+#else
+        const uint32_t END { (m_size / SIMD_WIDTH) * SIMD_WIDTH };
+
+        Vector result(m_size);
+        for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
+                __m512 values { _mm512_loadu_ps(&m_data[i]) };
+                __m512 otherValues { _mm512_loadu_ps(&array[i]) };
+                __m512 addResult { _mm512_sub_ps(values, otherValues) };
+                _mm512_storeu_ps(&result.m_data[i], addResult);
+        }
+
+        for (uint32_t i { END }; i < m_size; i++)
+                result.m_data[i] = m_data[i] + array[i];
 
         return result;
 #endif // DEBUG_MODE_ENABLED || DISABLE_AVX512

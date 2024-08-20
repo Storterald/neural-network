@@ -10,7 +10,6 @@
 
 struct Vector {
         friend class Matrix;
-        friend Vector operator* (const float *array, const Vector &vec);
 
 private:
         uint32_t m_size { 0 };
@@ -33,6 +32,8 @@ public:
         void operator/= (float scalar) const;
 
         Vector operator* (float scalar) const noexcept;
+        Vector operator* (const float *array) const noexcept;
+        Vector operator- (const float *array) const noexcept;
 
         [[nodiscard]] constexpr float operator[] (uint32_t i) const
         {

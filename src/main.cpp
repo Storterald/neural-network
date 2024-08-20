@@ -4,6 +4,7 @@
 
 #include "Network.h"
 #include "utils/Logger.h"
+#include "../decoder/Values.h"
 
 #define __BENCHMARK_START(__NAME__) auto __NAME__ = std::chrono::high_resolution_clock::now()
 #define __BENCHMARK_END(__START_NAME__, __OUT_NAME__) std::chrono::duration<double> __OUT_NAME__ = std::chrono::high_resolution_clock::now() - __START_NAME__;
@@ -17,36 +18,13 @@ std::vector<float> weights([] -> uint32_t {
                 count += SIZES[i] * SIZES[i+1];
 
         return count;
-}(), 0.0f), biases([] -> uint32_t {
+}()), biases([] -> uint32_t {
         uint32_t count { 0 };
         for (uint32_t i { 1 }; i < LAYER_COUNT; i++)
                 count += SIZES[i];
 
         return count;
-}(), 0.0f);
-
-bool loadValues()
-{
-        std::ifstream inFile(BASE_PATH "/decoder/Encoded.nnv", std::ios::binary);
-        if (!inFile)
-                return false;
-
-        // Data sizes
-        uint32_t infos[3]{};
-        inFile.read((char *)&infos, 3 * sizeof(uint32_t));
-
-        // Discard sizes array
-        uint32_t *sizes { new uint32_t[infos[0]]() };
-        inFile.read((char *)sizes, infos[0] * (int64_t)sizeof(uint32_t));
-        delete [] sizes;
-
-        // Read weights and biases array
-        inFile.read((char *)weights.data(), infos[1] * (int64_t)sizeof(float));
-        inFile.read((char *)biases.data(), infos[2] * (int64_t)sizeof(float));
-
-        inFile.close();
-        return true;
-}
+}());
 
 template<bool training>
 bool load(
@@ -73,6 +51,29 @@ bool load(
         }
         inFile.close();
 
+        return true;
+}
+
+bool loadValues()
+{
+        std::ifstream inFile(BASE_PATH "/decoder/Encoded.nnv", std::ios::binary);
+        if (!inFile)
+                return false;
+
+        // Data sizes
+        uint32_t infos[3]{};
+        inFile.read((char *)&infos, 3 * sizeof(uint32_t));
+
+        // Discard sizes array
+        uint32_t *sizes { new uint32_t[infos[0]]() };
+        inFile.read((char *)sizes, infos[0] * (int64_t)sizeof(uint32_t));
+        delete [] sizes;
+
+        // Read weights and biases array
+        inFile.read((char *)weights.data(), infos[1] * (int64_t)sizeof(float));
+        inFile.read((char *)biases.data(), infos[2] * (int64_t)sizeof(float));
+
+        inFile.close();
         return true;
 }
 
@@ -149,11 +150,13 @@ int main()
         constexpr uint32_t INPUT_NEURONS { SIZES[0] };
         constexpr uint32_t OUTPUT_NEURONS { SIZES[LAYER_COUNT - 1] };
 
-        std::vector<float> inputs(SAMPLE_COUNT * INPUT_NEURONS, 0.0f);
-        std::vector<float> outputs(SAMPLE_COUNT * OUTPUT_NEURONS, 0.0f);
-
+        std::vector<float> inputs(SAMPLE_COUNT * INPUT_NEURONS, 0.0f), outputs(SAMPLE_COUNT * OUTPUT_NEURONS, 0.0f);
         if(!load<IN_TRAINING>(SAMPLE_COUNT, INPUT_NEURONS, inputs.data(), OUTPUT_NEURONS, outputs.data()))
                 return EXIT_FAILURE;
+
+        // Initializing values with random generated / decoded ones.
+        weights = Values::weights;
+        biases = Values::biases;
 
         for (uint32_t i { 0 }; i < (IN_TRAINING ? MAX_ITERATIONS : 1); i++)
                 if(!mainImpl<IN_TRAINING, AFK_TRAINING, INPUT_NEURONS, OUTPUT_NEURONS>(
