@@ -271,9 +271,6 @@ public:
                 const float *const weightsData { negativeGradientVector.data() };
                 const float *const biasesData { negativeGradientVector.data() + WEIGHTS_COUNT };
 
-#ifdef DEBUG_MODE_ENABLED
-                Log << Logger::pref() << "Internal values changes:\n";
-#endif // DEBUG_MODE_ENABLED
                 // Changing the weights and biases by the negative of their
                 // influence times the learning rate.
                 for (uint32_t wOffset { 0 }, bOffset { 0 }, L { 1 }; L < LAYER_COUNT; L++) {
@@ -284,13 +281,6 @@ public:
                         std::memcpy(negativeWeightsInfluence.data(), weightsData + wOffset, negativeWeightsInfluence.size() * sizeof(float));
                         wOffset += negativeWeightsInfluence.size();
 
-#ifdef DEBUG_MODE_ENABLED
-                        for (uint32_t i { 0 }; i < m_w[L].size(); i++)
-                                Log << Logger::pref() << "Change of weight wj" << i / m_w[L].width() << "k" << i % m_w[L].width()
-                                    << "L"<< L << " has a changed from: " << std::setprecision(8) << m_w[L].data()[i] << " to: "
-                                    << std::setprecision(8) << m_w[L].data()[i] + negativeWeightsInfluence.data()[i] * LEARNING_RATE<< ".\n";
-#endif // DEBUG_MODE_ENABLED
-
                         m_w[L] += negativeWeightsInfluence * LEARNING_RATE;
 
                         // As explained above, creating a vector with the
@@ -298,13 +288,6 @@ public:
                         Vector negativeBiasesInfluence(s_n[L]);
                         std::memcpy(negativeBiasesInfluence.data(), biasesData + bOffset, negativeBiasesInfluence.size() * sizeof(float));
                         bOffset += negativeBiasesInfluence.size();
-
-#ifdef DEBUG_MODE_ENABLED
-                        for (uint32_t i { 0 }; i < m_b[L].size(); i++)
-                                Log << Logger::pref() << "Change of bias bj" << i << "L" << L
-                                    << " has a changed from: " << std::setprecision(8) << m_b[L][i] << " to: "
-                                    << std::setprecision(8)<< m_b[L][i] + negativeBiasesInfluence[i] * LEARNING_RATE<< ".\n";
-#endif // DEBUG_MODE_ENABLED
 
                         m_b[L] += negativeBiasesInfluence * LEARNING_RATE;
                 }
@@ -314,9 +297,6 @@ public:
                 const char *path
         ) {
                 constexpr uint32_t ENCODE_INFO[3] {LAYER_COUNT, WEIGHTS_COUNT, BIASES_COUNT };
-#ifdef DEBUG_MODE_ENABLED
-                Log << Logger::pref() << "Encoding current values...\n";
-#endif // DEBUG_MODE_ENABLED
 
                 // The file size is equal to the sum of the arrays and their sizes.
                 MultiUseBuffer<
@@ -343,8 +323,5 @@ public:
                 std::ofstream outFile(path, std::ios::binary);
                 outFile.write((char *)buffer.template get<0>(), (int64_t)buffer.size);
                 outFile.close();
-#ifdef DEBUG_MODE_ENABLED
-                Log << Logger::pref() << "Current values encoded.\n";
-#endif // DEBUG_MODE_ENABLED
         }
 };

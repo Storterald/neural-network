@@ -11,7 +11,7 @@
 #define __BENCHMARK_END(__START_NAME__, __OUT_NAME__) std::chrono::duration<double> __OUT_NAME__ = std::chrono::high_resolution_clock::now() - __START_NAME__;
 
 constexpr uint32_t LAYER_COUNT { 4 };
-constexpr uint32_t SIZES[LAYER_COUNT] { 784, 16, 16, 10 };
+constexpr uint32_t SIZES[LAYER_COUNT] { 784, 32, 32, 10 };
 
 std::vector<float> weights([] -> uint32_t {
         uint32_t count { 0 };
@@ -114,9 +114,9 @@ void logComputeInfo(
 
 int main()
 {
-        constexpr bool IN_TRAINING { true };
+        constexpr bool IN_TRAINING { false };
         constexpr bool AFK_TRAINING { true };
-        constexpr uint32_t MAX_ITERATIONS { 50 };
+        constexpr uint32_t MAX_ITERATIONS { 1000 };
 
         constexpr uint32_t SAMPLE_COUNT { IN_TRAINING ? 60000 : 10000 };
         constexpr uint32_t BATCH_SIZE { 30 };
