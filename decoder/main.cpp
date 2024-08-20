@@ -42,7 +42,7 @@ int main()
                    "\n";
 
         // Weights array declaration
-        outFile << "        constexpr std::array<float, " << infos[1] << "U> weights {\n";
+        outFile << "        const std::vector<float> weights {\n";
 
         for (uint32_t i { 0 }; i < infos[1] - 1; i++)
                 outFile << "                " << weights[i] << ",\n";
@@ -51,7 +51,7 @@ int main()
         outFile << "                " << weights[infos[1] - 1] << "\n" << "        };\n\n";
 
         // Biases array declaration
-        outFile << "        constexpr std::array<float, " << infos[2] << "U> biases {\n";
+        outFile << "        const std::vector<float> biases {\n";
 
         for (uint32_t i { 0 }; i < infos[2] - 1; i++)
                 outFile << "                " << biases[i] << ",\n";

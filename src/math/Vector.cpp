@@ -1,7 +1,9 @@
 #include "Vector.h"
 
-#include <immintrin.h>
 #include <cstring>
+#if !defined DEBUG_MODE_ENABLED && !defined DISABLE_AVX512
+#include <immintrin.h>
+#endif
 
 #include "../utils/Logger.h"
 
@@ -86,6 +88,7 @@ Vector Vector::operator+ (
                 __m512 values { _mm512_loadu_ps(&m_data[i]) };
                 __m512 otherValues { _mm512_loadu_ps(&other.m_data[i]) };
                 __m512 addResult { _mm512_add_ps(values, otherValues) };
+
                 _mm512_storeu_ps(&result.m_data[i], addResult);
         }
 
@@ -112,6 +115,7 @@ void Vector::operator+= (
                 __m512 values { _mm512_loadu_ps(&m_data[i]) };
                 __m512 otherValues { _mm512_loadu_ps(&other.m_data[i]) };
                 __m512 addResult { _mm512_add_ps(values, otherValues) };
+
                 _mm512_storeu_ps(&m_data[i], addResult);
         }
 
@@ -136,6 +140,7 @@ void Vector::operator*= (
                 __m512 values { _mm512_loadu_ps(&m_data[i]) };
                 __m512 otherValues { _mm512_loadu_ps(&other.m_data[i]) };
                 __m512 mulResult { _mm512_mul_ps(values, otherValues) };
+
                 _mm512_storeu_ps(&m_data[i], mulResult);
         }
 
@@ -160,6 +165,7 @@ void Vector::operator/= (
         for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
                 __m512 values { _mm512_loadu_ps(&m_data[i]) };
                 __m512 divResult { _mm512_div_ps(values, scalarValues) };
+
                 _mm512_storeu_ps(&m_data[i], divResult);
         }
 
@@ -186,6 +192,7 @@ Vector Vector::operator* (
         for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
                 __m512 values { _mm512_loadu_ps(&m_data[i]) };
                 __m512 mulResult { _mm512_mul_ps(values, scalarValues) };
+
                 _mm512_storeu_ps(&result.m_data[i], mulResult);
         }
 
@@ -210,9 +217,10 @@ Vector Vector::operator* (
 
         Vector result(m_size);
         for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
-                __m512 values { _mm512_loadu_ps(&array[i]) };
-                __m512 otherValues { _mm512_loadu_ps(&m_data[i]) };
+                __m512 values { _mm512_loadu_ps(&m_data[i]) };
+                __m512 otherValues { _mm512_loadu_ps(&array[i]) };
                 __m512 mulResult { _mm512_mul_ps(values, otherValues) };
+
                 _mm512_storeu_ps(&result.m_data[i], mulResult);
         }
 
@@ -240,11 +248,12 @@ Vector Vector::operator- (
                 __m512 values { _mm512_loadu_ps(&m_data[i]) };
                 __m512 otherValues { _mm512_loadu_ps(&array[i]) };
                 __m512 addResult { _mm512_sub_ps(values, otherValues) };
+
                 _mm512_storeu_ps(&result.m_data[i], addResult);
         }
 
         for (uint32_t i { END }; i < m_size; i++)
-                result.m_data[i] = m_data[i] + array[i];
+                result.m_data[i] = m_data[i] - array[i];
 
         return result;
 #endif // DEBUG_MODE_ENABLED || DISABLE_AVX512

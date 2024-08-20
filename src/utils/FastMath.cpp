@@ -1,6 +1,8 @@
 #include "FastMath.h"
 
+#if !defined DEBUG_MODE_ENABLED && !defined DISABLE_AVX512
 #include <immintrin.h>
+#endif
 
 Vector Fast::relu(const Vector &vec)
 {
@@ -98,8 +100,9 @@ Vector Fast::tanh(const Vector &vec)
                 __m512 signs { _mm512_and_ps(x, negative) };
                 __m512 signed_one { _mm512_or_ps(signs, one) };
 
-                // Numerator: x * (135135 + x2 * (17325 + x2 * (378 + x2 * 28)))
-                __m512 numerator { _mm512_fmadd_ps(x2, v378, v17325) };
+                // Numerator: x * (135135 + x2 * (17325 + x2 * (378 + x2)))
+                __m512 numerator { _mm512_add_ps(x2, v378) };
+                numerator = _mm512_fmadd_ps(x2, numerator, v17325);
                 numerator = _mm512_fmadd_ps(x2, numerator, v135135);
                 numerator = _mm512_mul_ps(x, numerator);
 
@@ -177,6 +180,7 @@ Vector Fast::tanhDerivativeFromTanh(const Vector &tanh)
         Vector result(tanh.size());
 
         __m512 one { _mm512_set1_ps(1.0f) };
+
         for (uint32_t i { 0 }; i < END; i += SIMD_WIDTH) {
                 __m512 tanhValues { _mm512_loadu_ps(&tanh.data()[i]) };
                 __m512 tanhDerivative { _mm512_fnmadd_ps(tanhValues, tanhValues, one) };

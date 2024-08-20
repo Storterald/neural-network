@@ -1,6 +1,7 @@
 #include <iostream>
 #include <chrono>
 #include <vector>
+#include <filesystem>
 
 #include "Network.h"
 #include "utils/Logger.h"
@@ -77,72 +78,45 @@ bool loadValues()
         return true;
 }
 
-template<bool training, bool afk, uint32_t INPUT_NEURONS, uint32_t OUTPUT_NEURONS>
-inline bool mainImpl(
-        uint32_t BATCH_SIZE, uint32_t ITERATIONS_COUNT,
-        const float *inputs, const float *outputs
+void logComputeInfo(
+        uint32_t INPUT_NEURONS,
+        uint32_t OUTPUT_NEURONS,
+        const float *inputs,
+        const float *outputs,
+        const Vector &result,
+        uint32_t i
 ) {
-        if constexpr (afk && training) {
-                if (!loadValues())
-                        return false;
-        }
+        Log << Logger::pref<INFO>() << "Iteration [" << i << "]...\n";
 
-        Network<TANH, INPUT_NEURONS, SIZES[1], SIZES[2], OUTPUT_NEURONS> network(weights.data(), biases.data());
+        // Copying output from array to vector for faster math.
+        Vector expectedOutput(OUTPUT_NEURONS);
+        std::memcpy(expectedOutput.data(), outputs + i * OUTPUT_NEURONS, OUTPUT_NEURONS * sizeof(float));
 
-        __BENCHMARK_START(start);
+        Log << Logger::pref() << "Inputs [" << i << "]: ";
+        const float *const ptr { inputs + i * INPUT_NEURONS };
+        for (uint32_t j { 0 }; j < INPUT_NEURONS; j++)
+                Log << ptr[j] << ", ";
+        Log << "\n";
 
-        for (uint32_t i { 0 }; i < ITERATIONS_COUNT; i++) {
-                if constexpr (training) {
-                        network.trainWithBackpropagation(
-                                BATCH_SIZE, inputs + i * BATCH_SIZE * INPUT_NEURONS,
-                                outputs + i * BATCH_SIZE * OUTPUT_NEURONS
-                        );
-                } else {
-                        Log << Logger::pref<INFO>() << "Iteration [" << i << "]...\n";
+        Log << Logger::pref<INFO>() << "Output for iteration [" << i << "]: ";
+        for (uint32_t j { 0 }; j < OUTPUT_NEURONS; j++)
+                Log << result[j] << ", ";
+        Log << "\n";
 
-                        // Copying output from array to vector for faster math.
-                        Vector expectedOutput(OUTPUT_NEURONS);
-                        std::memcpy(expectedOutput.data(), outputs + i * OUTPUT_NEURONS, OUTPUT_NEURONS * sizeof(float));
+        Vector fixedResults { Fast::relu(result) };
 
-                        Log << Logger::pref() << "Inputs [" << i << "]: ";
-                        const float *ptr { inputs + i * INPUT_NEURONS };
-                        for (uint32_t j { 0 }; j < INPUT_NEURONS; j++)
-                                Log << ptr[j] << ", ";
-                        Log << "\n";
-
-                        Vector output { network.compute(ptr) };
-
-                        Log << Logger::pref<INFO>() << "Output for iteration [" << i << "]: ";
-                        for (uint32_t j { 0 }; j < OUTPUT_NEURONS; j++)
-                                Log << output[j] << ", ";
-                        Log << "\n";
-
-                        output = Fast::relu(output);
-
-                        uint32_t index{(uint32_t) std::distance(
-                                expectedOutput.data(), std::find(expectedOutput.data(), expectedOutput.data() + OUTPUT_NEURONS, 1.0f)
-                        )};
-                        Log << Logger::pref<INFO>() << "Correct answer: " << index << ", confidence: " << output[index] << ", best option: "
-                            << (output[index] == *std::max_element(output.data(), output.data() + OUTPUT_NEURONS) ? "true" : "false") << "\n";
-
-                }
-        }
-
-        __BENCHMARK_END(start, time)
-
-        if constexpr (training)
-                network.encode(BASE_PATH "/decoder/Encoded.nnv");
-
-        std::cout << "Computed In " << Logger::fixTime(time.count()) << "\n" << std::flush;
-
-        return true;
+        uint32_t index{(uint32_t) std::distance(
+                expectedOutput.data(), std::find(expectedOutput.data(), expectedOutput.data() + OUTPUT_NEURONS, 1.0f)
+        )};
+        Log << Logger::pref<INFO>() << "Correct answer: " << index << ", confidence: " << result[index] << ", best option: "
+            << (result[index] == *std::max_element(result.data(), result.data() + OUTPUT_NEURONS) ? "true" : "false") << "\n";
 }
 
 int main()
 {
         constexpr bool IN_TRAINING { true };
         constexpr bool AFK_TRAINING { true };
-        constexpr uint32_t MAX_ITERATIONS { 10 };
+        constexpr uint32_t MAX_ITERATIONS { 50 };
 
         constexpr uint32_t SAMPLE_COUNT { IN_TRAINING ? 60000 : 10000 };
         constexpr uint32_t BATCH_SIZE { 30 };
@@ -158,11 +132,38 @@ int main()
         weights = Values::weights;
         biases = Values::biases;
 
-        for (uint32_t i { 0 }; i < (IN_TRAINING ? MAX_ITERATIONS : 1); i++)
-                if(!mainImpl<IN_TRAINING, AFK_TRAINING, INPUT_NEURONS, OUTPUT_NEURONS>(
-                        BATCH_SIZE, ITERATIONS_COUNT, inputs.data(), outputs.data()
-                )) return EXIT_FAILURE;
+        Network<TANH, INPUT_NEURONS, SIZES[1], SIZES[2], OUTPUT_NEURONS> network(weights.data(), biases.data());
 
+        // Encoding values if not already encoded
+        if (!std::filesystem::exists(BASE_PATH "/decoder/Encoded.nnv"))
+                network.encode(BASE_PATH "/decoder/Encoded.nnv");
+
+        for (uint32_t j { 0 }; j < (IN_TRAINING ? MAX_ITERATIONS : 1); j++) {
+                if constexpr (IN_TRAINING && AFK_TRAINING)
+                        if (!loadValues())
+                                return EXIT_FAILURE;
+
+                __BENCHMARK_START(start);
+
+                for (uint32_t i { 0 }; i < ITERATIONS_COUNT; i++) {
+                        if constexpr (IN_TRAINING) {
+                                network.trainWithBackpropagation(BATCH_SIZE,
+                                         inputs.data() + i * BATCH_SIZE * INPUT_NEURONS,
+                                         outputs.data() + i * BATCH_SIZE * OUTPUT_NEURONS
+                                );
+                        } else {
+                                Vector result { network.compute(inputs.data() + i * INPUT_NEURONS) };
+                                logComputeInfo(INPUT_NEURONS, OUTPUT_NEURONS, inputs.data(), outputs.data(), result, i);
+                        }
+                }
+
+                __BENCHMARK_END(start, time)
+
+                if constexpr (IN_TRAINING)
+                        network.encode(BASE_PATH "/decoder/Encoded.nnv");
+
+                std::cout << "Computed In " << Logger::fixTime(time.count()) << "\n" << std::flush;
+        }
 
         return EXIT_SUCCESS;
 }
