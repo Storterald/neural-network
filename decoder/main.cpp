@@ -47,7 +47,7 @@ int main()
         for (uint32_t i { 0 }; i < infos[1] - 1; i++) {
                 outFile << std::setprecision(6) << weights[i];
                 if (weights[i] == 0.0f)
-                        outFile << ", ";
+                        outFile << ".0f, ";
                 else
                         outFile << "f, ";
 
@@ -58,7 +58,7 @@ int main()
         // Weights array end
         outFile << std::setprecision(6) << weights[infos[1] - 1];
         if (weights[infos[1] - 1] == 0.0f)
-                outFile << "\n";
+                outFile << ".0f\n";
         else
                 outFile << "f\n";
         outFile << "        };\n\n";
@@ -69,7 +69,7 @@ int main()
         for (uint32_t i { 0 }; i < infos[2] - 1; i++) {
                 outFile << std::setprecision(6) << biases[i];
                 if (biases[i] == 0.0f)
-                        outFile << ", ";
+                        outFile << ".0f, ";
                 else
                         outFile << "f, ";
 
@@ -80,7 +80,7 @@ int main()
         // biases array end
         outFile << std::setprecision(6) << biases[infos[2] - 1];
         if (biases[infos[2] - 1] == 0.0f)
-                outFile << "\n";
+                outFile << ".0f\n";
         else
                 outFile << "f\n";
         outFile << "        };\n\n";

@@ -5,12 +5,6 @@
 class Matrix {
         friend class Vector;
 
-private:
-        uint32_t m_width { 0 };
-        uint32_t m_height { 0 };
-        uint32_t m_size { 0 };
-        float *m_data { nullptr };
-
 public:
         constexpr Matrix() = default;
         Matrix(uint32_t width, uint32_t height);
@@ -58,4 +52,11 @@ public:
         {
                 return m_size;
         }
+
+private:
+        uint32_t m_width { 0 };
+        uint32_t m_height { 0 };
+        uint32_t m_size { 0 };
+        float *m_data { nullptr };
+
 };

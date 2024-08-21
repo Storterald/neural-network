@@ -1,4 +1,4 @@
-#include "FastMath.h"
+#include "../math/FastMath.h"
 
 #if !defined DEBUG_MODE_ENABLED && !defined DISABLE_AVX512
 #include <immintrin.h>

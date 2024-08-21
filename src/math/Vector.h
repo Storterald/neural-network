@@ -11,10 +11,6 @@
 class Vector {
         friend class Matrix;
 
-private:
-        uint32_t m_size { 0 };
-        float *m_data { nullptr };
-
 public:
         constexpr Vector() = default;
         Vector(uint32_t size);
@@ -53,5 +49,9 @@ public:
         {
                 return m_size;
         }
+
+private:
+        uint32_t m_size { 0 };
+        float *m_data { nullptr };
 
 };
