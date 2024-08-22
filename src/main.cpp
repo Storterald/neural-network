@@ -104,7 +104,7 @@ int main()
                         {FULLY_CONNECTED, TANH, SIZES[1]},
                         {FULLY_CONNECTED, TANH, SIZES[2]},
                         {FULLY_CONNECTED, TANH, SIZES[3]}
-                >network(BASE_PATH "/decoder/Encoded.nnv");
+                >network(BASE_PATH "/Encoded.nnv");
 
                 __BENCHMARK_START(start);
 
@@ -118,7 +118,7 @@ int main()
                 __BENCHMARK_END(start, time)
 
                 if constexpr (IN_TRAINING)
-                        network.encode(BASE_PATH "/decoder/Encoded.nnv");
+                        network.encode(BASE_PATH "/Encoded.nnv");
 
                 std::cout << "Iteration [" << i << "] Computed In " << Logger::fixTime(time.count()) << "\n" << std::flush;
         }
