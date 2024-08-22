@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 
 #include "../math/Vector.h"
@@ -62,6 +63,5 @@ namespace Fast {
         Vector reluDerivative(const Vector &vec);
         Vector tanh(const Vector &vec);
         Vector tanhDerivative(const Vector &vec);
-        Vector tanhDerivativeFromTanh(const Vector &tanh);
 
 }

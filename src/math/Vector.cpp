@@ -14,6 +14,16 @@ Vector::Vector(
         m_data(new float[m_size](/* 0 initialized */))
 {}
 
+Vector::Vector(
+        uint32_t size,
+        const float *data
+) :
+        m_size(size),
+        m_data(new float[m_size])
+{
+        std::memcpy(m_data, data, m_size * sizeof(float));
+}
+
 Vector::Vector(const Vector &other) :
         m_size(other.m_size),
         m_data(new float[m_size])
@@ -77,7 +87,7 @@ Vector Vector::operator+ (
 
         Vector result(m_size);
         for (uint32_t i { 0 }; i < m_size; i++)
-                result.m_data[i] = m_data[i] + other[i];
+                result.m_data[i] = m_data[i] + other.at(i);
 
         return result;
 #else
@@ -86,14 +96,45 @@ Vector Vector::operator+ (
         Vector result(m_size);
         for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
                 const __m512 values { _mm512_loadu_ps(&m_data[i]) };
-                const __m512 otherValues { _mm512_loadu_ps(&other.m_data[i]) };
+                const __m512 otherValues { _mm512_loadu_ps(&other[i]) };
                 const __m512 addResult { _mm512_add_ps(values, otherValues) };
 
                 _mm512_storeu_ps(&result.m_data[i], addResult);
         }
 
         for (uint32_t i { END }; i < m_size; i++)
-                result.m_data[i] = m_data[i] + other[i];
+                result.m_data[i] = m_data[i] + other.at(i);
+
+        return result;
+#endif  // DEBUG_MODE_ENABLED || DISABLE_AVX512
+}
+
+Vector Vector::operator* (
+        const Vector &other
+) const {
+#if defined DEBUG_MODE_ENABLED || defined DISABLE_AVX512
+        if (m_size != other.m_size)
+                throw Logger::fatal_error("Vector lengths must match for multiplication.");
+
+        Vector result(m_size);
+        for (uint32_t i { 0 }; i < m_size; i++)
+                result.m_data[i] = m_data[i] * other.at(i);
+
+        return result;
+#else
+        const uint32_t END { (m_size / SIMD_WIDTH) * SIMD_WIDTH };
+
+        Vector result(m_size);
+        for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
+                const __m512 values { _mm512_loadu_ps(&m_data[i]) };
+                const __m512 otherValues { _mm512_loadu_ps(&other[i]) };
+                const __m512 addResult { _mm512_mul_ps(values, otherValues) };
+
+                _mm512_storeu_ps(&result.m_data[i], addResult);
+        }
+
+        for (uint32_t i { END }; i < m_size; i++)
+                result.m_data[i] = m_data[i] * other.at(i);
 
         return result;
 #endif  // DEBUG_MODE_ENABLED || DISABLE_AVX512
@@ -101,57 +142,82 @@ Vector Vector::operator+ (
 
 void Vector::operator+= (
         const Vector &other
-) const {
+) {
 #if defined DEBUG_MODE_ENABLED || defined DISABLE_AVX512
         if (m_size != other.m_size)
                 throw Logger::fatal_error("Vector lengths must match for addition.");
 
         for (uint32_t i { 0 }; i < m_size; i++)
-                m_data[i] += other[i];
+                m_data[i] += other.at(i);
 #else
         const uint32_t END { (m_size / SIMD_WIDTH) * SIMD_WIDTH };
 
         for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
                 const __m512 values { _mm512_loadu_ps(&m_data[i]) };
-                const __m512 otherValues { _mm512_loadu_ps(&other.m_data[i]) };
+                const __m512 otherValues { _mm512_loadu_ps(&other[i]) };
                 const __m512 addResult { _mm512_add_ps(values, otherValues) };
 
                 _mm512_storeu_ps(&m_data[i], addResult);
         }
 
         for (uint32_t i { END }; i < m_size; i++)
-                m_data[i] += other[i];
+                m_data[i] += other.at(i);
 #endif // DEBUG_MODE_ENABLED || DISABLE_AVX512
 }
 
-void Vector::operator*= (
+void Vector::operator-= (
         const Vector &other
-) const {
+) {
 #if defined DEBUG_MODE_ENABLED || defined DISABLE_AVX512
         if (m_size != other.m_size)
-                throw Logger::fatal_error("Vector lengths must match for multiplication.");
+                throw Logger::fatal_error("Vector lengths must match for subtraction.");
 
         for (uint32_t i { 0 }; i < m_size; i++)
-                m_data[i] *= other[i];
+                m_data[i] -= other.at(i);
 #else
         const uint32_t END { (m_size / SIMD_WIDTH) * SIMD_WIDTH };
 
         for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
                 const __m512 values { _mm512_loadu_ps(&m_data[i]) };
-                const __m512 otherValues { _mm512_loadu_ps(&other.m_data[i]) };
+                const __m512 otherValues { _mm512_loadu_ps(&other[i]) };
+                const __m512 addResult { _mm512_sub_ps(values, otherValues) };
+
+                _mm512_storeu_ps(&m_data[i], addResult);
+        }
+
+        for (uint32_t i { END }; i < m_size; i++)
+                m_data[i] -= other.at(i);
+#endif // DEBUG_MODE_ENABLED || DISABLE_AVX512
+}
+
+void Vector::operator*= (
+        const Vector &other
+) {
+#if defined DEBUG_MODE_ENABLED || defined DISABLE_AVX512
+        if (m_size != other.m_size)
+                throw Logger::fatal_error("Vector lengths must match for multiplication.");
+
+        for (uint32_t i { 0 }; i < m_size; i++)
+                m_data[i] *= other.at(i);
+#else
+        const uint32_t END { (m_size / SIMD_WIDTH) * SIMD_WIDTH };
+
+        for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
+                const __m512 values { _mm512_loadu_ps(&m_data[i]) };
+                const __m512 otherValues { _mm512_loadu_ps(&other[i]) };
                 const __m512 mulResult { _mm512_mul_ps(values, otherValues) };
 
                 _mm512_storeu_ps(&m_data[i], mulResult);
         }
 
         for (uint32_t i { END }; i < m_size; i++)
-                m_data[i] *= other[i];
+                m_data[i] *= other.at(i);
 #endif // DEBUG_MODE_ENABLED || DISABLE_AVX512
 }
 
 void Vector::operator/= (
         float scalar
-) const {
+) {
 #if defined DEBUG_MODE_ENABLED || defined DISABLE_AVX512
         if (scalar == 0.0f)
                 throw Logger::fatal_error("Cannot divide by 0.");

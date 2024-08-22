@@ -7,7 +7,7 @@
 #include <cstdint>
 
 constexpr float EPSILON { 1e-8 };
-constexpr float LEARNING_RATE { 1e-3f };
+constexpr float LEARNING_RATE { 5e-5f };
 constexpr uint32_t SIMD_WIDTH { 16U };
 constexpr uint32_t MAX_FILE_SIZE { (uint32_t)1e9f };
 

@@ -9,7 +9,7 @@ Vector Fast::relu(const Vector &vec)
 #if defined DEBUG_MODE_ENABLED || defined DISABLE_AVX512
         Vector result(vec.size());
         for (uint32_t i { 0 }; i < vec.size(); i++)
-                result.data()[i] = Fast::relu(vec[i]);
+                result[i] = Fast::relu(vec[i]);
 
         return result;
 #else
@@ -19,14 +19,14 @@ Vector Fast::relu(const Vector &vec)
 
         const __m512 zero { _mm512_setzero_ps() };
         for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
-                const __m512 x { _mm512_loadu_ps(&vec.data()[i]) };
+                const __m512 x { _mm512_loadu_ps(&vec[i]) };
                 const __m512 relu { _mm512_max_ps(zero, x) };
 
-                _mm512_storeu_ps(&result.data()[i], relu);
+                _mm512_storeu_ps(&result[i], relu);
         }
 
         for (uint32_t i { END }; i < vec.size(); i++)
-                result.data()[i] = Fast::relu(vec[i]);
+                result[i] = Fast::relu(vec.at(i));
 
         return result;
 #endif // DEBUG_MODE_ENABLED || DISABLE_AVX512
@@ -37,7 +37,7 @@ Vector Fast::reluDerivative(const Vector &vec)
 #if defined DEBUG_MODE_ENABLED || defined DISABLE_AVX512
         Vector result(vec.size());
         for (uint32_t i { 0 }; i < vec.size(); i++)
-                result.data()[i] = Fast::reluDerivative(vec[i]);
+                result[i] = Fast::reluDerivative(vec[i]);
 
         return result;
 #else
@@ -48,15 +48,15 @@ Vector Fast::reluDerivative(const Vector &vec)
         const __m512 zero { _mm512_setzero_ps() };
         const __m512 one { _mm512_set1_ps(1.0f) };
         for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
-                const __m512 x { _mm512_loadu_ps(&vec.data()[i]) };
+                const __m512 x { _mm512_loadu_ps(&vec[i]) };
                 const __mmask16 mask { _mm512_cmp_ps_mask(x, zero, _CMP_GT_OQ) }; // Compare x > 0
                 const __m512 reluDerivative { _mm512_mask_blend_ps(mask, zero, one) };
 
-                _mm512_storeu_ps(&result.data()[i], reluDerivative);
+                _mm512_storeu_ps(&result[i], reluDerivative);
         }
 
         for (uint32_t i { END }; i < vec.size(); i++)
-                result.data()[i] = Fast::reluDerivative(vec[i]);
+                result[i] = Fast::reluDerivative(vec.at(i));
 
         return result;
 #endif // DEBUG_MODE_ENABLED || DISABLE_AVX512
@@ -67,7 +67,7 @@ Vector Fast::tanh(const Vector &vec)
 #if defined DEBUG_MODE_ENABLED || defined DISABLE_AVX512
         Vector result(vec.size());
         for (std::size_t i { 0 }; i < vec.size(); i++)
-                result.data()[i] = Fast::tanh(vec[i]);
+                result[i] = Fast::tanh(vec[i]);
 
         return result;
 #else
@@ -89,7 +89,7 @@ Vector Fast::tanh(const Vector &vec)
         const __m512 v135135 { _mm512_set1_ps(135135.0f) };
 
         for (std::size_t i = 0; i < END; i += SIMD_WIDTH) {
-                const __m512 x { _mm512_loadu_ps(&vec.data()[i]) };
+                const __m512 x { _mm512_loadu_ps(&vec[i]) };
                 const __m512 x2 { _mm512_mul_ps(x, x) };
 
                 // Check if |x| >= 6.0
@@ -112,11 +112,11 @@ Vector Fast::tanh(const Vector &vec)
                 __m512 tanh { _mm512_div_ps(numerator, denominator) };
                 tanh = _mm512_mask_blend_ps(mask, tanh, signed_one);
 
-                _mm512_storeu_ps(&result.data()[i], tanh);
+                _mm512_storeu_ps(&result[i], tanh);
         }
 
         for (std::size_t i { END }; i < vec.size(); i++)
-                result.data()[i] = Fast::tanh(vec[i]);
+                result[i] = Fast::tanh(vec.at(i));
 
         return result;
 #endif // DEBUG_MODE_ENABLED || DISABLE_AVX512
@@ -127,7 +127,7 @@ Vector Fast::tanhDerivative(const Vector &vec)
 #if defined DEBUG_MODE_ENABLED || defined DISABLE_AVX512
         Vector result(vec.size());
         for (uint32_t i { 0 }; i < vec.size(); i++)
-                result.data()[i] = Fast::tanhDerivative(vec[i]);
+                result[i] = Fast::tanhDerivative(vec[i]);
 
         return result;
 #else
@@ -142,8 +142,8 @@ Vector Fast::tanhDerivative(const Vector &vec)
         const __m512 one { _mm512_set1_ps(1.0f) };
 
         for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
-                const __m512 values { _mm512_loadu_ps(&vec.data()[i]) };
-                const __m512 tanhValues { _mm512_loadu_ps(&tanh.data()[i]) };
+                const __m512 values { _mm512_loadu_ps(&vec[i]) };
+                const __m512 tanhValues { _mm512_loadu_ps(&tanh[i]) };
                 __m512 tanhDerivative { _mm512_fnmadd_ps(tanhValues, tanhValues, one) };
 
                 // Check if |x| > 4.9
@@ -154,39 +154,11 @@ Vector Fast::tanhDerivative(const Vector &vec)
                 const __mmask16 mask_zero { _mm512_cmp_ps_mask(values, zero, _CMP_EQ_OQ) };
                 tanhDerivative = _mm512_mask_blend_ps(mask_zero, tanhDerivative, one);
 
-                _mm512_storeu_ps(&result.data()[i], tanhDerivative);
+                _mm512_storeu_ps(&result[i], tanhDerivative);
         }
 
         for (uint32_t i { END }; i < vec.size(); i++)
-                result.data()[i] = Fast::tanhDerivative(vec[i]);
-
-        return result;
-#endif // DEBUG_MODE_ENABLED || DISABLE_AVX512
-}
-
-Vector Fast::tanhDerivativeFromTanh(const Vector &tanh)
-{
-#if defined DEBUG_MODE_ENABLED || defined DISABLE_AVX512
-        Vector result(tanh.size());
-        for (uint32_t i { 0 }; i < tanh.size(); i++)
-                result.data()[i] = 1.0f - (tanh[i] * tanh[i]);
-
-        return result;
-#else
-        const uint32_t END { (tanh.size() / SIMD_WIDTH) * SIMD_WIDTH };
-
-        Vector result(tanh.size());
-
-        const __m512 one { _mm512_set1_ps(1.0f) };
-        for (uint32_t i { 0 }; i < END; i += SIMD_WIDTH) {
-                const __m512 tanhValues { _mm512_loadu_ps(&tanh.data()[i]) };
-                const __m512 tanhDerivative { _mm512_fnmadd_ps(tanhValues, tanhValues, one) };
-
-                _mm512_storeu_ps(&result.data()[i], tanhDerivative);
-        }
-
-        for (uint32_t i { END }; i < tanh.size(); i++)
-                result.data()[i] = 1.0f - tanh[i] * tanh[i];
+                result[i] = Fast::tanhDerivative(vec.at(i));
 
         return result;
 #endif // DEBUG_MODE_ENABLED || DISABLE_AVX512

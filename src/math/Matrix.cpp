@@ -136,6 +136,31 @@ void Matrix::operator+= (
 #endif // DEBUG_MODE_ENABLED || DISABLE_AVX512
 }
 
+void Matrix::operator-= (
+        const Matrix &other
+) {
+#if defined DEBUG_MODE_ENABLED || defined DISABLE_AVX512
+        if (m_width != other.m_width || m_height != other.m_height)
+                throw Logger::fatal_error("Matrix dimensions must match for addition.");
+
+        for (uint32_t i { 0 }; i < m_size; i++)
+                m_data[i] -= other.m_data[i];
+#else
+        const uint32_t END { (m_width * m_height / SIMD_WIDTH) * SIMD_WIDTH };
+
+        for (uint32_t i { 0 }; i < END; i+=SIMD_WIDTH) {
+                const __m512 values { _mm512_loadu_ps(&m_data[i]) };
+                const __m512 otherValues { _mm512_loadu_ps(&other.m_data[i]) };
+                const __m512 addResult { _mm512_sub_ps(values, otherValues) };
+
+                _mm512_storeu_ps(&m_data[i], addResult);
+        }
+
+        for (uint32_t i { END }; i < m_width * m_height; i++)
+                m_data[i] -= other.m_data[i];
+#endif // DEBUG_MODE_ENABLED || DISABLE_AVX512
+}
+
 Vector Matrix::operator* (
         const Vector &vec
 ) const {
@@ -146,7 +171,7 @@ Vector Matrix::operator* (
         Vector result(m_height);
         for (uint32_t i { 0 }; i < m_height; i++)
                 for (uint32_t j { 0 }; j < m_width; j++)
-                        result.m_data[i] += this->operator[](i)[j] * vec[j];
+                        result.m_data[i] += m_data[i * m_width + j] * vec.at(j);
 
         return result;
 #else
@@ -167,7 +192,7 @@ Vector Matrix::operator* (
                 result.m_data[i] = _mm512_reduce_add_ps(sum);
 
                 for (uint32_t j { END }; j < m_width; j++)
-                        result.m_data[i] += m_data[i * m_width * j] * vec[j];
+                        result.m_data[i] += m_data[i * m_width * j] * vec.at(j);
         }
 
         return result;

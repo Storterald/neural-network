@@ -17,6 +17,7 @@ public:
         Matrix &operator= (Matrix &&other) noexcept;
 
         void operator+= (const Matrix &other);
+        void operator-= (const Matrix &other);
 
         // Matrix product visualizer:
         // http://matrixmultiplication.xyz
@@ -24,12 +25,17 @@ public:
         Matrix operator* (float scalar) const noexcept;
 
         // Returns a pointer to the start of the given row
-        constexpr float *operator[] (uint32_t row) const
+        constexpr float *operator[] (uint32_t row)
         {
 #ifdef DEBUG_MODE_ENABLED
                 if (row >= m_height)
                         throw Logger::fatal_error("[] Matrix access index out of bounds.");
 #endif // DEBUG_MODE_ENABLED
+                return m_data + row * m_width;
+        }
+
+        [[nodiscard]] constexpr const float *at(uint32_t row) const
+        {
                 return m_data + row * m_width;
         }
 
