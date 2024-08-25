@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fstream>
+#include <mutex>
 #include <string>
 
 #include "../Base.h"
@@ -15,12 +16,6 @@ enum LogType{
 // Simple logger instead of using console. Uses macro BASE_PATH
 // defined in CMake as ${CMAKE_HOME_PATH}
 extern class Logger {
-private:
-        uint32_t fileCount { 0 };
-        std::ofstream file;
-
-        static std::string _time();
-
 public:
         Logger();
         ~Logger();
@@ -45,7 +40,7 @@ public:
         static std::string fixTime(double t);
 
         struct fatal_error final : std::exception {
-                explicit fatal_error(const char* message);
+                explicit fatal_error(const std::string &message);
         };
 
         template<typename T>
@@ -60,5 +55,11 @@ public:
                 file << value;
                 return file;
         }
+
+private:
+        uint32_t fileCount { 0 };
+        std::ofstream file;
+
+        static std::string _time();
 
 } Log;

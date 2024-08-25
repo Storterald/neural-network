@@ -42,7 +42,12 @@ public:
 
                 // If there are less samples than threads allocate
                 // sampleCount threads.
+#ifdef DEBUG_MODE_ENABLED
+                constexpr uint32_t THREAD_COUNT { 1 };
+#else
                 const uint32_t THREAD_COUNT { std::min(std::thread::hardware_concurrency(), sampleCount) };
+#endif // DEBUG_MODE_ENABLED
+
                 const uint32_t BATCH_SIZE { sampleCount / THREAD_COUNT };
                 const uint32_t REMAINDER { sampleCount % THREAD_COUNT };
 
@@ -72,7 +77,7 @@ public:
                 // encode function must write binary.
                 std::ofstream file(path, std::ios::binary);
                 if (!file)
-                        throw Logger::fatal_error("Error opening file");
+                        throw Logger::fatal_error("Error opening file.");
 
                 // Calls the encode function on all layers, the encode
                 // function uses std::ofstream::write, writing binary and
@@ -120,7 +125,13 @@ private:
 
                 // The cost of the last layer neurons is calculated with (ajL - yj) ^ 2,
                 // this mean that the derivative is equal to 2 * (ajL - y)
+#ifdef USE_CUDA
+                constexpr uint32_t OUTPUT_NEURONS { s_n[LAYER_COUNT - 1] };
+                costs[LAYER_COUNT - 2] = (a[LAYER_COUNT - 1] - Vector(OUTPUT_NEURONS, y)) * 2.0f;
+#else
                 costs[LAYER_COUNT - 2] = (a[LAYER_COUNT - 1] - y) * 2.0f;
+#endif // USE_CUDA
+
 #ifdef DEBUG_MODE_ENABLED
                 for (uint32_t L { LAYER_COUNT - 1 }, j { 0 }; j < OUTPUT_NEURONS; j++)
                         Log << Logger::pref() << "Cost for output neuron [" << j << "] has value of: " << std::pow(a[L].at(j) - y[j], 2.0f)

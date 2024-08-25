@@ -10,6 +10,12 @@ constexpr float EPSILON { 1e-8 };
 constexpr float LEARNING_RATE { 5e-5f };
 constexpr uint32_t SIMD_WIDTH { 16U };
 constexpr uint32_t MAX_FILE_SIZE { (uint32_t)1e9f };
+constexpr uint32_t BLOCK_BITSHIFT { 8 };
+constexpr uint32_t BLOCK_SIZE { 1 << BLOCK_BITSHIFT };
+
+// CUDA cannot compile with Zc:preprocessor
+// This stops the compilation here only when compiling CUDA files
+#ifndef __CUDACC__
 
 // Allows a macro to expand 342 times. Credit:
 // https://www.scs.stanford.edu/~dm/blog/va-opt.html
@@ -41,3 +47,5 @@ constexpr uint32_t MAX_FILE_SIZE { (uint32_t)1e9f };
         __VA_OPT__(else __CONSTEXPR_SWITCH2 PARENS (var, __VA_ARGS__))
 
 #define __CONSTEXPR_SWITCH2() __CONSTEXPR_SWITCH
+
+#endif // __CUDACC__

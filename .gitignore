@@ -1,6 +1,7 @@
 # IDEs directories
 .idea/
 .vscode/
+.vs/
 
 # build
 build/
@@ -10,7 +11,9 @@ bin/
 logs/
 
 # files
-decoder/*.h
 **/*.csv
 **/*.nntv
 **/*.nnv
+
+# Nvidia project
+NeuralNetwork.ncu-proj

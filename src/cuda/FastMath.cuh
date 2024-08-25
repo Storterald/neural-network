@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vector.h"
+#include "Vector.cuh"
 
 namespace Fast {
 

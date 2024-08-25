@@ -3,6 +3,7 @@
 #include <format>
 #include <ctime>
 #include <cmath>
+#include <mutex>
 
 Logger Log{};
 
@@ -49,8 +50,8 @@ std::string Logger::_time()
 }
 
 Logger::fatal_error::fatal_error(
-        const char *message
+        const std::string &message
 ) {
         // Flush forces to print everything that has not yet been printed.
-        Log.file << Logger::pref<FATAL>() + message << std::flush;
+        Log.file << Logger::pref<FATAL>() + message << "\n" << std::flush;
 }
