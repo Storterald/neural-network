@@ -1,10 +1,6 @@
 #pragma once
 
-#include "../Base.h"
-
-#ifdef DEBUG_MODE_ENABLED
-#include "../utils/Logger.h"
-#endif // DEBUG_MODE_ENABLED
+#include "Base.h"
 
 class Vector {
         friend class Matrix;

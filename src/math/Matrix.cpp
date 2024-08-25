@@ -1,10 +1,6 @@
 #include "Matrix.h"
 
-#if !defined DEBUG_MODE_ENABLED && !defined DISABLE_AVX512
-#include <immintrin.h>
-#endif
-
-#include "../utils/Logger.h"
+#include <cstring>
 
 Matrix::Matrix(
         uint32_t width,

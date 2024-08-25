@@ -1,9 +1,5 @@
 #include "../math/FastMath.h"
 
-#if !defined DEBUG_MODE_ENABLED && !defined DISABLE_AVX512
-#include <immintrin.h>
-#endif
-
 #include <algorithm>
 #include <cmath>
 
@@ -58,7 +54,7 @@ Vector Fast::relu(const Vector &vec)
 #if defined DEBUG_MODE_ENABLED || defined DISABLE_AVX512
         Vector result(vec.size());
         for (uint32_t i { 0 }; i < vec.size(); i++)
-                result[i] = std::max(0.0f, vec[i]);
+                result[i] = std::max(0.0f, vec.at(i));
 
         return result;
 #else
@@ -86,7 +82,7 @@ Vector Fast::reluDerivative(const Vector &vec)
 #if defined DEBUG_MODE_ENABLED || defined DISABLE_AVX512
         Vector result(vec.size());
         for (uint32_t i { 0 }; i < vec.size(); i++)
-                result[i] = Fast::reluDerivative(vec[i]);
+                result[i] = vec.at(i) >= 0.0f ? 1.0f : 0.0f;
 
         return result;
 #else
@@ -116,7 +112,7 @@ Vector Fast::tanh(const Vector &vec)
 #if defined DEBUG_MODE_ENABLED || defined DISABLE_AVX512
         Vector result(vec.size());
         for (std::size_t i { 0 }; i < vec.size(); i++)
-                result[i] = Fast::tanh(vec[i]);
+                result[i] = Fast::tanh(vec.at(i));
 
         return result;
 #else
@@ -176,7 +172,7 @@ Vector Fast::tanhDerivative(const Vector &vec)
 #if defined DEBUG_MODE_ENABLED || defined DISABLE_AVX512
         Vector result(vec.size());
         for (uint32_t i { 0 }; i < vec.size(); i++)
-                result[i] = Fast::tanhDerivative(vec[i]);
+                result[i] = Fast::tanhDerivative(vec.at(i));
 
         return result;
 #else

@@ -1,11 +1,6 @@
 #include "Vector.h"
 
 #include <cstring>
-#if !defined DEBUG_MODE_ENABLED && !defined DISABLE_AVX512
-#include <immintrin.h>
-#endif
-
-#include "../utils/Logger.h"
 
 Vector::Vector(
         uint32_t size
