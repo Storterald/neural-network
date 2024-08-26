@@ -9,10 +9,12 @@ option(COMPILE_WITH_CUDA "Compile with CUDA" OFF)
 
 # Targets
 set(MNIST mnist)
+set(DECODER decoder)
 
 # Directories
 set(SRC_DIR ${CMAKE_HOME_DIRECTORY}/src)
 set(MNIST_DIR ${CMAKE_HOME_DIRECTORY}/mnist)
+set(DECODER_DIR ${CMAKE_HOME_DIRECTORY}/decoder)
 
 # Required for the CONSTEXPR_SWITCH macro
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:preprocessor")
@@ -51,6 +53,7 @@ endif ()
 # Executables
 add_executable(${PROJECT_NAME} ${SOURCES})
 add_executable(${MNIST} ${MNIST_DIR}/main.cpp)
+add_executable(${DECODER} ${DECODER_DIR}/main.cpp)
 
 if (COMPILE_WITH_CUDA)
         # Let CUDA compile only CUDA files
@@ -64,3 +67,4 @@ endif ()
 # Compile definitions
 target_compile_definitions(${PROJECT_NAME} PRIVATE BASE_PATH="${CMAKE_HOME_DIRECTORY}")
 target_compile_definitions(${MNIST} PRIVATE BASE_PATH="${MNIST_DIR}")
+target_compile_definitions(${DECODER} PRIVATE BASE_PATH="${CMAKE_HOME_DIRECTORY}")

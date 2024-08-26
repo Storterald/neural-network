@@ -1,9 +1,11 @@
 #pragma once
 
 #ifdef USE_CUDA
-#include "../cuda/Vector.cuh"
+#include "../cuda/Matrix.cuh"
+#include "../cuda/FastMath.cuh"
 #else
-#include "../math/Vector.h"
+#include "../math/Matrix.h"
+#include "../math/FastMath.h"
 #endif
 
 #include "../enums/FunctionType.h"
@@ -13,7 +15,8 @@ struct LayerCreateInfo {
         LayerType type;
         FunctionType functionType;
         uint32_t neuronCount;
-};
+
+}; // struct LayerCreateInfo
 
 // The interface ILayer, all layers inherit this.
 class ILayer {
@@ -28,8 +31,28 @@ public:
 
 }; // interface ILayer
 
-// Generic implementation of the Layer class
-template<LayerType, FunctionType> class Layer : public ILayer {
-        Layer(uint32_t previousLayerSize, uint32_t layerSize);
-        explicit Layer(std::ifstream &encodedData);
-};
+inline Vector ApplyActivation(FunctionType functionType, const Vector &input) {
+        switch (functionType) {
+                case TANH:
+                        return Fast::tanh(input);
+                case RELU:
+                        return Fast::relu(input);
+        }
+
+        // Unreachable, the switch above should cover all possible
+        // options present in the FunctionType enum.
+        return {};
+}
+
+inline Vector ApplyActivationDerivative(FunctionType functionType, const Vector &input) {
+        switch (functionType) {
+                case TANH:
+                        return Fast::tanhDerivative(input);
+                case RELU:
+                        return Fast::reluDerivative(input);
+        }
+
+        // Unreachable, the switch above should cover all possible
+        // options present in the FunctionType enum.
+        return {};
+}
