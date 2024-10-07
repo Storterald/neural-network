@@ -8,6 +8,7 @@ build/
 
 # other
 bin/
+libs/
 logs/
 
 # files

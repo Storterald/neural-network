@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.28)
 project(NeuralNetwork LANGUAGES CXX CUDA)
 
+# Flags
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:preprocessor")
 
 # If the Network uses CUDA or not.
 # This option should be disabled with small networks.
@@ -11,13 +13,16 @@ option(COMPILE_WITH_CUDA "Compile with CUDA" OFF)
 set(MNIST mnist)
 set(DECODER decoder)
 
-# Directories
-set(SRC_DIR ${CMAKE_HOME_DIRECTORY}/src)
-set(MNIST_DIR ${CMAKE_HOME_DIRECTORY}/mnist)
-set(DECODER_DIR ${CMAKE_HOME_DIRECTORY}/decoder)
+# ----------------------------------------------------------------------------------------------------------------------
+# DIRECTORIES
+# ----------------------------------------------------------------------------------------------------------------------
 
-# Required for the CONSTEXPR_SWITCH macro
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:preprocessor")
+set(SRC_DIR "${CMAKE_HOME_DIRECTORY}/src")
+set(DECODER_DIR "${CMAKE_HOME_DIRECTORY}/decoder")
+set(LIBS_DIR "${CMAKE_HOME_DIRECTORY}/libs")
+set(CMAKE_UTILS_DIR "${LIBS_DIR}/CMakeUtils")
+set(OPENCV_DIR "${LIBS_DIR}/opencv")
+set(MNIST_DIR "${CMAKE_HOME_DIRECTORY}/mnist")
 
 # Network sources
 if (COMPILE_WITH_CUDA)
@@ -39,32 +44,76 @@ if (COMPILE_WITH_CUDA)
 
         # Don't include math/*.cpp
         file(GLOB SOURCES
-                ${SRC_DIR}/*.cpp
-                ${SRC_DIR}/utils/*.cpp
-                ${SRC_DIR}/cuda/*.cu
+                "${SRC_DIR}/*.cpp"
+                "${SRC_DIR}/utils/*.cpp"
+                "${SRC_DIR}/cuda/*.cu"
         )
 else ()
         message(STATUS "Compiling without CUDA sources.")
         file(GLOB_RECURSE SOURCES
-                ${SRC_DIR}/*.cpp
+                "${SRC_DIR}/*.cpp"
         )
 endif ()
 
-# Executables
+# ----------------------------------------------------------------------------------------------------------------------
+# PROJECT
+# ----------------------------------------------------------------------------------------------------------------------
+
+# Network
 add_executable(${PROJECT_NAME} ${SOURCES})
+target_compile_definitions(${PROJECT_NAME} PRIVATE BASE_PATH="${CMAKE_HOME_DIRECTORY}")
+
+# Mnist dataset encoder
 add_executable(${MNIST} ${MNIST_DIR}/main.cpp)
+target_compile_definitions(${MNIST} PRIVATE BASE_PATH="${MNIST_DIR}")
+
+# Encoded file visualiser
 add_executable(${DECODER} ${DECODER_DIR}/main.cpp)
+target_compile_definitions(${DECODER} PRIVATE BASE_PATH="${CMAKE_HOME_DIRECTORY}")
+
+# ----------------------------------------------------------------------------------------------------------------------
+# TARGET OPTIONS
+# ----------------------------------------------------------------------------------------------------------------------
+
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+        target_compile_definitions(${PROJECT_NAME} PUBLIC DEBUG_MODE_ENABLED)
+endif ()
 
 if (COMPILE_WITH_CUDA)
         # Let CUDA compile only CUDA files
         set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
         # Include headers and link static library
-        target_include_directories(${PROJECT_NAME} PRIVATE $ENV{CUDA_PATH}/Include)
-        target_link_libraries(${PROJECT_NAME} PRIVATE $ENV{CUDA_PATH}/Lib/x64/cudadevrt.lib)
+        target_include_directories(${PROJECT_NAME} PRIVATE "$ENV{CUDA_PATH}/Include")
+        target_link_libraries(${PROJECT_NAME} PRIVATE "$ENV{CUDA_PATH}/Lib/x64/cudadevrt.lib")
 endif ()
 
-# Compile definitions
-target_compile_definitions(${PROJECT_NAME} PRIVATE BASE_PATH="${CMAKE_HOME_DIRECTORY}")
-target_compile_definitions(${MNIST} PRIVATE BASE_PATH="${MNIST_DIR}")
-target_compile_definitions(${DECODER} PRIVATE BASE_PATH="${CMAKE_HOME_DIRECTORY}")
+# ----------------------------------------------------------------------------------------------------------------------
+# DEPENDENCIES
+# ----------------------------------------------------------------------------------------------------------------------
+
+# Fetch CMake Utils
+if (NOT EXISTS ${CMAKE_UTILS_DIR})
+        execute_process(
+                COMMAND git clone "https://github.com/Storterald/CMake-Utils" --branch "main" --single-branch ${CMAKE_UTILS_DIR}
+        )
+else ()
+        execute_process(
+                COMMAND git pull "https://github.com/Storterald/CMake-Utils"
+                WORKING_DIRECTORY ${CMAKE_UTILS_DIR}
+        )
+endif ()
+include("${CMAKE_UTILS_DIR}/get_library.cmake")
+
+build_latest_release(
+        TARGET ${PROJECT_NAME}
+        PROFILE_NAME "opencv"
+        REPOSITORY_NAME "opencv"
+        DIRECTORY ${LIBS_DIR}
+        INSTALL_ENABLED TRUE
+        FETCH_NEW FALSE
+)
+target_include_directories(${PROJECT_NAME} PRIVATE ${OPENCV_DIR}/include)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${OPENCV_DIR}/x64/vc17/lib/opencv_core4100.lib)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${OPENCV_DIR}/x64/vc17/lib/opencv_highgui4100.lib)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${OPENCV_DIR}/x64/vc17/lib/opencv_imgproc4100.lib)
