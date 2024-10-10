@@ -1,5 +1,7 @@
 #pragma once
 
+#include <initializer_list>
+
 #include "Base.h"
 
 class Vector {
@@ -7,7 +9,8 @@ class Vector {
 
 public:
         constexpr Vector() = default;
-        explicit Vector(uint32_t size);
+        explicit Vector(uint32_t size, float value = 0.0f);
+        Vector(const std::initializer_list<float> &values);
         Vector(uint32_t size, const float *data);
         Vector(const Vector &other);
         Vector(Vector &&other) noexcept;
@@ -17,7 +20,9 @@ public:
         Vector &operator= (Vector &&other) noexcept;
 
         [[nodiscard]] Vector operator+ (const Vector &other) const;
+        [[nodiscard]] Vector operator- (const Vector &other) const;
         [[nodiscard]] Vector operator* (const Vector &other) const;
+        [[nodiscard]] Vector operator/ (const Vector &other) const;
 
         void operator+= (const Vector &other);
         void operator-= (const Vector &other);
@@ -29,6 +34,8 @@ public:
         [[nodiscard]] Vector operator* (const float *array) const noexcept;
         [[nodiscard]] Vector operator- (const float *array) const noexcept;
 
+        [[nodiscard]] bool operator== (const Vector &vec) const noexcept;
+
         [[nodiscard]] inline uint32_t size() const noexcept
         {
                 return m_size;
@@ -37,6 +44,16 @@ public:
         [[nodiscard]] inline float *data() const noexcept
         {
                 return m_data;
+        }
+
+        [[nodiscard]] inline float *begin() const noexcept
+        {
+                return m_data;
+        }
+
+        [[nodiscard]] inline float *end() const noexcept
+        {
+                return m_data + m_size;
         }
 
         [[nodiscard]] inline float &operator[] (uint32_t i) const {
@@ -61,3 +78,15 @@ private:
         float *m_data { nullptr };
 
 };
+
+#ifdef DEBUG_MODE_ENABLED
+inline std::ostream &operator<< (std::ostream &os, const Vector &vec)
+{
+        std::string str;
+        for (uint32_t i { 0 }; i < vec.size() - 1; ++i)
+                str += std::to_string(vec.at(i)) + ", ";
+
+        os << "[" << str << vec.at(vec.size() - 1) << "]";
+        return os;
+}
+#endif // DEBUG_MODE_ENABLED

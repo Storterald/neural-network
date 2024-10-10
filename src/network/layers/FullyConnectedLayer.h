@@ -8,10 +8,10 @@
 class FullyConnectedLayer final : public ILayer {
 public:
         FullyConnectedLayer(
-                        uint32_t previousLayerSize,
-                        uint32_t layerSize,
-                        FunctionType functionType
-                );
+                uint32_t previousLayerSize,
+                uint32_t layerSize,
+                FunctionType functionType
+        );
 
         FullyConnectedLayer(
                 uint32_t previousLayerSize,

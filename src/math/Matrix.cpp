@@ -4,12 +4,13 @@
 
 Matrix::Matrix(
         uint32_t width,
-        uint32_t height
+        uint32_t height,
+        float value
 )  :
         m_width(width),
         m_height(height),
         m_size(width * height),
-        m_data(new float[m_size](/* 0 initialized */))
+        m_data(new float[m_size](value))
 {}
 
 Matrix::Matrix(const Matrix &other) :
@@ -21,7 +22,7 @@ Matrix::Matrix(const Matrix &other) :
         std::memcpy(m_data, other.m_data, m_size * sizeof(float));
 }
 
-Matrix::Matrix(Matrix &&other) noexcept  :
+Matrix::Matrix(Matrix &&other) noexcept :
         m_width(other.m_width),
         m_height(other.m_height),
         m_size(other.m_size),

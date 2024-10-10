@@ -1,7 +1,6 @@
 #pragma once
 
 #include <fstream>
-#include <mutex>
 #include <string>
 
 #include "../Base.h"
@@ -15,7 +14,7 @@ enum LogType{
 
 // Simple logger instead of using console. Uses macro BASE_PATH
 // defined in CMake as ${CMAKE_HOME_PATH}
-extern class Logger {
+class Logger {
 public:
         Logger();
         ~Logger();
@@ -47,19 +46,21 @@ public:
         std::ofstream &operator<< (const T &value)
         {
                 // Limits the log file size to avoid IDEs crashes.
-                if (file.tellp() >= MAX_FILE_SIZE) {
-                        file.close();
-                        file = std::ofstream(BASE_PATH "/logs/latest-" + std::to_string(++fileCount) + ".log");
+                if (m_file.tellp() >= MAX_FILE_SIZE) {
+                        m_file.close();
+                        m_file = std::ofstream(BASE_PATH "/logs/latest-" + std::to_string(++m_fileCount) + ".log");
                 }
 
-                file << value;
-                return file;
+                m_file << value;
+                return m_file;
         }
 
 private:
-        uint32_t fileCount { 0 };
-        std::ofstream file;
+        uint32_t m_fileCount { 0 };
+        // Logging to a file is usually way faster and more efficient than logging to console.
+        // https://stackoverflow.com/questions/6338812/printing-to-the-console-vs-writing-to-a-file-speed.
+        std::ofstream m_file;
 
         static std::string _time();
 
-} Log;
+} extern Log;

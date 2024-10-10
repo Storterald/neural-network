@@ -5,9 +5,13 @@
 #include "ILayer.h"
 
 class Network {
-        friend struct Train;
+        friend class Train;
 
 public:
+        const uint32_t m_layerCount;
+        const uint32_t m_inputSize;
+        const uint32_t m_outputSize;
+
         Network(
                 uint32_t inputSize,
                 uint32_t layerCount,
@@ -17,15 +21,21 @@ public:
 
         ~Network();
 
-        inline Vector compute(
-                const float *inputs
+        [[nodiscard]] inline Vector forward(
+                Vector aL
         ) const {
-                Vector aL(m_n[0], inputs);
-
                 for (uint32_t L { 0 }; L < m_layerCount - 1; L++)
                         aL = m_L[L]->forward(aL);
 
                 return aL;
+        }
+
+        inline void backward(
+                Vector dC,
+                const Vector *a
+        ) {
+                for (int32_t L { (int32_t)m_layerCount - 2 }; L >= 0; L--)
+                        dC = m_L[L]->backward(dC, a[L]);
         }
 
         void encode(
@@ -33,9 +43,7 @@ public:
         ) const;
 
 private:
-        const uint32_t m_layerCount;
-        const uint32_t m_inputSize;
-        const uint32_t m_outputSize;
+
 
         const std::unique_ptr<ILayer> *m_L;     // [m_layerCount - 1]
         const uint32_t *m_n;                    // [m_layerCount]
@@ -55,10 +63,5 @@ private:
                 uint32_t layerCount,
                 const LayerCreateInfo *layerInfos
         ) const;
-
-        void _backpropagate(
-                const float *inputs,
-                const float *y
-        );
 
 }; // class Layer

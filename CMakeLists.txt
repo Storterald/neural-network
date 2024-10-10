@@ -104,16 +104,3 @@ else ()
         )
 endif ()
 include("${CMAKE_UTILS_DIR}/get_library.cmake")
-
-build_latest_release(
-        TARGET ${PROJECT_NAME}
-        PROFILE_NAME "opencv"
-        REPOSITORY_NAME "opencv"
-        DIRECTORY ${LIBS_DIR}
-        INSTALL_ENABLED TRUE
-        FETCH_NEW FALSE
-)
-target_include_directories(${PROJECT_NAME} PRIVATE ${OPENCV_DIR}/include)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${OPENCV_DIR}/x64/vc17/lib/opencv_core4100.lib)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${OPENCV_DIR}/x64/vc17/lib/opencv_highgui4100.lib)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${OPENCV_DIR}/x64/vc17/lib/opencv_imgproc4100.lib)

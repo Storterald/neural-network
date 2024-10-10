@@ -71,7 +71,7 @@ Vector Fast::relu(const Vector &vec)
         }
 
         for (uint32_t i { END }; i < vec.size(); i++)
-                result[i] = std::max(0.0f, result.at(i));
+                result[i] = std::max(0.0f, vec.at(i));
 
         return result;
 #endif // DEBUG_MODE_ENABLED || DISABLE_AVX512
@@ -133,7 +133,7 @@ Vector Fast::tanh(const Vector &vec)
         const __m512 v62370 { _mm512_set1_ps(62370.0f) };
         const __m512 v135135 { _mm512_set1_ps(135135.0f) };
 
-        for (std::size_t i = 0; i < END; i += SIMD_WIDTH) {
+        for (uint32_t i { 0 }; i < END; i += SIMD_WIDTH) {
                 const __m512 x { _mm512_loadu_ps(&vec[i]) };
                 const __m512 x2 { _mm512_mul_ps(x, x) };
 
@@ -160,7 +160,7 @@ Vector Fast::tanh(const Vector &vec)
                 _mm512_storeu_ps(&result[i], tanh);
         }
 
-        for (std::size_t i { END }; i < vec.size(); i++)
+        for (uint32_t i { END }; i < vec.size(); i++)
                 result[i] = ::Fast::tanh(vec.at(i));
 
         return result;

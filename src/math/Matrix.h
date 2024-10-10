@@ -7,7 +7,7 @@ class Matrix {
 
 public:
         constexpr Matrix() = default;
-        Matrix(uint32_t width, uint32_t height);
+        Matrix(uint32_t width, uint32_t height, float value = 0.0f);
         Matrix(const Matrix &other);
         Matrix(Matrix &&other) noexcept;
         ~Matrix();
@@ -68,3 +68,20 @@ private:
         float *m_data { nullptr };
 
 };
+
+#ifdef DEBUG_MODE_ENABLED
+inline std::ostream &operator<< (std::ostream &os, const Matrix &mat)
+{
+        std::string str;
+        for (uint32_t i { 0 }; i < mat.height(); ++i) {
+                str += '[';
+                for (uint32_t j { 0 }; j < mat.width() - 1; ++j)
+                        str += std::to_string(mat.at(i)[j]) + ", ";
+
+                str += std::to_string(mat.at(i)[mat.width() - 1]) + ']';
+        }
+
+        os << "[" << str << "]";
+        return os;
+}
+#endif // DEBUG_MODE_ENABLED

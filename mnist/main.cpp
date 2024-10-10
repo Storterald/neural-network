@@ -6,13 +6,10 @@
 #include <cstdint>
 
 int main() {
-        std::ifstream file(BASE_PATH "/mnist_train.csv");
+        std::ifstream file(BASE_PATH "/mnist_test.csv");
         std::string line;
 
-        std::ofstream binaryFile(BASE_PATH "/mnist_train.nntv", std::ios::binary);
-
-        // Skip the header
-        std::getline(file, line);
+        std::ofstream binaryFile(BASE_PATH "/mnist_test.nntv", std::ios::binary);
 
         while (std::getline(file, line)) {
                 std::istringstream ss(line);

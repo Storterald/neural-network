@@ -3,20 +3,20 @@
 #include <format>
 #include <ctime>
 #include <cmath>
-#include <mutex>
+#include <iostream>
 
 Logger Log{};
 
 Logger::Logger()
 {
-        file = std::ofstream(BASE_PATH "/logs/latest-0.log");
-        if (!file)
+        m_file = std::ofstream(BASE_PATH "/logs/latest-0.log");
+        if (!m_file)
                 throw std::runtime_error("Could not open log file.");
 }
 
 Logger::~Logger()
 {
-        file.close();
+        m_file.close();
 }
 
 std::string Logger::fixTime(
@@ -52,6 +52,9 @@ std::string Logger::_time()
 Logger::fatal_error::fatal_error(
         const std::string &message
 ) {
+        const std::string str { Logger::pref<FATAL>() + message + "\n" };
+        std::cout << str << std::flush;
+
         // Flush forces to print everything that has not yet been printed.
-        Log.file << Logger::pref<FATAL>() + message << "\n" << std::flush;
+        Log.m_file << str << std::flush;
 }

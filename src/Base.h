@@ -1,17 +1,25 @@
 #pragma once
 
-#ifndef NDEBUG
-#define DEBUG_MODE_ENABLED
-#endif
-
 #include <cstdint>
 
-constexpr float EPSILON { 1e-8 };
+// Generic constants.
+constexpr float EPSILON { 1e-8f };
+constexpr float ROUND_PRECISION { 1e-2f };
 constexpr float LEARNING_RATE { 5e-5f };
-constexpr uint32_t SIMD_WIDTH { 16U };
 constexpr uint32_t MAX_FILE_SIZE { (uint32_t)1e9f };
+
+// Math related constants.
+constexpr uint32_t SIMD_WIDTH { 16U };
 constexpr uint32_t BLOCK_BITSHIFT { 8 };
 constexpr uint32_t BLOCK_SIZE { 1 << BLOCK_BITSHIFT };
+
+// PPO related constants.
+constexpr float CLIP_EPSILON { 2e-1f };
+constexpr float GAMMA { 0.99f };
+constexpr float LAMBDA { 0.95f };
+constexpr uint32_t APPROXIMATOR_TRAINING_MAX_STEPS { 1000 };
+constexpr uint32_t PPO_TRAINING_MAX_STEPS { 1000 };
+constexpr uint32_t APPROXIMATOR_TRAINING_EPOCHS { 100 };
 
 // CUDA cannot compile with Zc:preprocessor
 // This stops the compilation here only when compiling CUDA files
