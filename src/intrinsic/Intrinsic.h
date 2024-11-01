@@ -1,7 +1,15 @@
 #pragma once
 
+typedef enum SIMD {
+        UNSUPPORTED,
+        SSE,
+        AVX,
+        AVX512
+} SIMD;
+
 extern "C" {
-#include "SIMD.h"
+        // Include assembly function
+        extern SIMD getSIMDSupport();
 }
 
 namespace Intrinsic {
