@@ -1,11 +1,11 @@
 #pragma once
 
-typedef enum SIMD {
+enum SIMD {
         UNSUPPORTED,
         SSE,
         AVX,
         AVX512
-} SIMD;
+};
 
 extern "C" {
         // Include assembly function

@@ -22,7 +22,7 @@ getSIMDSupport PROC
         TEST ebx, 00010000H ; 1 << 16
         JNZ AVX512_SUPPORTED
 
-        TEST ecx, 10000000H ; 1 << 26
+        TEST ecx, 10000000H ; 1 << 28
         JNZ AVX_SUPPORTED
 
         TEST edx, 02000000H ; 1 << 25
