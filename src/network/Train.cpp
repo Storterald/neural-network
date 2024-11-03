@@ -1,13 +1,8 @@
 #include "Train.h"
 
 #include <ranges>
-#include <iostream>
 
-#ifdef USE_CUDA
-#include "../cuda/Utils.h"
-#else
-#include "../math/Utils.h"
-#endif // USE_CUDA
+#include "Base.h"
 
 void Train::supervisedTraining(
         Network &network,
@@ -53,11 +48,7 @@ void Train::supervisedTraining(
 
                                 // The cost of the last layer neurons is calculated with (ajL - yj) ^ 2,
                                 // this mean that the derivative ∂C is equal to 2 * (ajL - y).
-#ifdef USE_CUDA
-                                Vector dC { (a[network.m_layerCount - 1] - Vector(m_outputSize, (outputs + i * network.m_outputSize))) * 2.0f };
-#else
-                                Vector dC { (a[network.m_layerCount - 1] - (outputs + i * network.m_outputSize)) * 2.0f };
-#endif // USE_CUDA
+                                Vector dC { (a[network.m_layerCount - 1] - Vector(network.m_outputSize, outputs + i * network.m_outputSize)) * 2.0f };
 
                                 network.backward(dC, a);
                                 delete [] a;
@@ -140,7 +131,7 @@ Network Train::_createStateApproximatorNetwork(
         }
 
 #ifdef DEBUG_MODE_ENABLED
-        Log << Logger::pref<INFO>() << "Approximation done.\n";
+        Log << LOGGER_PREF(DEBUG) << "Approximation done.\n";
 #endif // DEBUG_MODE_ENABLED
 
         return stateApproximator;
@@ -224,59 +215,64 @@ void Train::_PPOTraining(
                 done = _done;
         }
 #ifdef DEBUG_MODE_ENABLED
-        Log << Logger::pref<INFO>() << "Execution done.\n";
+        Log << LOGGER_PREF(DEBUG) << "Execution done.\n";
 #endif // DEBUG_MODE_ENABLED
 
         const uint32_t STATE_COUNT { (uint32_t)states.size() };
 
         // Compute advantages
-        std::vector<float> advantages(STATE_COUNT);
+        float *advantages { new float[STATE_COUNT] };
         float previous { 0.0f };
         for (int32_t s { (int32_t)STATE_COUNT - 1 }; s >= 0; s--) {
                 const float delta { rewards[s] + GAMMA * (s == STATE_COUNT - 1 ? 0 : valueRewards[s + 1]) - valueRewards[s] };
                 advantages[s] = delta + GAMMA * LAMBDA * previous;
                 previous = advantages[s];
 #ifdef DEBUG_MODE_ENABLED
-                Log << Logger::pref<INFO>() << "Advantage [" << s << "]: " << advantages[s] << "\n";
+                Log << LOGGER_PREF(DEBUG) << "Advantage [" << s << "]: " << advantages[s] << "\n";
 #endif // DEBUG_MODE_ENABLED
         }
 
         // Trains the networks
         for (uint32_t s { 0 }; s < STATE_COUNT; s++) {
                 const uint64_t stateHash { vectorHash(states[s]) };
-                const Vector &policy { policies[s] };
-                for (float &v : policy)
-                        if (v == 0.0f)
-                                v = EPSILON;
+                const Vector policy { policies[s].max(EPSILON) };
 
                 const float advantage { advantages[s] };
 
+                // Value network cost
+                Vector vdC(1);
+                vdC[0] = 2.0f * (valueRewards[s] - rewards[s]);
+
                 // Train the value network.
-                const float valueCost { 2.0f * (valueRewards[s] - rewards[s]) };
-                const Vector vdC(1, valueCost);
                 valueNetwork.backward(vdC, valueActivations[s]);
 
                 // If the current state has never been met, the old policy
                 // is set to the current policy.
                 oldPolicies.insert({stateHash, policy});
 
-                //               ⌈      π𝜃ɴᴇᴡ(aₜ|sₜ)                          ⌉
-                // Lᴘᴏʟɪᴄʏ(𝜃) = 𝔼| min( ⎯⎯⎯⎯⎯⎯⎯⎯ Aₜ, clip(p, 1 - ε, 1 + ε)Aₜ |
-                //               ⌊      π𝜃ᴏʟᴅ(aₜ|sₜ)                          ⌋
-                const Vector ratio { policy / oldPolicies[stateHash] };
-                const Vector clippedRatio { Utils::clamp(ratio, 1.0f - CLIP_EPSILON, 1.0f + CLIP_EPSILON) };
-                const Vector surrogateLoss { Utils::min(ratio * advantage, clippedRatio * advantage) };
+#ifdef DEBUG_MODE_ENABLED
+                Log << LOGGER_PREF(DEBUG) << "[" << s << "]: hash: " << stateHash << ", new policy: " << policy << ", old policy: " << oldPolicies[stateHash] << "\n";
+#endif // DEBUG_MODE_ENABLED
+
+                //               ⌈      π𝜃ɴᴇᴡ(aₜ|sₜ)                           ⌉
+                // Lᴘᴏʟɪᴄʏ(𝜃) = 𝔼| min( ⎯⎯⎯⎯⎯⎯⎯⎯ Aₜ, clip(p, 1 - ε, 1 + ε)Aₜ) |
+                //               ⌊      π𝜃ᴏʟᴅ(aₜ|sₜ)                           ⌋
+                const Vector ratio { policy / oldPolicies.at(stateHash) };
+                const Vector clippedRatio { ratio.clamp(1.0f - CLIP_EPSILON, 1.0f + CLIP_EPSILON) };
+                const Vector surrogateLoss { (ratio * advantage).min(clippedRatio * advantage) };
 
                 // Replace the old policy with the new one
-                oldPolicies[stateHash] = policies[s];
+                oldPolicies[stateHash] = policy;
 
                 policyNetwork.backward(surrogateLoss, policyActivations[s]);
+
 #ifdef DEBUG_MODE_ENABLED
-                Log << Logger::pref<INFO>() << "Iteration [" << s << "]. Ratio: " << ratio << " clipped: " << clippedRatio << " loss: " << surrogateLoss << "\n";
+                Log << LOGGER_PREF(DEBUG) << "Iteration [" << s << "]. Ratio: " << ratio << " clipped: " << clippedRatio << " loss: " << surrogateLoss << "\n";
 #endif // DEBUG_MODE_ENABLED
         }
 
-        // Clear inputs
+        // Delete allocated data
+        delete [] advantages;
         for (const Vector *a : policyActivations)
                 delete [] a;
         for (const Vector *a : valueActivations)

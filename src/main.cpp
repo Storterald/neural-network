@@ -1,5 +1,8 @@
-#include <iostream>
 #include "network/Train.h"
+
+#ifdef DEBUG_MODE_ENABLED
+#include "utils/Logger.h"
+#endif // DEBUG_MODE_ENABLED
 
 class SimpleCart : public IEnvironment {
         float position; // Cart position
@@ -37,7 +40,7 @@ public:
                 bool done = target - position <= tolerance;
 
 #ifdef DEBUG_MODE_ENABLED
-                Log << Logger::pref() << "Reward: " << reward << " Done: " << done << " Action: " << action << '\n';
+                Log << LOGGER_PREF(DEBUG) << "Reward: " << reward << " Done: " << done << " Action: " << action << '\n';
 #endif // DEBUG_MODE_ENABLED
                 return { reward, done };
         }
@@ -46,7 +49,7 @@ public:
         void reset() override 
         {
 #ifdef DEBUG_MODE_ENABLED
-                Log << Logger::pref() << "IEnvironment::reset().\n";
+                Log << LOGGER_PREF(DEBUG) << "IEnvironment::reset().\n";
 #endif // DEBUG_MODE_ENABLED
                 position = 0.0f;
                 target = 10.0f;

@@ -43,8 +43,6 @@ public:
         ) const;
 
 private:
-
-
         const std::unique_ptr<ILayer> *m_L;     // [m_layerCount - 1]
         const uint32_t *m_n;                    // [m_layerCount]
 

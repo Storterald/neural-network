@@ -1,7 +1,7 @@
 #pragma once
 
 #include <fstream>
-#include <string>
+#include <ranges>
 
 #include "../Base.h"
 
@@ -12,8 +12,6 @@ enum LogType{
         FATAL
 };
 
-// Simple logger instead of using console. Uses macro BASE_PATH
-// defined in CMake as ${CMAKE_HOME_PATH}
 class Logger {
 public:
         Logger();
@@ -21,11 +19,13 @@ public:
 
         // Gives the log string prefix, contains time, log type, thread and application.
         template<LogType type = DEBUG>
-        static std::string pref()
-        {
+        static inline std::string pref(
+                const std::string_view &callerClass = "",
+                const std::string_view &callerFunc = ""
+        ) {
                 // Converts type enum to string, constexpr switch macro
                 // instead of series of constexpr if.
-                std::string typeString;
+                std::string_view typeString;
                 CONSTEXPR_SWITCH(type,
                         CASE(INFO,  typeString = "INFO "),
                         CASE(DEBUG, typeString = "DEBUG"),
@@ -33,10 +33,8 @@ public:
                         CASE(FATAL, typeString = "FATAL")
                 );
 
-                return _time() + " " + typeString + " [Main] [Network] ";
+                return _time() + " " + std::string(typeString) + " [" + std::string(callerClass) + "::" + std::string(callerFunc) + "] ";
         }
-
-        static std::string fixTime(double t);
 
         struct fatal_error final : std::exception {
                 explicit fatal_error(const std::string &message);
@@ -64,3 +62,5 @@ private:
         static std::string _time();
 
 } extern Log;
+
+#define LOGGER_PREF(type) Logger::pref<type>(GET_CLASS_NAME(), GET_FUNCTION_NAME())

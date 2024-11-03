@@ -1,12 +1,6 @@
 #pragma once
 
-#ifdef USE_CUDA
-#include "../cuda/Matrix.cuh"
-#include "../cuda/FastMath.cuh"
-#else
-#include "../math/Matrix.h"
-#include "../math/FastMath.h"
-#endif
+#include "../types/Matrix.h"
 
 #include "../enums/FunctionType.h"
 #include "../enums/LayerType.h"
@@ -30,29 +24,3 @@ public:
         virtual ~ILayer() = default;
 
 }; // interface ILayer
-
-inline Vector ApplyActivation(FunctionType functionType, const Vector &input) {
-        switch (functionType) {
-                case TANH:
-                        return Fast::tanh(input);
-                case RELU:
-                        return Fast::relu(input);
-        }
-
-        // Unreachable, the switch above should cover all possible
-        // options present in the FunctionType enum.
-        return {};
-}
-
-inline Vector ApplyActivationDerivative(FunctionType functionType, const Vector &input) {
-        switch (functionType) {
-                case TANH:
-                        return Fast::tanhDerivative(input);
-                case RELU:
-                        return Fast::reluDerivative(input);
-        }
-
-        // Unreachable, the switch above should cover all possible
-        // options present in the FunctionType enum.
-        return {};
-}

@@ -2,11 +2,7 @@
 
 #include <utility>
 
-#ifdef USE_CUDA
-#include "../../cuda/Vector.h"
-#else
-#include "../../math/Vector.h"
-#endif // USE_CUDA
+#include "../../types/Vector.h"
 
 class IEnvironment {
 public:

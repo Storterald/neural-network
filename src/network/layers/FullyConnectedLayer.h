@@ -25,10 +25,7 @@ public:
         ) const override;
 
         [[nodiscard]] Vector backward(
-                // This layer cost
                 const Vector &cost,
-                // This layer input, also the previous layer
-                // activation values
                 const Vector &input
         ) override;
 
@@ -46,5 +43,7 @@ private:
         Vector m_b;
         const FunctionType m_functionType;
         std::mutex m_mutex;
+
+        void _backwardGPU(const float input[], float dw[], const float db[], float result[]);
 
 }; // class Layer

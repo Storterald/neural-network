@@ -9,11 +9,9 @@ std::unique_ptr<ILayer> Layer::create(
         switch (layerInfo.type) {
                 case FULLY_CONNECTED:
                         return std::make_unique<FullyConnectedLayer>(previousLayerSize, layerInfo.neuronCount, layerInfo.functionType);
+                default:
+                        throw std::exception("Layer type not recognized.");
         }
-
-        // Unreachable, the switch above should cover all possible
-        // options present in the FunctionType enum.
-        return {};
 }
 
 std::unique_ptr<ILayer> Layer::create(
@@ -24,10 +22,8 @@ std::unique_ptr<ILayer> Layer::create(
         switch (layerInfo.type) {
                 case FULLY_CONNECTED:
                         return std::make_unique<FullyConnectedLayer>(previousLayerSize, layerInfo.neuronCount, layerInfo.functionType, inputFile);
+                default:
+                        throw std::exception("Layer type not recognized.");
         }
-
-        // Unreachable, the switch above should cover all possible
-        // options present in the FunctionType enum.
-        return {};
 }
 

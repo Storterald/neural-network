@@ -2,7 +2,6 @@
 
 #include <format>
 #include <ctime>
-#include <cmath>
 #include <iostream>
 
 Logger Log{};
@@ -19,30 +18,14 @@ Logger::~Logger()
         m_file.close();
 }
 
-std::string Logger::fixTime(
-        double t
-) {
-        const int32_t magnitude { (int32_t) std::floor(std::log10(t)) };
-        if (magnitude >= 0)
-                return std::format("{:.4f}", t) + "s";
-        if (magnitude >= -3)
-                return std::format("{:.4f}", t * 1e3) + "ms";
-        if (magnitude >= -6)
-                return std::format("{:.4f}", t * 1e6) + "micros";
-        if (magnitude >= -9)
-                return std::format("{:.4f}", t * 1e9) + "ns";
-
-        return std::format("{:.4f}", t * 1e12) + "ps";
-}
-
 std::string Logger::_time()
 {
         char buffer[80]{};
         time_t rawTime{};
 
         // Get time as formatted string
-        time(&rawTime);
-        tm tm{};
+        std::time(&rawTime);
+        std::tm tm{};
         localtime_s(&tm, &rawTime);
         std::strftime(buffer, sizeof(buffer), "%X", &tm);
 
@@ -52,9 +35,11 @@ std::string Logger::_time()
 Logger::fatal_error::fatal_error(
         const std::string &message
 ) {
-        const std::string str { Logger::pref<FATAL>() + message + "\n" };
-        std::cout << str << std::flush;
+        // MAcro mainly used for disabling during tests.
+#ifndef LOGGER_FATAL_ERROR_DISABLE_STDOUT
+        std::cout << message << std::endl;
+#endif // LOGGER_FATAL_ERROR_DISABLE_STDOUT
 
-        // Flush forces to print everything that has not yet been printed.
-        Log.m_file << str << std::flush;
+        // Flush (std::endl) forces to print everything that has not yet been printed.
+        Log.m_file << message << std::endl;
 }

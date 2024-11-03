@@ -1,7 +1,10 @@
 #include "Network.h"
 
+#include <fstream>
+#include <iostream>
+
 #include "Layer.h"
-#include "../utils/Logger.h"
+#include "Base.h"
 
 Network::Network(
         uint32_t inputSize,
