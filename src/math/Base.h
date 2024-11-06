@@ -1,6 +1,8 @@
 #pragma once
 
+#include <cmath>
 #include <cstring>
+#include <algorithm>
 #include <immintrin.h>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>

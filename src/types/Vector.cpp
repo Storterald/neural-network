@@ -1,9 +1,5 @@
 #include "Vector.h"
 
-#include <algorithm>
-
-#include "Base.h"
-
 Vector::Vector(
         uint32_t size
 ) : Data(size) {}

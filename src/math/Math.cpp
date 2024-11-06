@@ -1,7 +1,5 @@
 #include "Math.h"
 
-#include <algorithm>
-
 #include "Base.h"
 #include "SIMDMath.h"
 

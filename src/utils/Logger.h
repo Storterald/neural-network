@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <ranges>
+#include <string>
 
 #include "../Base.h"
 

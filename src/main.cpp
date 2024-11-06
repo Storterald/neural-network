@@ -74,7 +74,7 @@ int main()
         Network valueNetwork(SIZES[0], LAYER_COUNT - 1, infos, BASE_PATH "/Encoded-Value.nnv");
 
         if constexpr (IN_TRAINING) {
-                Train::PPOTraining<SimpleCart>(policyNetwork, valueNetwork, MAX_ITERATIONS);
+                Train::PPOTraining<SimpleCart>(policyNetwork, valueNetwork, MAX_ITERATIONS, 1000);
                 policyNetwork.encode(BASE_PATH "/Encoded.nnv");
                 valueNetwork.encode(BASE_PATH "/Encoded-Value.nnv");
         } else {

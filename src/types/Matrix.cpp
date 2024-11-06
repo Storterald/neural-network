@@ -1,9 +1,5 @@
 #include "Matrix.h"
 
-#include <algorithm>
-
-#include "Base.h"
-
 Matrix::Matrix(
         uint32_t width,
         uint32_t height
@@ -18,8 +14,10 @@ Matrix::Matrix(
         m_width(values.begin()->size()),
         m_height(values.size())
 {
+#ifdef DEBUG_MODE_ENABLED
         if (std::any_of(values.begin(), values.end(), [this](auto &vs) -> bool { return vs.size() != m_width; }))
                 throw Logger::fatal_error(LOGGER_PREF(FATAL) + "All initializer lists passed to Matrix() must have the same size.");
+#endif // DEBUG_MODE_ENABLED
 
         for (int i{}; i < m_height; ++i)
                 std::memcpy((*this)[i], values.begin()[i].begin(), m_width * sizeof(float));

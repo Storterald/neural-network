@@ -1,6 +1,8 @@
 #include <fstream>
 #include <iomanip>
 
+#include "../src/enums/LayerType.h"
+
 void writeVector(
         const char *name,
         uint32_t count,
@@ -50,11 +52,6 @@ void decodeFullyConnectedLayer(
 
 int main()
 {
-        // Must match ne enum in src/enums/LayerType.h
-        enum LayerType {
-                FULLY_CONNECTED
-        }; // enum LayerType
-
         std::ifstream inFile(BASE_PATH "/Encoded.nnv", std::ios::binary);
         if (!inFile)
                 return EXIT_FAILURE;
@@ -88,6 +85,9 @@ int main()
                 switch ((LayerType)infos[0]) {
                         case FULLY_CONNECTED:
                                 decodeFullyConnectedLayer(infos, inFile, outFile);
+                                break;
+                        default:
+                                throw std::exception("Layer type not recognized.");
                 }
 
                 outFile << "}\n"

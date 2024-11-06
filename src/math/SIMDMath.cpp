@@ -1,8 +1,5 @@
 #include "SIMDMath.h"
 
-#include <algorithm>
-#include <cmath>
-
 #include "Base.h"
 
 void SIMDMath::AVX512::sum(uint32_t size, const float first[], const float second[], float result[])

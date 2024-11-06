@@ -6,16 +6,13 @@
 #include "../math/Math.h"
 #include "../math/CudaMath.h"
 
-#ifndef DEBUG_MODE_ENABLED
-// Logger already included in debug mode, import is unused.
-#include "../utils/Logger.h"
-#endif // DEBUG_MODE_ENABLED
-
 // Simple macro to avoid checks on math functions regarding which memory the
 // data is on. This macro only works inside a class derived from Data.
 #define _MATH(FOO_NAME, ...)                                                               \
         do {                                                                               \
-                static_assert(std::is_base_of_v<Data, std::decay<decltype(*this)>::type>); \
+                static_assert(std::is_base_of_v<Data, std::decay<decltype(*this)>::type>,  \
+                        "_MATH macro must be called inside a function in a Data derived"   \
+                        "class.");                                                         \
                 if (m_size < CUDA_MINIMUM)                                                 \
                         Math::FOO_NAME(__VA_ARGS__);                                       \
                 else                                                                       \

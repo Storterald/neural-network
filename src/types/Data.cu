@@ -1,7 +1,5 @@
 #include "Data.h"
 
-#include "Base.h"
-
 namespace Kernels {
 
         __global__ void compare(uint32_t size, const float first[], const float second[], bool *ans)

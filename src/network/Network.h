@@ -8,58 +8,49 @@ class Network {
         friend class Train;
 
 public:
-        const uint32_t m_layerCount;
-        const uint32_t m_inputSize;
-        const uint32_t m_outputSize;
+        Network() = default;
 
         Network(
                 uint32_t inputSize,
                 uint32_t layerCount,
-                const LayerCreateInfo *layerInfos,
+                const LayerCreateInfo layerInfos[],
                 const char *path
         );
 
         ~Network();
 
-        [[nodiscard]] inline Vector forward(
-                Vector aL
-        ) const {
-                for (uint32_t L { 0 }; L < m_layerCount - 1; L++)
-                        aL = m_L[L]->forward(aL);
+        [[nodiscard]] Vector forward(Vector input) const;
 
-                return aL;
+        void backward(const Vector &input, const Vector &cost);
+
+        void backward(Vector cost, const Vector activationValues[]);
+
+        void encode(const char *path) const;
+
+        [[nodiscard]] inline uint32_t layerCount() const
+        {
+                return m_layerCount;
         }
 
-        inline void backward(
-                Vector dC,
-                const Vector *a
-        ) {
-                for (int32_t L { (int32_t)m_layerCount - 2 }; L >= 0; L--)
-                        dC = m_L[L]->backward(dC, a[L]);
+        [[nodiscard]] inline uint32_t inputSize() const
+        {
+                return m_inputSize;
         }
 
-        void encode(
-                const char *path
-        ) const;
+        [[nodiscard]] inline uint32_t outputSize() const
+        {
+                return m_outputSize;
+        }
 
 private:
-        const std::unique_ptr<ILayer> *m_L;     // [m_layerCount - 1]
-        const uint32_t *m_n;                    // [m_layerCount]
+        uint32_t m_layerCount { 0 };
+        uint32_t m_inputSize { 0 };
+        uint32_t m_outputSize { 0 };
+        std::unique_ptr<ILayer> *m_L { nullptr };    // [m_layerCount - 1]
+        uint32_t *m_n { nullptr };                   // [m_layerCount]
 
-        const std::unique_ptr<ILayer> *_createLayers(
-                uint32_t layerCount,
-                const LayerCreateInfo *layerInfos
-        ) const;
-
-        const std::unique_ptr<ILayer> *_createLayers(
-                uint32_t layerCount,
-                const LayerCreateInfo *layerInfos,
-                const char *path
-        ) const;
-
-        const uint32_t *_getSizes(
-                uint32_t layerCount,
-                const LayerCreateInfo *layerInfos
-        ) const;
+        std::unique_ptr<ILayer> *_createLayers(uint32_t layerCount, const LayerCreateInfo *layerInfos) const;
+        std::unique_ptr<ILayer> *_createLayers(uint32_t layerCount, const LayerCreateInfo *layerInfos, const char *path) const;
+        uint32_t *_getSizes(uint32_t layerCount, const LayerCreateInfo *layerInfos) const;
 
 }; // class Layer

@@ -1,7 +1,6 @@
 #include "Network.h"
 
 #include <fstream>
-#include <iostream>
 
 #include "Layer.h"
 #include "Base.h"
@@ -25,6 +24,41 @@ Network::~Network()
         delete[] m_n;
 }
 
+Vector Network::forward(
+        // Not passing as const ref to avoid creating an extra Vector
+        // to store the current activation values.
+        Vector aL
+) const {
+        for (uint32_t L { 0 }; L < m_layerCount - 1; L++)
+                aL = m_L[L]->forward(aL);
+
+        return aL;
+}
+
+void Network::backward(
+        const Vector &input,
+        const Vector &dC
+) {
+        Vector *a { new Vector[m_layerCount] };
+        a[0] = input;
+
+        for (uint32_t L { 1 }; L < m_layerCount; L++)
+                a[L] = m_L[L - 1]->forward(a[L - 1]);
+
+        this->backward(dC, a);
+
+        delete [] a;
+}
+
+
+void Network::backward(
+        Vector dC,
+        const Vector a[]
+) {
+        for (int32_t L { (int32_t)m_layerCount - 2 }; L >= 0; L--)
+                dC = m_L[L]->backward(dC, a[L]);
+}
+
 void Network::encode(
         const char *path
 ) const {
@@ -43,7 +77,7 @@ void Network::encode(
         file.close();
 }
 
-const std::unique_ptr<ILayer> *Network::_createLayers(
+std::unique_ptr<ILayer> *Network::_createLayers(
         uint32_t layerCount,
         const LayerCreateInfo *layerInfos
 ) const {
@@ -56,7 +90,7 @@ const std::unique_ptr<ILayer> *Network::_createLayers(
         return layers;
 }
 
-const std::unique_ptr<ILayer> *Network::_createLayers(
+std::unique_ptr<ILayer> *Network::_createLayers(
         uint32_t layerCount,
         const LayerCreateInfo *layerInfos,
         const char *path
@@ -75,11 +109,11 @@ const std::unique_ptr<ILayer> *Network::_createLayers(
         return layers;
 }
 
-const uint32_t *Network::_getSizes(
+uint32_t *Network::_getSizes(
         uint32_t layerCount,
         const LayerCreateInfo *layerInfos
 ) const {
-        const auto sizes { new uint32_t[layerCount] };
+        uint32_t *sizes { new uint32_t[layerCount] };
 
         sizes[0] = m_inputSize;
         for (uint32_t L { 1 }; L < layerCount; L++)

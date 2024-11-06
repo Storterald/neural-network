@@ -1,7 +1,5 @@
 #include "FullyConnectedLayer.h"
 
-#include "../../math/Base.h"
-
 namespace Kernels {
 
         __global__ void backward(
@@ -27,7 +25,7 @@ namespace Kernels {
                 result[k] = dCe;
         }
 
-}
+} // namespace Kernels
 
 void FullyConnectedLayer::_backwardGPU(const float input[], float dw[], const float db[], float result[])
 {

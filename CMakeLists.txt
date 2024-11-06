@@ -1,20 +1,24 @@
 cmake_minimum_required(VERSION 3.28)
 project(NeuralNetwork LANGUAGES C CXX ASM_MASM CUDA)
 
-# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # REQUIREMENTS
-# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 if (NOT MSVC)
         message(FATAL_ERROR "MSVC is required for compilation.")
 endif ()
 
-# Check if CUDA toolkit is installed
-find_package(CUDAToolkit REQUIRED)
+if (NOT DEFINED ENV{CUDA_PATH})
+        message(FATAL_ERROR "Unable to find Cuda Toolkit! Please install the CUDA "
+                "Toolkit from https://developer.nvidia.com/cuda-toolkit")
+else()
+        message(STATUS "Found CUDA Toolkit: $ENV{CUDA_PATH}")
+endif()
 
-# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # FLAGS
-# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 # Compiler Flags
 set(CMAKE_MSVC_RUNTIME_LIBRARY "")
@@ -44,9 +48,9 @@ set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler=/Zc:preprocessor")
 set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CUDA_FLAGS_DEBUG} -Xcompiler=/MDd")
 set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -O3 -Xcompiler=/MD")
 
-# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # DIRECTORIES
-# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 set(MNIST_DIR "${CMAKE_SOURCE_DIR}/mnist")
@@ -56,9 +60,9 @@ set(LIBS_DIR "${CMAKE_SOURCE_DIR}/libs")
 set(CMAKE_UTILS_DIR "${LIBS_DIR}/CMakeUtils")
 set(GTEST_DIR "${LIBS_DIR}/googletest")
 
-# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # PROJECT
-# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 # All network sources
 file(GLOB_RECURSE SOURCES
@@ -79,21 +83,26 @@ add_executable(${MNIST} "${MNIST_DIR}/main.cpp")
 set(DECODER decoder)
 add_executable(${DECODER} "${DECODER_DIR}/main.cpp")
 
+# Exclude main.cpp from compiling in tests and static lib
+list(REMOVE_ITEM SOURCES "${SRC_DIR}/main.cpp")
+
+# Network static lib
+set(NETWORK_LIB "${PROJECT_NAME}Lib")
+add_library(${NETWORK_LIB} STATIC ${SOURCES})
+
 # All tests sources
 file(GLOB_RECURSE TESTS_SOURCES
         "${TESTS_DIR}/*.cpp"
         "${TESTS_DIR}/*.cu"
 )
 
-# Exclude main.cpp from compiling in tests
-list(REMOVE_ITEM SOURCES "${SRC_DIR}/main.cpp")
-
+# Tests
 set(TESTS tests)
 add_executable(${TESTS} ${SOURCES} ${TESTS_SOURCES})
 
-# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # TARGETS OPTIONS
-# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
         add_compile_definitions(DEBUG_MODE_ENABLED)
@@ -117,14 +126,15 @@ target_link_libraries(${PROJECT_NAME} PRIVATE "$ENV{CUDA_PATH}/Lib/x64/cudadevrt
 target_include_directories(${TESTS} PRIVATE "$ENV{CUDA_PATH}/Include")
 target_link_libraries(${TESTS} PRIVATE "$ENV{CUDA_PATH}/Lib/x64/cudadevrt.lib")
 
-# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # DEPENDENCIES
-# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 # Fetch CMake Utils
 if (NOT EXISTS ${CMAKE_UTILS_DIR})
         execute_process(
-                COMMAND git clone "https://github.com/Storterald/CMake-Utils" --branch "main" --single-branch ${CMAKE_UTILS_DIR}
+                COMMAND git clone "https://github.com/Storterald/CMake-Utils"
+                        --branch "main" --single-branch ${CMAKE_UTILS_DIR}
         )
 else ()
         execute_process(

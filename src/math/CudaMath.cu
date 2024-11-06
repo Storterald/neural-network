@@ -197,7 +197,7 @@ namespace Kernels {
                 result[row] = sum;
         }
 
-}
+} // namespace Kernels
 
 void CudaMath::sum(uint32_t size, const float first[], const float second[], float result[])
 {
