@@ -10,8 +10,8 @@ public:
         static void supervisedTraining(
                 Network &network,
                 uint32_t sampleCount,
-                const float *inputs,
-                const float *outputs
+                const float inputs[],
+                const float outputs[]
         );
 
         template<std::derived_from<IEnvironment> Environment, typename ...Ts>

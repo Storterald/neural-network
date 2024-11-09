@@ -14,10 +14,8 @@ public:
                 uint32_t inputSize,
                 uint32_t layerCount,
                 const LayerCreateInfo layerInfos[],
-                const char *path
+                const char *path = ""
         );
-
-        ~Network();
 
         [[nodiscard]] Vector forward(Vector input) const;
 
@@ -41,6 +39,8 @@ public:
         {
                 return m_outputSize;
         }
+
+        ~Network();
 
 private:
         uint32_t m_layerCount { 0 };

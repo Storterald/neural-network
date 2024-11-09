@@ -16,9 +16,11 @@ struct LayerCreateInfo {
 class ILayer {
 public:
         [[nodiscard]] virtual Vector forward(const Vector &input) const = 0;
+
         virtual Vector backward(const Vector &cost, const Vector &input) = 0;
 
-        virtual void encode(std::ofstream &) const = 0;
+        virtual void encode(std::ofstream &file) const = 0;
+
         [[nodiscard]] virtual uint32_t size() const = 0;
 
         virtual ~ILayer() = default;

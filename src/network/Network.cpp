@@ -1,6 +1,7 @@
 #include "Network.h"
 
 #include <fstream>
+#include <filesystem>
 
 #include "Layer.h"
 #include "Base.h"
@@ -95,10 +96,18 @@ std::unique_ptr<ILayer> *Network::_createLayers(
         const LayerCreateInfo *layerInfos,
         const char *path
 ) const {
-        std::ifstream file(path, std::ios::binary);
-        if (!file)
+        if (layerCount == 0)
+                throw Logger::fatal_error("Cannot initialize Network with no layers. The minimum required "
+                                          "amount is 1, the output layer.");
+
+        // If the path is empty use other layer constructor.
+        if (path[0] == '\0')
                 return _createLayers(layerCount, layerInfos);
 
+        if (!std::filesystem::exists(path))
+                throw Logger::fatal_error("File given to Network() does not exist.");
+
+        std::ifstream file(path, std::ios::binary);
         const auto layers { new std::unique_ptr<ILayer>[layerCount] };
 
         layers[0] = Layer::create(m_inputSize, layerInfos[0], file);

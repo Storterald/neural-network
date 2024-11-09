@@ -8,8 +8,8 @@
 void Train::supervisedTraining(
         Network &network,
         uint32_t sampleCount,
-        const float *inputs,
-        const float *outputs
+        const float inputs[],
+        const float outputs[]
 ) {
 #ifdef DEBUG_MODE_ENABLED
         // Since DEBUG mode uses the Logger, the program must

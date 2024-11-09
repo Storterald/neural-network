@@ -20,7 +20,7 @@ static inline Vector ApplyActivation(FunctionType functionType, const Vector &in
                                 CudaMath::ReLU(input.size(), input.data(), result.data());
                         break;
                 default:
-                        throw std::exception("Activation function not implemented.");
+                        throw Logger::fatal_error("Activation function not implemented.");
         }
 
         return result;
@@ -42,7 +42,7 @@ static inline Vector ApplyActivationDerivative(FunctionType functionType, const 
                                 CudaMath::ReLUDerivative(input.size(), input.data(), result.data());
                         break;
                 default:
-                        throw std::exception("Activation function not implemented.");
+                        throw Logger::fatal_error("Activation function not implemented.");
         }
 
         return result;
