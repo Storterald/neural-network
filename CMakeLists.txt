@@ -57,7 +57,7 @@ set(MNIST_DIR "${CMAKE_SOURCE_DIR}/mnist")
 set(DECODER_DIR "${CMAKE_SOURCE_DIR}/decoder")
 set(TESTS_DIR "${CMAKE_SOURCE_DIR}/tests")
 set(LIBS_DIR "${CMAKE_SOURCE_DIR}/libs")
-set(CMAKE_UTILS_DIR "${LIBS_DIR}/CMakeUtils")
+set(GET_PROJECT_DIR "${LIBS_DIR}/GetProject")
 set(GTEST_DIR "${LIBS_DIR}/googletest")
 
 # ------------------------------------------------------------------------------
@@ -131,27 +131,27 @@ target_link_libraries(${TESTS} PRIVATE "$ENV{CUDA_PATH}/Lib/x64/cudadevrt.lib")
 # ------------------------------------------------------------------------------
 
 # Fetch CMake Utils
-if (NOT EXISTS ${CMAKE_UTILS_DIR})
+if (NOT EXISTS ${GET_PROJECT_DIR})
         execute_process(
-                COMMAND git clone "https://github.com/Storterald/CMake-Utils"
-                        --branch "main" --single-branch ${CMAKE_UTILS_DIR}
+                COMMAND git clone "https://github.com/Storterald/GetProject.git"
+                        --quiet --branch "main" --single-branch ${GET_PROJECT_DIR}
         )
 else ()
         execute_process(
-                COMMAND git pull "https://github.com/Storterald/CMake-Utils"
-                WORKING_DIRECTORY ${CMAKE_UTILS_DIR}
+                COMMAND git pull --quiet
+                WORKING_DIRECTORY ${GET_PROJECT_DIR}
         )
 endif ()
 
-include("${CMAKE_UTILS_DIR}/get_library.cmake")
+include("${GET_PROJECT_DIR}/GetProject.cmake")
 
 # Fetch GLFW
-build_latest_release(
+get_project(
         TARGET ${TESTS}
-        PROFILE_NAME "google"
-        REPOSITORY_NAME "googletest"
+        GIT_REPOSITORY "https://github.com/google/googletest.git"
         DIRECTORY ${LIBS_DIR}
         INSTALL_ENABLED ON
+        VERSION LATEST
         BUILD_ARGS
                 -DBUILD_GMOCK=OFF
                 -Dgtest_force_shared_crt=ON
