@@ -7,32 +7,30 @@
 // to be a friend of the Network class.
 class Train {
 public:
-        static void supervisedTraining(
+        static void supervised(
                 Network &network,
                 uint32_t sampleCount,
                 const float inputs[],
-                const float outputs[]
-        );
+                const float outputs[]);
 
         template<std::derived_from<IEnvironment> Environment, typename ...Ts>
-        static void PPOTraining(
+        static void PPO(
                 Network &policyNetwork,
                 Network &valueNetwork,
                 uint32_t epochs,
                 uint32_t maxSteps,
-                Ts ...args
-        ) {
+                Ts ...args) {
+
                 Environment env { args... };
-                _PPOTraining(policyNetwork, valueNetwork, env, epochs, maxSteps);
+                _PPO(policyNetwork, valueNetwork, env, epochs, maxSteps);
         }
 
 private:
-        static void _PPOTraining(
+        static void _PPO(
                 Network &policyNetwork,
                 Network &valueNetwork,
                 IEnvironment &environment,
                 uint32_t epochs,
-                uint32_t maxSteps
-        );
+                uint32_t maxSteps);
 
 }; // class Train

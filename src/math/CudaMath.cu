@@ -1,4 +1,4 @@
-#include "CudaMath.h"
+#include "Math.h"
 
 #include "Base.h"
 
@@ -199,211 +199,173 @@ namespace Kernels {
 
 } // namespace Kernels
 
-void CudaMath::sum(uint32_t size, const float first[], const float second[], float result[])
+template<> void Math<MATH_CUDA>::sum(uint32_t size, const float first[], const float second[], float result[])
 {
         const uint32_t BLOCKS_COUNT { (size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
         Kernels::sum<<<BLOCKS_COUNT, BLOCK_SIZE>>>(size, first, second, result);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(),
-                "sum kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in CudaMath::sum.");
+        CUDA_CHECK_ERROR(cudaGetLastError(), "sum kernel launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in CudaMath::sum.");
 }
 
-void CudaMath::sub(uint32_t size, const float first[], const float second[], float result[])
+template<> void Math<MATH_CUDA>::sub(uint32_t size, const float first[], const float second[], float result[])
 {
         const uint32_t BLOCKS_COUNT { (size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
         Kernels::sub<<<BLOCKS_COUNT, BLOCK_SIZE>>>(size, first, second, result);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(),
-                "sub kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in CudaMath::sub.");
+        CUDA_CHECK_ERROR(cudaGetLastError(), "sub kernel launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in CudaMath::sub.");
 }
 
-void CudaMath::mul(uint32_t size, const float first[], const float second[], float result[])
+template<> void Math<MATH_CUDA>::mul(uint32_t size, const float first[], const float second[], float result[])
 {
         const uint32_t BLOCKS_COUNT { (size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
         Kernels::mul<<<BLOCKS_COUNT, BLOCK_SIZE>>>(size, first, second, result);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(),
-                "mul kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in CudaMath::mul.");
+        CUDA_CHECK_ERROR(cudaGetLastError(), "mul kernel launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in CudaMath::mul.");
 }
 
-void CudaMath::div(uint32_t size, const float first[], const float second[], float result[])
+template<> void Math<MATH_CUDA>::div(uint32_t size, const float first[], const float second[], float result[])
 {
         const uint32_t BLOCKS_COUNT { (size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
         Kernels::div<<<BLOCKS_COUNT, BLOCK_SIZE>>>(size, first, second, result);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(),
-                "div kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in CudaMath::div.");
+        CUDA_CHECK_ERROR(cudaGetLastError(), "div kernel launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in CudaMath::div.");
 }
 
-void CudaMath::sum(uint32_t size, const float data[], float scalar, float result[])
+template<> void Math<MATH_CUDA>::sum(uint32_t size, const float data[], float scalar, float result[])
 {
         const uint32_t BLOCKS_COUNT { (size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
         Kernels::sum<<<BLOCKS_COUNT, BLOCK_SIZE>>>(size, data, scalar, result);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(),
-                "sum kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in CudaMath::sum.");
+        CUDA_CHECK_ERROR(cudaGetLastError(), "sum kernel launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in CudaMath::sum.");
 }
 
-void CudaMath::sub(uint32_t size, const float data[], float scalar, float result[])
+template<> void Math<MATH_CUDA>::sub(uint32_t size, const float data[], float scalar, float result[])
 {
         const uint32_t BLOCKS_COUNT { (size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
         Kernels::sub<<<BLOCKS_COUNT, BLOCK_SIZE>>>(size, data, scalar, result);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(),
-                "sub kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in CudaMath::sub.");
+        CUDA_CHECK_ERROR(cudaGetLastError(), "sub kernel launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in CudaMath::sub.");
 }
 
-void CudaMath::mul(uint32_t size, const float data[], float scalar, float result[])
+template<> void Math<MATH_CUDA>::mul(uint32_t size, const float data[], float scalar, float result[])
 {
         const uint32_t BLOCKS_COUNT { (size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
         Kernels::mul<<<BLOCKS_COUNT, BLOCK_SIZE>>>(size, data, scalar, result);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(),
-                "mul kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in CudaMath::mul.");
+        CUDA_CHECK_ERROR(cudaGetLastError(), "mul kernel launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in CudaMath::mul.");
 }
 
-void CudaMath::div(uint32_t size, const float data[], float scalar, float result[])
+template<> void Math<MATH_CUDA>::div(uint32_t size, const float data[], float scalar, float result[])
 {
         const uint32_t BLOCKS_COUNT { (size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
         Kernels::div<<<BLOCKS_COUNT, BLOCK_SIZE>>>(size, data, scalar, result);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(),
-                "div kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in CudaMath::div.");
+        CUDA_CHECK_ERROR(cudaGetLastError(), "div kernel launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in CudaMath::div.");
 }
 
-void CudaMath::tanh(uint32_t size, const float data[], float result[])
+template<> void Math<MATH_CUDA>::tanh(uint32_t size, const float data[], float result[])
 {
         const uint32_t BLOCKS_COUNT { (size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
         Kernels::tanh<<<BLOCKS_COUNT, BLOCK_SIZE>>>(size, data, result);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(),
-                "tanh kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in CudaMath::tanh.");
+        CUDA_CHECK_ERROR(cudaGetLastError(), "tanh kernel launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in CudaMath::tanh.");
 }
 
-void CudaMath::tanhDerivative(uint32_t size, const float data[], float result[])
+template<> void Math<MATH_CUDA>::tanhDerivative(uint32_t size, const float data[], float result[])
 {
         const uint32_t BLOCKS_COUNT { (size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
         Kernels::tanhDerivative<<<BLOCKS_COUNT, BLOCK_SIZE>>>(size, data, result);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(),
-                "tanhDerivative kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in CudaMath::tanhDerivative.");
+        CUDA_CHECK_ERROR(cudaGetLastError(), "tanhDerivative kernel launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in CudaMath::tanhDerivative.");
 }
 
-void CudaMath::ReLU(uint32_t size, const float data[], float result[])
+template<> void Math<MATH_CUDA>::ReLU(uint32_t size, const float data[], float result[])
 {
         const uint32_t BLOCKS_COUNT { (size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
         Kernels::ReLU<<<BLOCKS_COUNT, BLOCK_SIZE>>>(size, data, result);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(),
-                "ReLU kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in CudaMath::ReLU.");
+        CUDA_CHECK_ERROR(cudaGetLastError(), "ReLU kernel launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in CudaMath::ReLU.");
 }
 
-void CudaMath::ReLUDerivative(uint32_t size, const float data[], float result[])
+template<> void Math<MATH_CUDA>::ReLUDerivative(uint32_t size, const float data[], float result[])
 {
         const uint32_t BLOCKS_COUNT { (size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
         Kernels::ReLUDerivative<<<BLOCKS_COUNT, BLOCK_SIZE>>>(size, data, result);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(),
-                "ReLUDerivative kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in CudaMath::ReLUDerivative.");
+        CUDA_CHECK_ERROR(cudaGetLastError(), "ReLUDerivative kernel launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in CudaMath::ReLUDerivative.");
 }
 
-void CudaMath::min(uint32_t size, const float data[], float min, float result[])
+template<> void Math<MATH_CUDA>::min(uint32_t size, const float data[], float min, float result[])
 {
         const uint32_t BLOCKS_COUNT { (size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
         Kernels::min<<<BLOCKS_COUNT, BLOCK_SIZE>>>(size, data, min, result);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(),
-                "min kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in CudaMath::min.");
+        CUDA_CHECK_ERROR(cudaGetLastError(), "min kernel launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in CudaMath::min.");
 }
 
-void CudaMath::max(uint32_t size, const float data[], float max, float result[])
+template<> void Math<MATH_CUDA>::max(uint32_t size, const float data[], float max, float result[])
 {
         const uint32_t BLOCKS_COUNT { (size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
         Kernels::max<<<BLOCKS_COUNT, BLOCK_SIZE>>>(size, data, max, result);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(),
-                "max kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in CudaMath::max.");
+        CUDA_CHECK_ERROR(cudaGetLastError(), "max kernel launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in CudaMath::max.");
 }
 
-void CudaMath::clamp(uint32_t size, const float data[], float min, float max, float result[])
+template<> void Math<MATH_CUDA>::clamp(uint32_t size, const float data[], float min, float max, float result[])
 {
         const uint32_t BLOCKS_COUNT { (size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
         Kernels::clamp<<<BLOCKS_COUNT, BLOCK_SIZE>>>(size, data, min, max, result);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(),
-                "clamp kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in CudaMath::clamp.");
+        CUDA_CHECK_ERROR(cudaGetLastError(), "clamp kernel launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in CudaMath::clamp.");
 }
 
-void CudaMath::min(uint32_t size, const float first[], const float second[], float result[])
+template<> void Math<MATH_CUDA>::min(uint32_t size, const float first[], const float second[], float result[])
 {
         const uint32_t BLOCKS_COUNT { (size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
         Kernels::min<<<BLOCKS_COUNT, BLOCK_SIZE>>>(size, first, second, result);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(),
-                "min kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in CudaMath::min.");
+        CUDA_CHECK_ERROR(cudaGetLastError(), "min kernel launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in CudaMath::min.");
 }
 
-void CudaMath::max(uint32_t size, const float first[], const float second[], float result[])
+template<> void Math<MATH_CUDA>::max(uint32_t size, const float first[], const float second[], float result[])
 {
         const uint32_t BLOCKS_COUNT { (size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
         Kernels::max<<<BLOCKS_COUNT, BLOCK_SIZE>>>(size, first, second, result);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(),
-                "max kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in CudaMath::max.");
+        CUDA_CHECK_ERROR(cudaGetLastError(), "max kernel launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in CudaMath::max.");
 }
 
-void CudaMath::clamp(uint32_t size, const float data[], const float min[], const float max[], float result[])
+template<> void Math<MATH_CUDA>::clamp(uint32_t size, const float data[], const float min[], const float max[], float result[])
 {
         const uint32_t BLOCKS_COUNT { (size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
         Kernels::clamp<<<BLOCKS_COUNT, BLOCK_SIZE>>>(size, data, min, max, result);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(),
-                "clamp kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in CudaMath::clamp.");
+        CUDA_CHECK_ERROR(cudaGetLastError(), "clamp kernel launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in CudaMath::clamp.");
 }
 
-void CudaMath::matrixVectorMul(uint32_t width, uint32_t height, const float matrix[], const float vector[], float result[])
+template<> void Math<MATH_CUDA>::matvec_mul(uint32_t width, uint32_t height, const float matrix[], const float vector[], float result[])
 {
         const uint32_t BLOCKS_COUNT { (width + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
         Kernels::matrixVectorMul<<<BLOCKS_COUNT, BLOCK_SIZE>>>(width, height, matrix, vector, result);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(),
-                "matrixVectorMul kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in CudaMath::matrixVectorMul.");
+        CUDA_CHECK_ERROR(cudaGetLastError(), "matrixVectorMul kernel launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in CudaMath::matrixVectorMul.");
 }

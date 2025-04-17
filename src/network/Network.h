@@ -14,13 +14,10 @@ public:
                 uint32_t inputSize,
                 uint32_t layerCount,
                 const LayerCreateInfo layerInfos[],
-                const char *path = ""
-        );
+                const char *path = "");
 
         [[nodiscard]] Vector forward(Vector input) const;
-
         void backward(const Vector &input, const Vector &cost);
-
         void backward(Vector cost, const Vector activationValues[]);
 
         void encode(const char *path) const;
@@ -49,8 +46,15 @@ private:
         std::unique_ptr<ILayer> *m_L { nullptr };    // [m_layerCount - 1]
         uint32_t *m_n { nullptr };                   // [m_layerCount]
 
-        std::unique_ptr<ILayer> *_createLayers(uint32_t layerCount, const LayerCreateInfo *layerInfos) const;
-        std::unique_ptr<ILayer> *_createLayers(uint32_t layerCount, const LayerCreateInfo *layerInfos, const char *path) const;
-        uint32_t *_getSizes(uint32_t layerCount, const LayerCreateInfo *layerInfos) const;
+        std::unique_ptr<ILayer> *_create_layers(
+                uint32_t layerCount,
+                const LayerCreateInfo *layerInfos) const;
+        std::unique_ptr<ILayer> *_create_layers(
+                uint32_t layerCount,
+                const LayerCreateInfo *layerInfos,
+                const char *path) const;
+        uint32_t *_get_sizes(
+                uint32_t layerCount,
+                const LayerCreateInfo *layerInfos) const;
 
 }; // class Layer

@@ -5,11 +5,11 @@
 #endif // DEBUG_MODE_ENABLED
 
 class SimpleCart : public IEnvironment {
-        float position; // Cart position
-        float target;   // Target position
-        float velocity; // Current velocity of the cart
-        const float max_velocity = 1.0f;
-        const float tolerance = 0.01f; // How close we need to be to the target
+        float              position;
+        float              target;
+        float              velocity;
+        const float        maxVelocity = 1.0f;
+        const float        tolerance = 0.01f;
 
 public:
         SimpleCart() :
@@ -32,7 +32,7 @@ public:
                 velocity += acceleration;
 
                 // Clip velocity to max limits
-                velocity = std::clamp(velocity, -max_velocity, max_velocity);
+                velocity = std::clamp(velocity, -maxVelocity, maxVelocity);
                 position += velocity;
 
                 // Reward: Higher reward for getting closer to the target
@@ -61,20 +61,22 @@ int main()
 {
         constexpr bool IN_TRAINING { true };
         constexpr uint32_t MAX_ITERATIONS { 1000 };
-
         constexpr uint32_t LAYER_COUNT { 3 };
         constexpr uint32_t SIZES[LAYER_COUNT] { 2, 16, 1 };
-
-        LayerCreateInfo infos[LAYER_COUNT - 1] {
-                { FULLY_CONNECTED, RELU, SIZES[1] },
-                { FULLY_CONNECTED, TANH, SIZES[2] }
+        constexpr LayerCreateInfo INFOS[LAYER_COUNT - 1] {
+                { .type = FULLY_CONNECTED, .functionType = RELU, .neuronCount = SIZES[1] },
+                { .type = FULLY_CONNECTED, .functionType = TANH, .neuronCount = SIZES[2] }
         };
 
-        Network policyNetwork(SIZES[0], LAYER_COUNT - 1, infos, BASE_PATH "/Encoded.nnv");
-        Network valueNetwork(SIZES[0], LAYER_COUNT - 1, infos, BASE_PATH "/Encoded-Value.nnv");
+        Network policyNetwork(
+                SIZES[0], LAYER_COUNT - 1,
+                INFOS, BASE_PATH "/Encoded.nnv");
+        Network valueNetwork(
+                SIZES[0], LAYER_COUNT - 1,
+                INFOS, BASE_PATH "/Encoded-Value.nnv");
 
         if constexpr (IN_TRAINING) {
-                Train::PPOTraining<SimpleCart>(policyNetwork, valueNetwork, MAX_ITERATIONS, 1000);
+                Train::PPO<SimpleCart>(policyNetwork, valueNetwork, MAX_ITERATIONS, 1000);
                 policyNetwork.encode(BASE_PATH "/Encoded.nnv");
                 valueNetwork.encode(BASE_PATH "/Encoded-Value.nnv");
         } else {

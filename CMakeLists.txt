@@ -1,9 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(NeuralNetwork LANGUAGES C CXX ASM_MASM CUDA)
-
-# ------------------------------------------------------------------------------
-# REQUIREMENTS
-# ------------------------------------------------------------------------------
+project(NeuralNetwork LANGUAGES CXX ASM_MASM CUDA)
 
 if (NOT MSVC)
         message(FATAL_ERROR "MSVC is required for compilation.")
@@ -11,151 +7,99 @@ endif ()
 
 if (NOT DEFINED ENV{CUDA_PATH})
         message(FATAL_ERROR "Unable to find Cuda Toolkit! Please install the CUDA "
-                "Toolkit from https://developer.nvidia.com/cuda-toolkit")
+                            "Toolkit from https://developer.nvidia.com/cuda-toolkit")
 else()
         message(STATUS "Found CUDA Toolkit: $ENV{CUDA_PATH}")
 endif()
 
-# ------------------------------------------------------------------------------
-# FLAGS
-# ------------------------------------------------------------------------------
-
-# Compiler Flags
-set(CMAKE_MSVC_RUNTIME_LIBRARY "")
-set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "")
-
-# Linker Flags
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT")
-
-# ASM Flags
-set(CMAKE_ASM_MASM_FLAGS_RELEASE "/c /nologo")
-set(CMAKE_ASM_MASM_FLAGS_DEBUG "/c /nologo /Zi")
-
-# C++ Flags
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:preprocessor")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
-
-# CUDA Flags
-set(CMAKE_CUDA_STANDARD 20)
-set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-set(CMAKE_CUDA_ARCHITECTURES 61 75 86 89)
-set(CMAKE_CUDA_COMPILER "$ENV{CUDA_PATH}/bin/nvcc.exe")
-set(CUDA_INCLUDE_DIRS "$ENV{CUDA_PATH}/Include")
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler=/Zc:preprocessor")
-set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CUDA_FLAGS_DEBUG} -Xcompiler=/MDd")
-set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -O3 -Xcompiler=/MD")
+option(BUILD_MNIST_DATASET     "Build MNIST dataset"     ON)
+option(BUILD_DECODER           "Build decoder"           ON)
+option(BUILD_TESTS             "Build tests"             ON)
+option(BUILD_AS_STATIC_LIBRARY "Build as static library" OFF)
 
 # ------------------------------------------------------------------------------
 # DIRECTORIES
 # ------------------------------------------------------------------------------
 
-set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
-set(MNIST_DIR "${CMAKE_SOURCE_DIR}/mnist")
-set(DECODER_DIR "${CMAKE_SOURCE_DIR}/decoder")
-set(TESTS_DIR "${CMAKE_SOURCE_DIR}/tests")
-set(LIBS_DIR "${CMAKE_SOURCE_DIR}/libs")
+set(SRC_DIR         "${CMAKE_HOME_DIRECTORY}/src")
+set(LIBS_DIR        "${CMAKE_HOME_DIRECTORY}/libs")
 set(GET_PROJECT_DIR "${LIBS_DIR}/GetProject")
-set(GTEST_DIR "${LIBS_DIR}/googletest")
 
 # ------------------------------------------------------------------------------
 # PROJECT
 # ------------------------------------------------------------------------------
 
-# All network sources
 file(GLOB_RECURSE SOURCES
         "${SRC_DIR}/*.cpp"
-        "${SRC_DIR}/*.c"
         "${SRC_DIR}/*.asm"
-        "${SRC_DIR}/*.cu"
-)
+        "${SRC_DIR}/*.cu")
 
-# Network
-add_executable(${PROJECT_NAME} ${SOURCES})
+if (NOT BUILD_AS_STATIC_LIBRARY)
+        add_executable(NeuralNetwork ${SOURCES})
+        add_executable(NeuralNetwork::Exe ALIAS NeuralNetwork)
 
-# Mnist dataset encoder
-set(MNIST mnist)
-add_executable(${MNIST} "${MNIST_DIR}/main.cpp")
-
-# Encoded file visualiser
-set(DECODER decoder)
-add_executable(${DECODER} "${DECODER_DIR}/main.cpp")
-
-# Exclude main.cpp from compiling in tests and static lib
-list(REMOVE_ITEM SOURCES "${SRC_DIR}/main.cpp")
-
-# Network static lib
-set(NETWORK_LIB "${PROJECT_NAME}Lib")
-add_library(${NETWORK_LIB} STATIC ${SOURCES})
-
-# All tests sources
-file(GLOB_RECURSE TESTS_SOURCES
-        "${TESTS_DIR}/*.cpp"
-        "${TESTS_DIR}/*.cu"
-)
-
-# Tests
-set(TESTS tests)
-add_executable(${TESTS} ${SOURCES} ${TESTS_SOURCES})
-
-# ------------------------------------------------------------------------------
-# TARGETS OPTIONS
-# ------------------------------------------------------------------------------
-
-if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-        add_compile_definitions(DEBUG_MODE_ENABLED)
-else ()
-        # Tests should always be run with debug features enabled.
-        target_compile_definitions(${TESTS} PRIVATE DEBUG_MODE_ENABLED)
+        target_compile_definitions(NeuralNetwork
+                PRIVATE BASE_PATH="${CMAKE_HOME_DIR}")
+        target_include_directories(NeuralNetwork
+                PRIVATE "$ENV{CUDA_PATH}/Include")
+        target_link_libraries(NeuralNetwork
+                PRIVATE "$ENV{CUDA_PATH}/Lib/x64/cudadevrt.lib")
 endif ()
 
-# For easier use the path of the source folder is passed to the code.
-add_compile_definitions(BASE_PATH="${CMAKE_SOURCE_DIR}")
+if (BUILD_AS_STATIC_LIBRARY OR BUILD_TESTS)
+        list(REMOVE_ITEM SOURCES "${SRC_DIR}/main.cpp")
+        add_library(NeuralNetworkLib STATIC ${SOURCES})
+        add_library(NeuralNetwork::Lib ALIAS NeuralNetworkLib)
 
-# Disable stdout logging during tests.
-target_compile_definitions(${TESTS} PRIVATE LOGGER_FATAL_ERROR_DISABLE_STDOUT)
-
-# Let CUDA compile only CUDA files
-set_target_properties(${PROJECT_NAME} ${TESTS} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-
-# Include headers and link static library
-target_include_directories(${PROJECT_NAME} PRIVATE "$ENV{CUDA_PATH}/Include")
-target_link_libraries(${PROJECT_NAME} PRIVATE "$ENV{CUDA_PATH}/Lib/x64/cudadevrt.lib")
-target_include_directories(${TESTS} PRIVATE "$ENV{CUDA_PATH}/Include")
-target_link_libraries(${TESTS} PRIVATE "$ENV{CUDA_PATH}/Lib/x64/cudadevrt.lib")
+        target_compile_definitions(NeuralNetworkLib
+                PUBLIC BASE_PATH="${CMAKE_SOURCE_DIR}")
+        target_include_directories(NeuralNetworkLib
+                PUBLIC "$ENV{CUDA_PATH}/Include")
+        target_link_libraries(NeuralNetworkLib
+                PRIVATE "$ENV{CUDA_PATH}/Lib/x64/cudadevrt.lib")
+endif ()
 
 # ------------------------------------------------------------------------------
 # DEPENDENCIES
 # ------------------------------------------------------------------------------
 
-# Fetch CMake Utils
+# Fetch the latest commit of GetProject
 if (NOT EXISTS ${GET_PROJECT_DIR})
         execute_process(
                 COMMAND git clone "https://github.com/Storterald/GetProject.git"
-                        --quiet --branch "main" --single-branch ${GET_PROJECT_DIR}
-        )
+                        --quiet --branch "main" --single-branch ${GET_PROJECT_DIR})
 else ()
         execute_process(
                 COMMAND git pull --quiet
-                WORKING_DIRECTORY ${GET_PROJECT_DIR}
-        )
+                WORKING_DIRECTORY ${GET_PROJECT_DIR})
 endif ()
 
 include("${GET_PROJECT_DIR}/GetProject.cmake")
 
-# Fetch GLFW
-get_project(
-        TARGET ${TESTS}
-        GIT_REPOSITORY "https://github.com/google/googletest.git"
-        DIRECTORY ${LIBS_DIR}
-        INSTALL_ENABLED ON
-        VERSION LATEST
-        BUILD_ARGS
-                -DBUILD_GMOCK=OFF
-                -Dgtest_force_shared_crt=ON
-)
-target_include_directories(${TESTS} PRIVATE "${GTEST_DIR}/include")
-target_link_libraries(${TESTS} PRIVATE "${GTEST_DIR}/lib/gtest.lib")
-target_link_libraries(${TESTS} PRIVATE "${GTEST_DIR}/lib/gtest_main.lib")
+# ------------------------------------------------------------------------------
+# SUB DIRECTORIES
+# ------------------------------------------------------------------------------
+
+if (BUILD_MNIST_DATASET)
+        add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/mnist")
+        target_compile_definitions(Mnist
+                PUBLIC BASE_PATH="${CMAKE_HOME_DIR}")
+endif ()
+
+if (BUILD_DECODER)
+        add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/decoder")
+        target_compile_definitions(Decoder
+                PUBLIC BASE_PATH="${CMAKE_HOME_DIR}")
+endif ()
+
+if (BUILD_TESTS)
+        cmake_policy(SET CMP0079 NEW)  # Added in CMake 3.13
+        
+        add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/tests")
+        add_dependencies(NeuralNetworkTest NeuralNetwork::Lib)
+
+        target_link_libraries(NeuralNetworkTest
+                PRIVATE NeuralNetwork::Lib)
+        target_include_directories(NeuralNetworkTest
+                PRIVATE ${SRC_DIR})
+endif ()

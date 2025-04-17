@@ -1,6 +1,6 @@
 #include "CUDATest.h"
 
-#include "../src/math/Base.h"
+#include <math/Base.h>
 
 namespace Kernels {
         

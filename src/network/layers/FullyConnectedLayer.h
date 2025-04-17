@@ -10,28 +10,18 @@ public:
         FullyConnectedLayer(
                 uint32_t previousLayerSize,
                 uint32_t layerSize,
-                FunctionType functionType
-        );
+                FunctionType functionType);
 
         FullyConnectedLayer(
                 uint32_t previousLayerSize,
                 uint32_t layerSize,
                 FunctionType functionType,
-                std::ifstream &encodedData
-        );
+                std::ifstream &encodedData);
 
-        [[nodiscard]] Vector forward(
-                const Vector &input
-        ) const override;
+        [[nodiscard]] Vector forward(const Vector &input) const override;
+        [[nodiscard]] Vector backward(const Vector &cost,const Vector &input) override;
 
-        [[nodiscard]] Vector backward(
-                const Vector &cost,
-                const Vector &input
-        ) override;
-
-        void encode(
-                std::ofstream &out
-        ) const override;
+        void encode(std::ostream &out) const override;
 
         [[nodiscard]] inline uint32_t size() const override
         {

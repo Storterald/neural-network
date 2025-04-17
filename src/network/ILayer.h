@@ -2,8 +2,16 @@
 
 #include "../types/Matrix.h"
 
-#include "../enums/FunctionType.h"
-#include "../enums/LayerType.h"
+enum FunctionType {
+        TANH,
+        RELU
+
+}; // enum FunctionType
+
+enum LayerType {
+        FULLY_CONNECTED
+
+}; // enum LayerType
 
 struct LayerCreateInfo {
         LayerType type;
@@ -16,10 +24,9 @@ struct LayerCreateInfo {
 class ILayer {
 public:
         [[nodiscard]] virtual Vector forward(const Vector &input) const = 0;
-
         virtual Vector backward(const Vector &cost, const Vector &input) = 0;
 
-        virtual void encode(std::ofstream &file) const = 0;
+        virtual void encode(std::ostream &file) const = 0;
 
         [[nodiscard]] virtual uint32_t size() const = 0;
 

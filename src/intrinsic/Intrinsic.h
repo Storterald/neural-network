@@ -1,10 +1,10 @@
 #pragma once
 
 enum SIMD {
-        UNSUPPORTED,
-        SSE,
-        AVX,
-        AVX512
+        SIMD_UNSUPPORTED,
+        SIMD_SSE,
+        SIMD_AVX,
+        SIMD_AVX512
 };
 
 extern "C" {

@@ -4,7 +4,6 @@
 
 #include "../math/Base.h"
 #include "../math/Math.h"
-#include "../math/CudaMath.h"
 
 // Logger included anyway since it's used for Logger::fatal_error.
 #include "../utils/Logger.h"

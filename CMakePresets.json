@@ -11,6 +11,15 @@
       "hidden": true,
       "binaryDir": "${sourceDir}/build/${presetName}",
       "installDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_CXX_STANDARD_REQUIRED": true,
+        "CMAKE_CUDA_COMPILER": "$env{CUDA_PATH}/bin/nvcc.exe",
+        "CMAKE_CUDA_STANDARD": "20",
+        "CMAKE_CUDA_STANDARD_REQUIRED": true,
+        "CMAKE_CUDA_ARCHITECTURES": "native",
+        "CMAKE_CUDA_SEPARABLE_COMPILATION": true
+      },
       "warnings": {
         "unusedCli": false
       }
@@ -34,8 +43,16 @@
         "rhs": "Windows"
       },
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "cl",
-        "CMAKE_CXX_COMPILER": "cl"
+        "CMAKE_CXX_COMPILER": "cl",
+        "CMAKE_CXX_FLAGS_INIT": "/Zc:preprocessor",
+        "CMAKE_CXX_FLAGS_DEBUG_INIT": "/MDd",
+        "CMAKE_CXX_FLAGS_RELEASE_INIT": "/O2 /MD",
+        "CMAKE_ASM_MASM_FLAGS_INIT": "/c /nologo",
+        "CMAKE_ASM_MASM_FLAGS_DEBUG_INIT": "/Zi",
+        "CMAKE_CUDA_FLAGS_INIT": "-Xcompiler=/Zc:preprocessor",
+        "CMAKE_CUDA_FLAGS_DEBUG_INIT": "-Xcompiler=/MDd",
+        "CMAKE_CUDA_FLAGS_RELEASE_INIT": "-O3 -Xcompiler=/MD",
+        "CMAKE_EXE_LINKER_FLAGS": "/NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBCMTD"
       },
       "vendor": {
         "jetbrains.com/clion": {
@@ -61,6 +78,20 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "msvc-debug-build",
+      "displayName": "MSVC Debug Build",
+      "configurePreset": "msvc-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "msvc-release-build",
+      "displayName": "MSVC Release Build",
+      "configurePreset": "msvc-release",
+      "configuration": "Release"
     }
   ]
 }

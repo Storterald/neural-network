@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../src/types/Data.h"
+#include <types/Data.h>
 
 namespace CUDATest {
 

@@ -1,14 +1,11 @@
 #pragma once
 
 #include <cmath>
-#include <cstring>
 #include <algorithm>
-#include <immintrin.h>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
 #include "../Base.h"
-#include "../intrinsic/Intrinsic.h"
 
 #ifdef DEBUG_MODE_ENABLED
 #include "../utils/Logger.h"

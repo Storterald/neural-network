@@ -4,8 +4,6 @@
 
 class Data {
 public:
-        // Cannot be constexpr since this header is compiled in CUDA, and its
-        // standard is C++20, while constexpr constructors are in C++23.
         inline Data() = default;
         explicit Data(uint32_t size);
 

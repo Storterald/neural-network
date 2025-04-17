@@ -5,12 +5,12 @@
 
 #include "Base.h"
 
-void Train::supervisedTraining(
+void Train::supervised(
         Network &network,
         uint32_t sampleCount,
         const float inputs[],
-        const float outputs[]
-) {
+        const float outputs[]) {
+
 #ifdef DEBUG_MODE_ENABLED
         // Since DEBUG mode uses the Logger, the program must
         // run in single thread to avoid gibberish in the log file.
@@ -63,7 +63,7 @@ void Train::supervisedTraining(
                 f.get();
 }
 
-void Train::_PPOTraining(
+void Train::_PPO(
         // The policy network, also known as the actor.
         Network &policyNetwork,
         // The value network, also known as the critic.
@@ -71,8 +71,8 @@ void Train::_PPOTraining(
         // A situation dependant environment.
         IEnvironment &environment,
         uint32_t epochs,
-        uint32_t maxSteps
-) {
+        uint32_t maxSteps) {
+
         struct IterationData {
                 uint64_t stateHash;
                 float reward;
