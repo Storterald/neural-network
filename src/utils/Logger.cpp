@@ -2,6 +2,7 @@
 
 #include <ctime>
 #include <iostream>
+#include <format>
 
 static constexpr std::string_view CONVERTER[4] {
         "INFO ",

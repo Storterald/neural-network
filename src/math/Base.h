@@ -7,10 +7,6 @@
 
 #include "../Base.h"
 
-#ifdef DEBUG_MODE_ENABLED
-#include "../utils/Logger.h"
-#endif // DEBUG_MODE_ENABLED
-
 // No checks in release mode to increase speed.
 #ifdef DEBUG_MODE_ENABLED
 #define CUDA_CHECK_ERROR(RESULT, MESSAGE)                                                   \

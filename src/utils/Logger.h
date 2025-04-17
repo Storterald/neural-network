@@ -1,11 +1,7 @@
 #pragma once
 
 #include <fstream>
-#include <ranges>
 #include <string>
-#include <format>
-
-#include "../Base.h"
 
 enum LogType{
         INFO,
@@ -16,6 +12,8 @@ enum LogType{
 
 class Logger {
 public:
+        static constexpr uint32_t MAX_FILE_SIZE = 1e9;
+
         Logger();
         ~Logger();
 

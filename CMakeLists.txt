@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.13)
 project(NeuralNetwork LANGUAGES CXX ASM_MASM CUDA)
 
 if (NOT MSVC)
