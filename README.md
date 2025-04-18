@@ -5,7 +5,7 @@ and unsupervised training.<br>*No external libraries required*.
 
 # Requirements
 
- - CMake `>= 3.5.0`
+ - CMake `>= 3.13.0`
  - Visual Studio `2022`
  - Nvidia CUDA Toolkit
  - git
@@ -16,7 +16,7 @@ and unsupervised training.<br>*No external libraries required*.
 > [here](https://cmake.org/download/).
 
 The CMakeLists.txt script automatically **downloads** and builds the [dependencies](#Dependencies)
-needed by the project, these **do not** include the one in [requirements](#Requirements).
+needed by the project, these **do not** include the [requirements](#Requirements).
 This means that the **first** configuration will be **slower** then the other ones.
 
 To **configure and build** the project run in a terminal:
