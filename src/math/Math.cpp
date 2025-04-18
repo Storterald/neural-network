@@ -243,7 +243,7 @@ void Math::ReLU(uint32_t size, const float data[], float result[])
                 return _Math<MATH_SSE>::ReLU(size, data, result);
         case SIMD_UNSUPPORTED:
                 for (uint32_t i = 0; i < size; ++i)
-                        result[i] = std::min(data[i], 0.0f);
+                        result[i] = std::max(data[i], 0.0f);
         }
 }
 
