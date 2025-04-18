@@ -29,11 +29,11 @@ public:
         }
 
 private:
-        Matrix m_w;
-        Vector m_b;
-        const FunctionType m_functionType;
-        std::mutex m_mutex;
+        Matrix                    m_w;
+        Vector                    m_b;
+        const FunctionType        m_functionType;
+        std::mutex                m_mutex;
 
-        void _backwardGPU(const float input[], float dw[], const float db[], float result[]);
+        void _d_backward(const float input[], float dw[], const float db[], float result[]);
 
 }; // class Layer

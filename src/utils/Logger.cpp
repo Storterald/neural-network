@@ -25,8 +25,6 @@ static std::string _time()
         return buffer;
 }
 
-Logger Log;
-
 Logger::Logger() :
         m_file(std::ofstream(BASE_PATH "/logs/latest-0.log")) {
 
@@ -52,5 +50,5 @@ Logger::fatal_error::fatal_error(const std::string &message)
 #endif // LOGGER_FATAL_ERROR_DISABLE_STDOUT
 
         // Flush (std::endl) forces to print everything that has not yet been printed.
-        Log.m_file << message << std::endl;
+        Logger::Log().m_file << message << std::endl;
 }

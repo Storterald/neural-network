@@ -1,8 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <intrinsic/Intrinsic.h>
 #include <intrin.h>
-
-#include "../src/intrinsic/Intrinsic.h"
 
 TEST(SIMDSupport, GetSIMDSupportFunctionReturnsCorrectValue) {
         SIMD support { SIMD_SSE };

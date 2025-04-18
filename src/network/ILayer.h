@@ -2,13 +2,13 @@
 
 #include "../types/Matrix.h"
 
-enum FunctionType {
+enum FunctionType : uint32_t {
         TANH,
         RELU
 
 }; // enum FunctionType
 
-enum LayerType {
+enum LayerType : uint32_t {
         FULLY_CONNECTED
 
 }; // enum LayerType

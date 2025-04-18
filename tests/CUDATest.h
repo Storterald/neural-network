@@ -4,6 +4,6 @@
 
 namespace CUDATest {
 
-        void accessValues(const Data &data);
-        bool checkValues(const Data &data, float v);
+        void access_values(const Data &data);
+        bool check_values(const Data &data, float v);
 }

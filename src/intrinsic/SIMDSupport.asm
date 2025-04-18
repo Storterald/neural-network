@@ -1,15 +1,20 @@
 .CODE
-PUBLIC getSIMDSupport
+PUBLIC get_SIMD_support
 
 SIMD_UNSUPPORTED EQU 0
 SIMD_SSE EQU 1
 SIMD_AVX EQU 2
 SIMD_AVX512 EQU 3
 
-; SIMD getSIMDSupport()
-getSIMDSupport PROC
+; SIMD get_SIMD_support()
+get_SIMD_support PROC
         PUSH rbp
         MOV rbp, rsp
+
+        ; Preserve the register overwritten by CPUID
+        PUSH rbx
+        PUSH rcx
+        PUSH rdx
 
         ; Flags for CPUID
         MOV eax, 7
@@ -44,8 +49,11 @@ SSE_SUPPORTED:
         JMP END_SIMD
 
 END_SIMD:
+        POP rdx
+        POP rcx
+        POP rbx
         POP rbp
         RET
 
-getSIMDSupport ENDP
+get_SIMD_support ENDP
 END

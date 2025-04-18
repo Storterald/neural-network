@@ -19,18 +19,18 @@ TEST(DataTest, DataIsCorrectlyAllocatedOnCPU) {
 
 TEST(DataTest, DataIsCorrectlyAllocatedOnGPU) {
         Data data(10);
-        for (int i{}; i < 10; ++i)
+        for (uint32_t i = 0; i < 10; ++i)
                 data.data()[i] = 1;
 
         EXPECT_NE(data.data(), nullptr);
         EXPECT_EQ(data.size(), 10);
-        EXPECT_NO_FATAL_FAILURE(CUDATest::accessValues(data));
-        EXPECT_TRUE(CUDATest::checkValues(data, 1));
+        EXPECT_NO_FATAL_FAILURE(CUDATest::access_values(data));
+        EXPECT_TRUE(CUDATest::check_values(data, 1));
 }
 
 TEST(DataTest, CopyConstructorCorrectlyCopiesData) {
         Data data1(10);
-        for (int i{}; i < 10; ++i)
+        for (uint32_t i = 0; i < 10; ++i)
                 data1.data()[i] = 1;
 
         Data data2(data1);
@@ -38,8 +38,8 @@ TEST(DataTest, CopyConstructorCorrectlyCopiesData) {
         EXPECT_NE(data1.data(), data2.data());
         EXPECT_EQ(data2.size(), 10);
         EXPECT_TRUE([&]() -> bool {
-                bool value { true };
-                for (int i{}; i < 10; ++i)
+                bool value = true;
+                for (uint32_t i = 0; i < 10; ++i)
                         value &= data1.data()[i] == data2.data()[i];
 
                 return value;
@@ -48,7 +48,7 @@ TEST(DataTest, CopyConstructorCorrectlyCopiesData) {
 
 TEST(DataTest, CopyAssignmentInitializationCorrectlyCopiesData) {
         Data data1(10);
-        for (int i{}; i < 10; ++i)
+        for (uint32_t i = 0; i < 10; ++i)
                 data1.data()[i] = 1;
 
         Data data2 = data1;
@@ -56,8 +56,8 @@ TEST(DataTest, CopyAssignmentInitializationCorrectlyCopiesData) {
         EXPECT_NE(data1.data(), data2.data());
         EXPECT_EQ(data1.size(), data2.size());
         EXPECT_TRUE([&]() -> bool {
-                bool value { true };
-                for (int i{}; i < 10; ++i)
+                bool value = true;
+                for (uint32_t i = 0; i < 10; ++i)
                         value &= data1.data()[i] == data2.data()[i];
 
                 return value;
@@ -67,7 +67,7 @@ TEST(DataTest, CopyAssignmentInitializationCorrectlyCopiesData) {
 
 TEST(DataTest, CopyAssignmentCorrectlyCopiesData) {
         Data data1(10);
-        for (int i{}; i < 10; ++i)
+        for (uint32_t i = 0; i < 10; ++i)
                 data1.data()[i] = 1;
 
         Data data2(20);
@@ -77,8 +77,8 @@ TEST(DataTest, CopyAssignmentCorrectlyCopiesData) {
         EXPECT_NE(data1.data(), data2.data());
         EXPECT_EQ(data1.size(), data2.size());
         EXPECT_TRUE([&]() -> bool {
-                bool value { true };
-                for (int i{}; i < 10; ++i)
+                bool value = true;
+                for (uint32_t i = 0; i < 10; ++i)
                         value &= data1.data()[i] == data2.data()[i];
 
                 return value;

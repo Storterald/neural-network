@@ -1,7 +1,10 @@
 #include <fstream>
 #include <iomanip>
 
-#include "../src/enums/LayerType.h"
+enum LayerType : uint32_t {
+        FULLY_CONNECTED
+
+}; // enum LayerType
 
 void writeVector(
         const char *name,

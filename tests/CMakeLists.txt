@@ -38,7 +38,4 @@ target_include_directories(NeuralNetworkTest
         PRIVATE "${googletest_SOURCE}/googletest/include")
 target_link_libraries(NeuralNetworkTest
         PRIVATE gtest
-        PRIVATE gtest_main
-        # Normally this wouldn't be required, but nvlink errors when setting as
-        # PUBLIC cudadevrt in NeuralNetwork and not importing it here.
-        PRIVATE "$ENV{CUDA_PATH}/Lib/x64/cudadevrt.lib")
+        PRIVATE gtest_main)

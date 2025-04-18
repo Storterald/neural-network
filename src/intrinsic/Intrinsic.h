@@ -8,15 +8,14 @@ enum SIMD {
 };
 
 extern "C" {
-        // Include assembly function
-        extern SIMD getSIMDSupport();
+        extern SIMD get_SIMD_support();
 }
 
 namespace Intrinsic {
 
         [[nodiscard]] inline SIMD support()
         {
-                const static SIMD support { getSIMDSupport() };
+                const static SIMD support = get_SIMD_support();
                 return support;
         }
 

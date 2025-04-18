@@ -1,6 +1,6 @@
 #include "Matrix.h"
 
-#include <algorithm>
+#include "../math/Math.h"
 
 Matrix::Matrix(uint32_t width, uint32_t height) :
         Data(width * height),
@@ -8,16 +8,16 @@ Matrix::Matrix(uint32_t width, uint32_t height) :
         m_height(height) {}
 
 Matrix::Matrix(std::initializer_list<std::initializer_list<float>> values) :
-        Data(values.begin()->size() * values.size()),
-        m_width(values.begin()->size()),
-        m_height(values.size()) {
+        Data((uint32_t)(values.begin()->size() * values.size())),
+        m_width((uint32_t)values.begin()->size()),
+        m_height((uint32_t)values.size()) {
 
 #ifdef DEBUG_MODE_ENABLED
         if (std::ranges::any_of(values, [this](auto &vs) -> bool { return vs.size() != m_width; }))
                 throw LOGGER_EX("All initializer lists passed to Matrix() must have the same size.");
 #endif // DEBUG_MODE_ENABLED
 
-        for (uint32_t i{}; i < m_height; ++i)
+        for (uint32_t i = 0; i < m_height; ++i)
                 std::memcpy((*this)[i], values.begin()[i].begin(), m_width * sizeof(float));
 }
 
@@ -69,7 +69,7 @@ Matrix Matrix::operator+ (const Matrix &other) const
 #endif // DEBUG_MODE_ENABLED
 
         Matrix result(m_width, m_height);
-        _MATH(sum, m_size, m_data, other.m_data, result.m_data);
+        Math::sum(m_size, m_data, other.m_data, result.m_data);
 
         return result;
 }
@@ -82,7 +82,7 @@ Matrix Matrix::operator- (const Matrix &other) const
 #endif // DEBUG_MODE_ENABLED
 
         Matrix result(m_width, m_height);
-        _MATH(sub, m_size, m_data, other.m_data, result.m_data);
+        Math::sub(m_size, m_data, other.m_data, result.m_data);
 
         return result;
 }
@@ -94,7 +94,7 @@ void Matrix::operator+= (const Matrix &other)
                 throw LOGGER_EX("Matrix dimensions must match for addition.");
 #endif // DEBUG_MODE_ENABLED
 
-        _MATH(sum, m_size, m_data, other.m_data, m_data);
+        Math::sum(m_size, m_data, other.m_data, m_data);
 }
 
 void Matrix::operator-= (const Matrix &other)
@@ -104,13 +104,13 @@ void Matrix::operator-= (const Matrix &other)
                 throw LOGGER_EX("Matrix dimensions must match for subtraction.");
 #endif // DEBUG_MODE_ENABLED
 
-        _MATH(sub, m_size, m_data, other.m_data, m_data);
+        Math::sub(m_size, m_data, other.m_data, m_data);
 }
 
 Matrix Matrix::operator+ (float scalar) const
 {
         Matrix result(m_width, m_height);
-        _MATH(sum, m_size, m_data, scalar, result.m_data);
+        Math::sum(m_size, m_data, scalar, result.m_data);
 
         return result;
 }
@@ -118,7 +118,7 @@ Matrix Matrix::operator+ (float scalar) const
 Matrix Matrix::operator- (float scalar) const
 {
         Matrix result(m_width, m_height);
-        _MATH(sub, m_size, m_data, scalar, result.m_data);
+        Math::sub(m_size, m_data, scalar, result.m_data);
 
         return result;
 }
@@ -126,7 +126,7 @@ Matrix Matrix::operator- (float scalar) const
 Matrix Matrix::operator* (float scalar) const
 {
         Matrix result(m_width, m_height);
-        _MATH(mul, m_size, m_data, scalar, result.m_data);
+        Math::mul(m_size, m_data, scalar, result.m_data);
 
         return result;
 }
@@ -139,24 +139,24 @@ Matrix Matrix::operator/ (float scalar) const
 #endif // DEBUG_MODE_ENABLED
 
         Matrix result(m_width, m_height);
-        _MATH(div, m_size, m_data, scalar, result.m_data);
+        Math::div(m_size, m_data, scalar, result.m_data);
 
         return result;
 }
 
 void Matrix::operator+= (float scalar)
 {
-        _MATH(sum, m_size, m_data, scalar, m_data);
+        Math::sum(m_size, m_data, scalar, m_data);
 }
 
 void Matrix::operator-= (float scalar)
 {
-        _MATH(sub, m_size, m_data, scalar, m_data);
+        Math::sub(m_size, m_data, scalar, m_data);
 }
 
 void Matrix::operator*= (float scalar)
 {
-        _MATH(mul, m_size, m_data, scalar, m_data);
+        Math::mul(m_size, m_data, scalar, m_data);
 }
 
 void Matrix::operator/= (float scalar)
@@ -166,7 +166,7 @@ void Matrix::operator/= (float scalar)
                 throw LOGGER_EX("Cannot divide by 0.");
 #endif // DEBUG_MODE_ENABLED
 
-        _MATH(div, m_size, m_data, scalar, m_data);
+        Math::div(m_size, m_data, scalar, m_data);
 }
 
 Vector Matrix::operator* (const Vector &vec) const
@@ -177,7 +177,7 @@ Vector Matrix::operator* (const Vector &vec) const
 #endif // DEBUG_MODE_ENABLED
 
         Vector result(m_height);
-        _MATH(matvec_mul, m_width, m_height, m_data, vec.data(), result.data());
+        Math::matvec_mul(m_width, m_height, m_data, vec.data(), result.data());
 
         return result;
 }

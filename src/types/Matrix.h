@@ -44,8 +44,8 @@ public:
         [[nodiscard]] Vector operator* (const Vector &vec) const;
 
 private:
-        uint32_t m_width { 0 };
-        uint32_t m_height { 0 };
+        uint32_t        m_width  = 0;
+        uint32_t        m_height = 0;
 
 };
 

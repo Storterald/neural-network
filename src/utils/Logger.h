@@ -12,10 +12,15 @@ enum LogType{
 
 class Logger {
 public:
-        static constexpr uint32_t MAX_FILE_SIZE = 1e9;
+        static constexpr uint32_t MAX_FILE_SIZE = (uint32_t)1e9;
 
-        Logger();
         ~Logger();
+
+        static Logger &Log()
+        {
+                static Logger log;
+                return log;
+        }
 
         static std::string pref(LogType type, std::string_view file, int line);
 
@@ -41,7 +46,9 @@ private:
         uint32_t m_fileCount { 0 };
         std::ofstream m_file;
 
-} extern Log;
+        Logger();
+
+};
 
 #define LOGGER_PREF(type) Logger::pref(type, __FILE__, __LINE__)
 #define LOGGER_EX(msg) Logger::fatal_error(LOGGER_PREF(FATAL) + msg)

@@ -9,8 +9,8 @@ namespace Kernels {
                 const float w[],
                 float dw[],
                 const float db[],
-                float result[]
-        ) {
+                float result[]) {
+
                 const uint32_t k { blockIdx.x * blockDim.x + threadIdx.x };
 
                 if (k >= width)
@@ -27,7 +27,7 @@ namespace Kernels {
 
 } // namespace Kernels
 
-void FullyConnectedLayer::_backwardGPU(const float input[], float dw[], const float db[], float result[])
+void FullyConnectedLayer::_d_backward(const float input[], float dw[], const float db[], float result[])
 {
         const uint32_t BLOCKS_COUNT { (m_w.width() + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
         Kernels::backward<<<BLOCKS_COUNT, BLOCK_SIZE>>>(m_w.width(), m_w.height(), input, m_w.data(), dw, db, result);
@@ -35,5 +35,5 @@ void FullyConnectedLayer::_backwardGPU(const float input[], float dw[], const fl
         CUDA_CHECK_ERROR(cudaGetLastError(),
                 "backward kernel launch failed.");
         CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in FullyConnectedLayer::_backwardGPU.");
+                "Error synchronizing in FullyConnectedLayer::_d_backward.");
 }

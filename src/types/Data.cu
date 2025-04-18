@@ -8,15 +8,14 @@ namespace Kernels {
                 *ans = true;
 
                 // Stop as soon as values differ
-                for (uint32_t i{}; i < size && *ans; ++i)
+                for (uint32_t i = 0; i < size && *ans; ++i)
                         *ans  = first[i] == second[i];
         }
 
 } // namespace Kernels
 
-Data::Data(uint32_t size) :
-        m_size(size), m_data(nullptr) {
-
+Data::Data(uint32_t size) : m_size(size), m_data(nullptr)
+{
         // Size must be higher than 0 for cudaMallocManaged to work.
         if (m_size == 0)
                 return;
@@ -26,9 +25,8 @@ Data::Data(uint32_t size) :
                 "Failed to allocate unified memory.");
 }
 
-Data::Data(const Data &other) :
-        m_size(other.m_size), m_data(nullptr) {
-
+Data::Data(const Data &other) : m_size(other.m_size), m_data(nullptr)
+{
         // Don't alloc nor copy if the size is 0.
         if (m_size == 0)
                 return;

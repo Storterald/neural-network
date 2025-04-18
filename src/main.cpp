@@ -1,8 +1,7 @@
-#include "network/Train.h"
+#include "network/Network.h"
 
-#ifdef DEBUG_MODE_ENABLED
-#include "utils/Logger.h"
-#endif // DEBUG_MODE_ENABLED
+#include <algorithm>
+#include <cmath>
 
 class SimpleCart : public IEnvironment {
         float              position;
@@ -40,7 +39,7 @@ public:
                 bool done = target - position <= tolerance;
 
 #ifdef DEBUG_MODE_ENABLED
-                Log << LOGGER_PREF(DEBUG) << "Reward: " << reward << " Done: " << done << " Action: " << action << '\n';
+                Logger::Log() << LOGGER_PREF(DEBUG) << "Reward: " << reward << " Done: " << done << " Action: " << action << '\n';
 #endif // DEBUG_MODE_ENABLED
                 return { reward, done };
         }
@@ -49,7 +48,7 @@ public:
         void reset() override 
         {
 #ifdef DEBUG_MODE_ENABLED
-                Log << LOGGER_PREF(DEBUG) << "IEnvironment::reset().\n";
+                Logger::Log() << LOGGER_PREF(DEBUG) << "IEnvironment::reset().\n";
 #endif // DEBUG_MODE_ENABLED
                 position = 0.0f;
                 target = 10.0f;
@@ -76,7 +75,8 @@ int main()
                 INFOS, BASE_PATH "/Encoded-Value.nnv");
 
         if constexpr (IN_TRAINING) {
-                Train::PPO<SimpleCart>(policyNetwork, valueNetwork, MAX_ITERATIONS, 1000);
+                policyNetwork.train_ppo<SimpleCart>(
+                        valueNetwork, MAX_ITERATIONS, 1000);
                 policyNetwork.encode(BASE_PATH "/Encoded.nnv");
                 valueNetwork.encode(BASE_PATH "/Encoded-Value.nnv");
         } else {

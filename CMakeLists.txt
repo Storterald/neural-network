@@ -17,6 +17,10 @@ option(BUILD_DECODER           "Build decoder"           ON)
 option(BUILD_TESTS             "Build tests"             ON)
 option(BUILD_AS_STATIC_LIBRARY "Build as static library" OFF)
 
+add_library(Cuda STATIC IMPORTED)
+set_property(TARGET Cuda PROPERTY IMPORTED_LOCATION "$ENV{CUDA_PATH}/Lib/x64/cudart_static.lib")
+add_library(Cuda::Lib ALIAS Cuda)
+
 # ------------------------------------------------------------------------------
 # DIRECTORIES
 # ------------------------------------------------------------------------------
@@ -39,11 +43,11 @@ if (NOT BUILD_AS_STATIC_LIBRARY)
         add_executable(NeuralNetwork::Exe ALIAS NeuralNetwork)
 
         target_compile_definitions(NeuralNetwork
-                PRIVATE BASE_PATH="${CMAKE_HOME_DIR}")
+                PRIVATE BASE_PATH="${CMAKE_HOME_DIRECTORY}")
         target_include_directories(NeuralNetwork
                 PRIVATE "$ENV{CUDA_PATH}/Include")
         target_link_libraries(NeuralNetwork
-                PRIVATE "$ENV{CUDA_PATH}/Lib/x64/cudadevrt.lib")
+                PRIVATE Cuda::Lib)
 endif ()
 
 if (BUILD_AS_STATIC_LIBRARY OR BUILD_TESTS)
@@ -52,11 +56,11 @@ if (BUILD_AS_STATIC_LIBRARY OR BUILD_TESTS)
         add_library(NeuralNetwork::Lib ALIAS NeuralNetworkLib)
 
         target_compile_definitions(NeuralNetworkLib
-                PUBLIC BASE_PATH="${CMAKE_SOURCE_DIR}")
+                PUBLIC BASE_PATH="${CMAKE_HOME_DIRECTORY}")
         target_include_directories(NeuralNetworkLib
                 PUBLIC "$ENV{CUDA_PATH}/Include")
         target_link_libraries(NeuralNetworkLib
-                PRIVATE "$ENV{CUDA_PATH}/Lib/x64/cudadevrt.lib")
+                PRIVATE Cuda::Lib)
 endif ()
 
 # ------------------------------------------------------------------------------
@@ -83,13 +87,13 @@ include("${GET_PROJECT_DIR}/GetProject.cmake")
 if (BUILD_MNIST_DATASET)
         add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/mnist")
         target_compile_definitions(Mnist
-                PUBLIC BASE_PATH="${CMAKE_HOME_DIR}")
+                PUBLIC BASE_PATH="${CMAKE_HOME_DIRECTORY}")
 endif ()
 
 if (BUILD_DECODER)
         add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/decoder")
         target_compile_definitions(Decoder
-                PUBLIC BASE_PATH="${CMAKE_HOME_DIR}")
+                PUBLIC BASE_PATH="${CMAKE_HOME_DIRECTORY}")
 endif ()
 
 if (BUILD_TESTS)
@@ -99,7 +103,8 @@ if (BUILD_TESTS)
         add_dependencies(NeuralNetworkTest NeuralNetwork::Lib)
 
         target_link_libraries(NeuralNetworkTest
-                PRIVATE NeuralNetwork::Lib)
+                PRIVATE NeuralNetwork::Lib
+                PRIVATE Cuda::Lib)
         target_include_directories(NeuralNetworkTest
                 PRIVATE ${SRC_DIR})
 endif ()

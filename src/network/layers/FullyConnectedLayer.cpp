@@ -11,16 +11,10 @@ static inline Vector _activation(
         Vector result(input.size());
         switch (functionType) {
         case TANH:
-                if (input.size() < CUDA_MINIMUM)
-                        Math<>::tanh(input.size(), input.data(), result.data());
-                else
-                        Math<MATH_CUDA>::tanh(input.size(), input.data(), result.data());
+                Math::tanh(input.size(), input.data(), result.data());
                 break;
         case RELU:
-                if (input.size() < CUDA_MINIMUM)
-                        Math<>::ReLU(input.size(), input.data(), result.data());
-                else
-                        Math<MATH_CUDA>::ReLU(input.size(), input.data(), result.data());
+                Math::ReLU(input.size(), input.data(), result.data());
                 break;
         default:
                 throw LOGGER_EX("Activation function not implemented.");
@@ -36,16 +30,10 @@ static inline Vector _activation_derivative(
         Vector result(input.size());
         switch (functionType) {
         case TANH:
-                if (input.size() < CUDA_MINIMUM)
-                        Math<>::tanhDerivative(input.size(), input.data(), result.data());
-                else
-                        Math<MATH_CUDA>::tanhDerivative(input.size(), input.data(), result.data());
+                Math::tanh_derivative(input.size(), input.data(), result.data());
                 break;
         case RELU:
-                if (input.size() < CUDA_MINIMUM)
-                        Math<>::ReLUDerivative(input.size(), input.data(), result.data());
-                else
-                        Math<MATH_CUDA>::ReLUDerivative(input.size(), input.data(), result.data());
+                Math::ReLU_derivative(input.size(), input.data(), result.data());
                 break;
         default:
                 throw LOGGER_EX("Activation function not implemented.");
@@ -109,7 +97,8 @@ Vector FullyConnectedLayer::backward(const Vector &cost, const Vector &input)
         //  ∂Ce      ∂zjL   ∂ajL   ∂Ce
         // ⎯⎯⎯⎯⎯ = ⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯ = 1 * AFoo'(z) * Lcost
         //  ∂bL      ∂bL    ∂zjL   ∂ajL
-        const Vector db { _activation_derivative(m_functionType, m_w * input + m_b) * cost };
+        const Vector db = _activation_derivative(
+                m_functionType, m_w * input + m_b) * cost;
 
         //  ∂Ce      ∂zjL    ∂ajL   ∂Ce
         // ⎯⎯⎯⎯⎯ = ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯ = input * AFoo'(z) * Lcost
@@ -125,9 +114,9 @@ Vector FullyConnectedLayer::backward(const Vector &cost, const Vector &input)
                 // Cycles through the columns of the m_w matrix, this
                 // means that it's impossible to use operators on sub-vectors
                 // as the columns are not stored contiguously in memory.
-                for (uint32_t k{}; k < m_w.width(); k++) {
+                for (uint32_t k = 0; k < m_w.width(); ++k) {
                         float dCe{};
-                        for (uint32_t j { 0 }; j < m_w.height(); j++) {
+                        for (uint32_t j = 0; j < m_w.height(); ++j) {
                                 dCe += m_w.at(j, k) * db.at(j);
                                 dw[{j, k}] = input.at(k) * db.at(j);
                         }
@@ -138,7 +127,7 @@ Vector FullyConnectedLayer::backward(const Vector &cost, const Vector &input)
                 // Single kernel for the above operations, the unsafe dereference can
                 // be used as 'dw' and 'previousCosts' are created with the optional
                 // parameter forceGPU
-                _backwardGPU(input.data(), dw.data(), db.data(), previousCosts.data());
+                _d_backward(input.data(), dw.data(), db.data(), previousCosts.data());
         }
 
         {
@@ -153,7 +142,13 @@ Vector FullyConnectedLayer::backward(const Vector &cost, const Vector &input)
 
 void FullyConnectedLayer::encode(std::ostream &out) const
 {
-        const uint32_t infos[4] { FULLY_CONNECTED, (uint32_t)m_functionType, m_w.width(), m_w.height() };
+        const uint32_t infos[4] = {
+                FULLY_CONNECTED,
+                m_functionType,
+                m_w.width(),
+                m_w.height()
+        };
+
         out.write((char *)infos, 4 * sizeof(uint32_t));
 
         out.write((char *)m_w.data(), m_w.size() * sizeof(float));

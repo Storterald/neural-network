@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Base.h"
+#include "../math/Base.h"
 
 class Data {
 public:
@@ -62,8 +62,8 @@ public:
         [[nodiscard]] bool operator== (const Data &other) const;
 
 protected:
-        uint32_t m_size { 0 };
-        float *m_data { nullptr };
+        uint32_t        m_size  = 0;
+        float           *m_data = nullptr;
 
 };
 
