@@ -9,9 +9,11 @@ enum MathType {
         MATH_CUDA
 };
 
-template<MathType>
+template<MathType T>
 class _Math {
 public:
+        static constexpr uint32_t SIMD_WIDTH = T == MATH_SSE ? 4 : T == MATH_AVX ? 8 : T == MATH_AVX512 ? 16 : (uint32_t)-1;
+
         static void sum(uint32_t size, const float first[], const float second[], float result[]);
         static void sub(uint32_t size, const float first[], const float second[], float result[]);
         static void mul(uint32_t size, const float first[], const float second[], float result[]);

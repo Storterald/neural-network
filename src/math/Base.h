@@ -27,12 +27,3 @@ constexpr uint32_t BLOCK_SIZE { 1 << BLOCK_BITSHIFT };
 // Since copying data to the GPU and back, and launching CUDA kernels
 // has a cost, for small amount of data it's not worth it to use CUDA.
 constexpr uint32_t CUDA_MINIMUM { 10000 };
-
-// How many floats can a AVX512 register store.
-constexpr uint32_t AVX512_SIMD_WIDTH { 16 };
-
-// How many floats can a AVX register store.
-constexpr uint32_t AVX_SIMD_WIDTH { 8 };
-
-// how many floats can a SSE register store.
-constexpr uint32_t SSE_SIMD_WIDTH { 4 };

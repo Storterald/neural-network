@@ -45,7 +45,7 @@ static inline Vector _activation_derivative(
 FullyConnectedLayer::FullyConnectedLayer(
         uint32_t previousLayerSize,
         uint32_t layerSize,
-        FunctionType functionType)  :
+        FunctionType functionType) :
 
         m_w(previousLayerSize, layerSize),
         m_b(layerSize),
@@ -115,7 +115,7 @@ Vector FullyConnectedLayer::backward(const Vector &cost, const Vector &input)
                 // means that it's impossible to use operators on sub-vectors
                 // as the columns are not stored contiguously in memory.
                 for (uint32_t k = 0; k < m_w.width(); ++k) {
-                        float dCe{};
+                        float dCe = 0.0f;
                         for (uint32_t j = 0; j < m_w.height(); ++j) {
                                 dCe += m_w.at(j, k) * db.at(j);
                                 dw[{j, k}] = input.at(k) * db.at(j);

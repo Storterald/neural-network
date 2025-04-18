@@ -7,9 +7,9 @@
 
 template<> void _Math<MATH_AVX512>::sum(uint32_t size, const float first[], const float second[], float result[])
 {
-        const uint32_t end = size & ~(AVX512_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
-        for (uint32_t i = 0; i < end; i+=AVX512_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m512 values      = _mm512_loadu_ps(&first[i]);
                 const __m512 otherValues = _mm512_loadu_ps(&second[i]);
                 const __m512 sumResult   = _mm512_add_ps(values, otherValues);
@@ -22,9 +22,9 @@ template<> void _Math<MATH_AVX512>::sum(uint32_t size, const float first[], cons
 
 template<> void _Math<MATH_AVX512>::sub(uint32_t size, const float first[], const float second[], float result[])
 {
-        const uint32_t end = size & ~(AVX512_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
-        for (uint32_t i = 0; i < end; i+=AVX512_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m512 values      = _mm512_loadu_ps(&first[i]);
                 const __m512 otherValues = _mm512_loadu_ps(&second[i]);
                 const __m512 subResult   = _mm512_sub_ps(values, otherValues);
@@ -37,9 +37,9 @@ template<> void _Math<MATH_AVX512>::sub(uint32_t size, const float first[], cons
 
 template<> void _Math<MATH_AVX512>::mul(uint32_t size, const float first[], const float second[], float result[])
 {
-        const uint32_t end = size & ~(AVX512_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
-        for (uint32_t i = 0; i < end; i+=AVX512_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m512 values      = _mm512_loadu_ps(&first[i]);
                 const __m512 otherValues = _mm512_loadu_ps(&second[i]);
                 const __m512 mulResult   = _mm512_mul_ps(values, otherValues);
@@ -52,9 +52,9 @@ template<> void _Math<MATH_AVX512>::mul(uint32_t size, const float first[], cons
 
 template<> void _Math<MATH_AVX512>::div(uint32_t size, const float first[], const float second[], float result[])
 {
-        const uint32_t end = size & ~(AVX512_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
-        for (uint32_t i = 0; i < end; i+=AVX512_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m512 values      = _mm512_loadu_ps(&first[i]);
                 const __m512 otherValues = _mm512_loadu_ps(&second[i]);
                 const __m512 divResult   = _mm512_div_ps(values, otherValues);
@@ -67,11 +67,11 @@ template<> void _Math<MATH_AVX512>::div(uint32_t size, const float first[], cons
 
 template<> void _Math<MATH_AVX512>::sum(uint32_t size, const float first[], float scalar, float result[])
 {
-        const uint32_t end = size & ~(AVX512_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         const __m512 scalarValues = _mm512_set1_ps(scalar);
 
-        for (uint32_t i = 0; i < end; i+=AVX512_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m512 values    = _mm512_loadu_ps(&first[i]);
                 const __m512 sumResult = _mm512_add_ps(values, scalarValues);
 
@@ -83,11 +83,11 @@ template<> void _Math<MATH_AVX512>::sum(uint32_t size, const float first[], floa
 
 template<> void _Math<MATH_AVX512>::sub(uint32_t size, const float first[], float scalar, float result[])
 {
-        const uint32_t end = size & ~(AVX512_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         const __m512 scalarValues = _mm512_set1_ps(scalar);
 
-        for (uint32_t i = 0; i < end; i+=AVX512_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m512 values    = _mm512_loadu_ps(&first[i]);
                 const __m512 subResult = _mm512_sub_ps(values, scalarValues);
 
@@ -99,11 +99,11 @@ template<> void _Math<MATH_AVX512>::sub(uint32_t size, const float first[], floa
 
 template<> void _Math<MATH_AVX512>::mul(uint32_t size, const float first[], float scalar, float result[])
 {
-        const uint32_t end = size & ~(AVX512_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         const __m512 scalarValues = _mm512_set1_ps(scalar);
 
-        for (uint32_t i = 0; i < end; i+=AVX512_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m512 values    = _mm512_loadu_ps(&first[i]);
                 const __m512 mulResult = _mm512_mul_ps(values, scalarValues);
 
@@ -115,11 +115,11 @@ template<> void _Math<MATH_AVX512>::mul(uint32_t size, const float first[], floa
 
 template<> void _Math<MATH_AVX512>::div(uint32_t size, const float first[], float scalar, float result[])
 {
-        const uint32_t end = size & ~(AVX512_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         const __m512 scalarValues = _mm512_set1_ps(scalar);
 
-        for (uint32_t i = 0; i < end; i+=AVX512_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m512 values    = _mm512_loadu_ps(&first[i]);
                 const __m512 divResult = _mm512_div_ps(values, scalarValues);
 
@@ -131,7 +131,7 @@ template<> void _Math<MATH_AVX512>::div(uint32_t size, const float first[], floa
 
 template<> void _Math<MATH_AVX512>::tanh(uint32_t size, const float data[], float result[])
 {
-        const uint32_t end = size & ~(AVX512_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         const __m512 threshold = _mm512_set1_ps(4.9f);
         const __m512 one       = _mm512_set1_ps(1.0f);
@@ -144,7 +144,7 @@ template<> void _Math<MATH_AVX512>::tanh(uint32_t size, const float data[], floa
         const __m512 v62370  = _mm512_set1_ps(62370.0f);
         const __m512 v135135 = _mm512_set1_ps(135135.0f);
 
-        for (uint32_t i = 0; i < end; i += AVX512_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i += SIMD_WIDTH) {
                 const __m512 x  = _mm512_loadu_ps(&data[i]);
                 const __m512 x2 = _mm512_mul_ps(x, x);
 
@@ -173,7 +173,7 @@ template<> void _Math<MATH_AVX512>::tanh(uint32_t size, const float data[], floa
 
 template<> void _Math<MATH_AVX512>::tanh_derivative(uint32_t size, const float data[], float result[])
 {
-        const uint32_t end = size & ~(AVX512_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         _Math<MATH_AVX512>::tanh(size, data, result);
 
@@ -181,7 +181,7 @@ template<> void _Math<MATH_AVX512>::tanh_derivative(uint32_t size, const float d
         const __m512 zero      = _mm512_setzero_ps();
         const __m512 one       = _mm512_set1_ps(1.0f);
 
-        for (uint32_t i = 0; i < end; i+=AVX512_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m512 values     = _mm512_loadu_ps(&data[i]);
                 const __m512 tanhValues = _mm512_loadu_ps(&result[i]);
                 __m512 tanhDerivative   = _mm512_fnmadd_ps(tanhValues, tanhValues, one);
@@ -200,11 +200,11 @@ template<> void _Math<MATH_AVX512>::tanh_derivative(uint32_t size, const float d
 
 template<> void _Math<MATH_AVX512>::ReLU(uint32_t size, const float data[], float result[])
 {
-        const uint32_t end = size & ~(AVX512_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         const __m512 zero = _mm512_setzero_ps();
 
-        for (uint32_t i = 0; i < end; i+=AVX512_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m512 x    = _mm512_loadu_ps(&data[i]);
                 const __m512 relu = _mm512_max_ps(zero, x);
 
@@ -216,12 +216,12 @@ template<> void _Math<MATH_AVX512>::ReLU(uint32_t size, const float data[], floa
 
 template<> void _Math<MATH_AVX512>::ReLU_derivative(uint32_t size, const float data[], float result[])
 {
-        const uint32_t end = size & ~(AVX512_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         const __m512 zero = _mm512_setzero_ps();
         const __m512 one  = _mm512_set1_ps(1.0f);
 
-        for (uint32_t i = 0; i < end; i+=AVX512_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m512 x              = _mm512_loadu_ps(&data[i]);
                 const __mmask16 mask        = _mm512_cmp_ps_mask(x, zero, _CMP_GT_OQ);
                 const __m512 reluDerivative = _mm512_mask_blend_ps(mask, zero, one);
@@ -234,11 +234,11 @@ template<> void _Math<MATH_AVX512>::ReLU_derivative(uint32_t size, const float d
 
 template<> void _Math<MATH_AVX512>::min(uint32_t size, const float data[], float min, float result[])
 {
-        const uint32_t end = size & ~(AVX512_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         const __m512 minValues = _mm512_set1_ps(min);
 
-        for (uint32_t i = 0; i < end; i+=AVX512_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m512 values    = _mm512_loadu_ps(&data[i]);
                 const __m512 minResult = _mm512_min_ps(values, minValues);
 
@@ -250,11 +250,11 @@ template<> void _Math<MATH_AVX512>::min(uint32_t size, const float data[], float
 
 template<> void _Math<MATH_AVX512>::max(uint32_t size, const float data[], float max, float result[])
 {
-        const uint32_t end = size & ~(AVX512_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         const __m512 maxValues = _mm512_set1_ps(max);
 
-        for (uint32_t i = 0; i < end; i+=AVX512_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m512 values    = _mm512_loadu_ps(&data[i]);
                 const __m512 maxResult = _mm512_max_ps(values, maxValues);
 
@@ -266,12 +266,12 @@ template<> void _Math<MATH_AVX512>::max(uint32_t size, const float data[], float
 
 template<> void _Math<MATH_AVX512>::clamp(uint32_t size, const float data[], float min, float max, float result[])
 {
-        const uint32_t end = size & ~(AVX512_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         const __m512 minValues = _mm512_set1_ps(min);
         const __m512 maxValues = _mm512_set1_ps(max);
 
-        for (uint32_t i = 0; i < end; i+=AVX512_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m512 values = _mm512_loadu_ps(&data[i]);
                 const __m512 clamp  = _mm512_max_ps(_mm512_min_ps(maxValues, values), minValues);
 
@@ -283,9 +283,9 @@ template<> void _Math<MATH_AVX512>::clamp(uint32_t size, const float data[], flo
 
 template<> void _Math<MATH_AVX512>::min(uint32_t size, const float first[], const float second[], float result[])
 {
-        const uint32_t end = size & ~(AVX512_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
-        for (uint32_t i = 0; i < end; i+=AVX512_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m512 values      = _mm512_loadu_ps(&first[i]);
                 const __m512 otherValues = _mm512_loadu_ps(&second[i]);
                 const __m512 minValues   = _mm512_min_ps(otherValues, values);
@@ -298,9 +298,9 @@ template<> void _Math<MATH_AVX512>::min(uint32_t size, const float first[], cons
 
 template<> void _Math<MATH_AVX512>::max(uint32_t size, const float first[], const float second[], float result[])
 {
-        const uint32_t end = size & ~(AVX512_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
-        for (uint32_t i = 0; i < end; i+=AVX512_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m512 values      = _mm512_loadu_ps(&first[i]);
                 const __m512 otherValues = _mm512_loadu_ps(&second[i]);
                 const __m512 maxValues   = _mm512_max_ps(otherValues, values);
@@ -313,9 +313,9 @@ template<> void _Math<MATH_AVX512>::max(uint32_t size, const float first[], cons
 
 template<> void _Math<MATH_AVX512>::clamp(uint32_t size, const float data[], const float min[], const float max[], float result[])
 {
-        const uint32_t end = size & ~(AVX512_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
-        for (uint32_t i = 0; i < end; i+=AVX512_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m512 values    = _mm512_loadu_ps(&data[i]);
                 const __m512 minValues = _mm512_loadu_ps(&min[i]);
                 const __m512 maxValues = _mm512_loadu_ps(&max[i]);
@@ -329,12 +329,12 @@ template<> void _Math<MATH_AVX512>::clamp(uint32_t size, const float data[], con
 
 template<> void _Math<MATH_AVX512>::matvec_mul(uint32_t width, uint32_t height, const float matrix[], const float vector[], float result[])
 {
-        const uint32_t end = width & ~(AVX512_SIMD_WIDTH - 1);
+        const uint32_t end = width & ~(SIMD_WIDTH - 1);
 
         for (uint32_t i = 0; i < height; ++i) {
                 __m512 sum = _mm512_setzero_ps();
 
-                for (uint32_t j = 0; j < end; j+=AVX512_SIMD_WIDTH) {
+                for (uint32_t j = 0; j < end; j+=SIMD_WIDTH) {
                         const __m512 values       = _mm512_loadu_ps(&matrix[i * width + j]);
                         const __m512 vectorValues = _mm512_loadu_ps(&vector[j]);
                         const __m512 product      = _mm512_mul_ps(values, vectorValues);

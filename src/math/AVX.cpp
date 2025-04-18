@@ -25,9 +25,9 @@ static inline float _reduce_add_ps_avx(__m256 v) {
 
 template<> void _Math<MATH_AVX>::sum(uint32_t size, const float first[], const float second[], float result[])
 {
-        const uint32_t end = size & ~(AVX_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
-        for (uint32_t i = 0; i < end; i+=AVX_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m256 values      = _mm256_loadu_ps(&first[i]);
                 const __m256 otherValues = _mm256_loadu_ps(&second[i]);
                 const __m256 sumResult   = _mm256_add_ps(values, otherValues);
@@ -40,9 +40,9 @@ template<> void _Math<MATH_AVX>::sum(uint32_t size, const float first[], const f
 
 template<> void _Math<MATH_AVX>::sub(uint32_t size, const float first[], const float second[], float result[])
 {
-        const uint32_t end = size & ~(AVX_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
-        for (uint32_t i = 0; i < end; i+=AVX_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m256 values      = _mm256_loadu_ps(&first[i]);
                 const __m256 otherValues = _mm256_loadu_ps(&second[i]);
                 const __m256 subResult   = _mm256_sub_ps(values, otherValues);
@@ -55,9 +55,9 @@ template<> void _Math<MATH_AVX>::sub(uint32_t size, const float first[], const f
 
 template<> void _Math<MATH_AVX>::mul(uint32_t size, const float first[], const float second[], float result[])
 {
-        const uint32_t end = size & ~(AVX_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
-        for (uint32_t i = 0; i < end; i+=AVX_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m256 values      = _mm256_loadu_ps(&first[i]);
                 const __m256 otherValues = _mm256_loadu_ps(&second[i]);
                 const __m256 mulResult   = _mm256_mul_ps(values, otherValues);
@@ -70,9 +70,9 @@ template<> void _Math<MATH_AVX>::mul(uint32_t size, const float first[], const f
 
 template<> void _Math<MATH_AVX>::div(uint32_t size, const float first[], const float second[], float result[])
 {
-        const uint32_t end = size & ~(AVX_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
-        for (uint32_t i = 0; i < end; i+=AVX_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m256 values      = _mm256_loadu_ps(&first[i]);
                 const __m256 otherValues = _mm256_loadu_ps(&second[i]);
                 const __m256 divResult   = _mm256_div_ps(values, otherValues);
@@ -85,11 +85,11 @@ template<> void _Math<MATH_AVX>::div(uint32_t size, const float first[], const f
 
 template<> void _Math<MATH_AVX>::sum(uint32_t size, const float first[], float scalar, float result[])
 {
-        const uint32_t end = size & ~(AVX_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         const __m256 scalarValues = _mm256_set1_ps(scalar);
 
-        for (uint32_t i = 0; i < end; i+=AVX_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m256 values    = _mm256_loadu_ps(&first[i]);
                 const __m256 sumResult = _mm256_add_ps(values, scalarValues);
 
@@ -101,11 +101,11 @@ template<> void _Math<MATH_AVX>::sum(uint32_t size, const float first[], float s
 
 template<> void _Math<MATH_AVX>::sub(uint32_t size, const float first[], float scalar, float result[])
 {
-        const uint32_t end = size & ~(AVX_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         const __m256 scalarValues = _mm256_set1_ps(scalar);
 
-        for (uint32_t i = 0; i < end; i+=AVX_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m256 values    = _mm256_loadu_ps(&first[i]);
                 const __m256 subResult = _mm256_sub_ps(values, scalarValues);
 
@@ -117,11 +117,11 @@ template<> void _Math<MATH_AVX>::sub(uint32_t size, const float first[], float s
 
 template<> void _Math<MATH_AVX>::mul(uint32_t size, const float first[], float scalar, float result[])
 {
-        const uint32_t end = size & ~(AVX_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         const __m256 scalarValues = _mm256_set1_ps(scalar);
 
-        for (uint32_t i = 0; i < end; i+=AVX_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m256 values    = _mm256_loadu_ps(&first[i]);
                 const __m256 mulResult = _mm256_mul_ps(values, scalarValues);
 
@@ -133,11 +133,11 @@ template<> void _Math<MATH_AVX>::mul(uint32_t size, const float first[], float s
 
 template<> void _Math<MATH_AVX>::div(uint32_t size, const float first[], float scalar, float result[])
 {
-        const uint32_t end = size & ~(AVX_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         const __m256 scalarValues = _mm256_set1_ps(scalar);
 
-        for (uint32_t i = 0; i < end; i+=AVX_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m256 values    = _mm256_loadu_ps(&first[i]);
                 const __m256 divResult = _mm256_div_ps(values, scalarValues);
 
@@ -149,7 +149,7 @@ template<> void _Math<MATH_AVX>::div(uint32_t size, const float first[], float s
 
 template<> void _Math<MATH_AVX>::tanh(uint32_t size, const float data[], float result[])
 {
-        const uint32_t end = size & ~(AVX_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         const __m256 threshold = _mm256_set1_ps(4.9f);
         const __m256 one       = _mm256_set1_ps(1.0f);
@@ -162,7 +162,7 @@ template<> void _Math<MATH_AVX>::tanh(uint32_t size, const float data[], float r
         const __m256 v62370  = _mm256_set1_ps(62370.0f);
         const __m256 v135135 = _mm256_set1_ps(135135.0f);
 
-        for (uint32_t i = 0; i < end; i += AVX_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i += SIMD_WIDTH) {
                 const __m256 x  = _mm256_loadu_ps(&data[i]);
                 const __m256 x2 = _mm256_mul_ps(x, x);
 
@@ -191,7 +191,7 @@ template<> void _Math<MATH_AVX>::tanh(uint32_t size, const float data[], float r
 
 template<> void _Math<MATH_AVX>::tanh_derivative(uint32_t size, const float data[], float result[])
 {
-        const uint32_t end = size & ~(AVX_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         _Math<MATH_AVX>::tanh(size, data, result);
 
@@ -199,7 +199,7 @@ template<> void _Math<MATH_AVX>::tanh_derivative(uint32_t size, const float data
         const __m256 zero      = _mm256_setzero_ps();
         const __m256 one       = _mm256_set1_ps(1.0f);
 
-        for (uint32_t i = 0; i < end; i+=AVX_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m256 values     = _mm256_loadu_ps(&data[i]);
                 const __m256 tanhValues = _mm256_loadu_ps(&result[i]);
                 __m256 tanhDerivative   = _mm256_fnmadd_ps(tanhValues, tanhValues, one);
@@ -218,11 +218,11 @@ template<> void _Math<MATH_AVX>::tanh_derivative(uint32_t size, const float data
 
 template<> void _Math<MATH_AVX>::ReLU(uint32_t size, const float data[], float result[])
 {
-        const uint32_t end = size & ~(AVX_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         const __m256 zero = _mm256_setzero_ps();
 
-        for (uint32_t i = 0; i < end; i+=AVX_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m256 x    = _mm256_loadu_ps(&data[i]);
                 const __m256 relu = _mm256_max_ps(zero, x);
 
@@ -234,12 +234,12 @@ template<> void _Math<MATH_AVX>::ReLU(uint32_t size, const float data[], float r
 
 template<> void _Math<MATH_AVX>::ReLU_derivative(uint32_t size, const float data[], float result[])
 {
-        const uint32_t end = size & ~(AVX_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         const __m256 zero = _mm256_setzero_ps();
         const __m256 one  = _mm256_set1_ps(1.0f);
 
-        for (uint32_t i = 0; i < end; i+=AVX_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m256 x              = _mm256_loadu_ps(&data[i]);
                 const __mmask8 mask         = _mm256_cmp_ps_mask(x, zero, _CMP_GT_OQ);
                 const __m256 reluDerivative = _mm256_mask_blend_ps(mask, zero, one);
@@ -252,11 +252,11 @@ template<> void _Math<MATH_AVX>::ReLU_derivative(uint32_t size, const float data
 
 template<> void _Math<MATH_AVX>::min(uint32_t size, const float data[], float min, float result[])
 {
-        const uint32_t end = size & ~(AVX_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         const __m256 minValues = _mm256_set1_ps(min);
 
-        for (uint32_t i = 0; i < end; i+=AVX_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m256 values    = _mm256_loadu_ps(&data[i]);
                 const __m256 minResult = _mm256_min_ps(values, minValues);
 
@@ -269,11 +269,11 @@ template<> void _Math<MATH_AVX>::min(uint32_t size, const float data[], float mi
 
 template<> void _Math<MATH_AVX>::max(uint32_t size, const float data[], float max, float result[])
 {
-        const uint32_t end = size & ~(AVX_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         const __m256 maxValues = _mm256_set1_ps(max);
 
-        for (uint32_t i = 0; i < end; i+=AVX_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m256 values    = _mm256_loadu_ps(&data[i]);
                 const __m256 maxResult = _mm256_max_ps(values, maxValues);
 
@@ -285,12 +285,12 @@ template<> void _Math<MATH_AVX>::max(uint32_t size, const float data[], float ma
 
 template<> void _Math<MATH_AVX>::clamp(uint32_t size, const float data[], float min, float max, float result[])
 {
-        const uint32_t end = size & ~(AVX_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         const __m256 minValues = _mm256_set1_ps(min);
         const __m256 maxValues = _mm256_set1_ps(max);
 
-        for (uint32_t i = 0; i < end; i+=AVX_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m256 values = _mm256_loadu_ps(&data[i]);
                 const __m256 clamp  = _mm256_max_ps(_mm256_min_ps(maxValues, values), minValues);
 
@@ -302,9 +302,9 @@ template<> void _Math<MATH_AVX>::clamp(uint32_t size, const float data[], float 
 
 template<> void _Math<MATH_AVX>::min(uint32_t size, const float first[], const float second[], float result[])
 {
-        const uint32_t end = size & ~(AVX_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
-        for (uint32_t i = 0; i < end; i+=AVX_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m256 values      = _mm256_loadu_ps(&first[i]);
                 const __m256 otherValues = _mm256_loadu_ps(&second[i]);
                 const __m256 minValues   = _mm256_min_ps(otherValues, values);
@@ -317,9 +317,9 @@ template<> void _Math<MATH_AVX>::min(uint32_t size, const float first[], const f
 
 template<> void _Math<MATH_AVX>::max(uint32_t size, const float first[], const float second[], float result[])
 {
-        const uint32_t end = size & ~(AVX_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
-        for (uint32_t i = 0; i < end; i+=AVX_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m256 values      = _mm256_loadu_ps(&first[i]);
                 const __m256 otherValues = _mm256_loadu_ps(&second[i]);
                 const __m256 maxValues   = _mm256_max_ps(otherValues, values);
@@ -332,9 +332,9 @@ template<> void _Math<MATH_AVX>::max(uint32_t size, const float first[], const f
 
 template<> void _Math<MATH_AVX>::clamp(uint32_t size, const float data[], const float min[], const float max[], float result[])
 {
-        const uint32_t end = size & ~(AVX_SIMD_WIDTH - 1);
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
-        for (uint32_t i = 0; i < end; i+=AVX_SIMD_WIDTH) {
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
                 const __m256 values    = _mm256_loadu_ps(&data[i]);
                 const __m256 minValues = _mm256_loadu_ps(&min[i]);
                 const __m256 maxValues = _mm256_loadu_ps(&max[i]);
@@ -348,12 +348,12 @@ template<> void _Math<MATH_AVX>::clamp(uint32_t size, const float data[], const 
 
 template<> void _Math<MATH_AVX>::matvec_mul(uint32_t width, uint32_t height, const float matrix[], const float vector[], float result[])
 {
-        const uint32_t end = width & ~(AVX_SIMD_WIDTH - 1);
+        const uint32_t end = width & ~(SIMD_WIDTH - 1);
 
         for (uint32_t i = 0; i < height; ++i) {
                 __m256 sum = _mm256_setzero_ps();
 
-                for (uint32_t j = 0; j < end; j+=AVX_SIMD_WIDTH) {
+                for (uint32_t j = 0; j < end; j+=SIMD_WIDTH) {
                         const __m256 values       = _mm256_loadu_ps(&matrix[i * width + j]);
                         const __m256 vectorValues = _mm256_loadu_ps(&vector[j]);
                         const __m256 product      = _mm256_mul_ps(values, vectorValues);
