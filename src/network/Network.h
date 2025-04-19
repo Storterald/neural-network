@@ -7,8 +7,6 @@
 #include "ILayer.h"
 
 class Network {
-        friend class Train;
-
 public:
         Network() = default;
 

@@ -3,8 +3,8 @@
 #include <intrinsic/Intrinsic.h>
 #include <intrin.h>
 
-TEST(SIMDSupport, GetSIMDSupportFunctionReturnsCorrectValue) {
-        SIMD support { SIMD_SSE };
+TEST(IntrinsicTest, CpuSIMDSupportIsCorrectlyDetected) {
+        SIMD support = SIMD_SSE;
 
         int cpuInfo[4]{};
         __cpuid(cpuInfo, 1);
