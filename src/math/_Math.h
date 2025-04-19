@@ -2,17 +2,17 @@
 
 #include <cstdint>
 
-enum MathType {
-        MATH_SSE,
-        MATH_AVX,
-        MATH_AVX512,
-        MATH_CUDA
+enum MathType : uint32_t {
+        MATH_SSE    =  4,
+        MATH_AVX    =  8,
+        MATH_AVX512 = 16,
+        MATH_CUDA   =  0
 };
 
 template<MathType T>
 class _Math {
 public:
-        static constexpr uint32_t SIMD_WIDTH = T == MATH_SSE ? 4 : T == MATH_AVX ? 8 : T == MATH_AVX512 ? 16 : (uint32_t)-1;
+        static constexpr uint32_t SIMD_WIDTH = T;
 
         static void sum(uint32_t size, const float first[], const float second[], float result[]);
         static void sub(uint32_t size, const float first[], const float second[], float result[]);

@@ -7,6 +7,7 @@ and unsupervised training.<br>*No external libraries required*.
 
  - CMake `>= 3.13.0`
  - Visual Studio `2022`
+ - Ninja
  - Nvidia CUDA Toolkit
  - git
 
