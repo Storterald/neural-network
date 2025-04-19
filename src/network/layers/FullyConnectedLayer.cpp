@@ -2,7 +2,7 @@
 
 #include <random>
 
-#include "../Base.h"
+#include "../../math/Math.h"
 
 static inline Vector _activation(
         FunctionType functionType,
@@ -80,8 +80,8 @@ FullyConnectedLayer::FullyConnectedLayer(
         if (previousLayerSize != sizes[2] || layerSize != sizes[3])
                 throw LOGGER_EX("Encoded sizes and constructor sizes parameters do not match.");
 
-        encodedData.read((char *)m_w.data(), m_w.size() * sizeof(float));
-        encodedData.read((char *)m_b.data(), m_b.size() * sizeof(float));
+        encodedData.read((char *)m_w.data(), std::streamsize(m_w.size() * sizeof(float)));
+        encodedData.read((char *)m_b.data(), std::streamsize(m_b.size() * sizeof(float)));
 }
 
 Vector FullyConnectedLayer::forward(const Vector &input) const
@@ -151,6 +151,6 @@ void FullyConnectedLayer::encode(std::ostream &out) const
 
         out.write((char *)infos, 4 * sizeof(uint32_t));
 
-        out.write((char *)m_w.data(), m_w.size() * sizeof(float));
-        out.write((char *)m_b.data(), m_b.size() * sizeof(float));
+        out.write((char *)m_w.data(), std::streamsize(m_w.size() * sizeof(float)));
+        out.write((char *)m_b.data(), std::streamsize(m_b.size() * sizeof(float)));
 }

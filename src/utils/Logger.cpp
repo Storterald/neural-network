@@ -1,8 +1,8 @@
 #include "Logger.h"
 
-#include <ctime>
 #include <iostream>
 #include <format>
+#include <ctime>
 
 static constexpr std::string_view CONVERTER[4] {
         "INFO ",

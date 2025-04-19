@@ -269,7 +269,7 @@ void Network::_train_ppo(
                 for (int32_t s = (int32_t)STATE_COUNT - 1; s >= 0; --s) {
                         const float reward              = iterationData[s].reward;
                         const float predictedReward     = iterationData[s].predictedReward;
-                        const float nextPredictedReward = s == STATE_COUNT - 1 ?
+                        const float nextPredictedReward = (uint32_t)s == STATE_COUNT - 1 ?
                                 0 : iterationData[s + 1].predictedReward;
 
                         const float delta = reward + GAMMA * nextPredictedReward * predictedReward;

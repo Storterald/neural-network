@@ -28,23 +28,14 @@
       "name": "msvc",
       "hidden": true,
       "inherits": "common",
-      "generator": "Visual Studio 17 2022",
-      "architecture": {
-        "value": "x64",
-        "strategy": "set"
-      },
-      "toolset": {
-        "value": "host=x64",
-        "strategy": "set"
-      },
+      "generator": "Ninja",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
       },
       "cacheVariables": {
-        "CMAKE_CXX_COMPILER": "cl",
-        "CMAKE_CXX_FLAGS_INIT": "/Zc:preprocessor /Wall",
+        "CMAKE_CXX_FLAGS": "/Zc:preprocessor /EHs /W4 /wd4711 /wd4514 /wd4577 /wd4710 /wd4625 /wd4626 /wd5045 /wd5026 /wd5027 /wd4820 /wd4866",
         "CMAKE_CXX_FLAGS_DEBUG": "/MTd",
         "CMAKE_CXX_FLAGS_RELEASE": "/O2 /MT",
         "CMAKE_ASM_MASM_FLAGS_INIT": "/c /nologo",
