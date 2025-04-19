@@ -26,7 +26,7 @@ public:
         }
 
         [[nodiscard]] Matrix operator+ (const Matrix &other) const;
-        [[nodiscard]] Matrix  operator- (const Matrix &other) const;
+        [[nodiscard]] Matrix operator- (const Matrix &other) const;
 
         void operator+= (const Matrix &other);
         void operator-= (const Matrix &other);

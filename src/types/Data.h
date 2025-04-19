@@ -52,8 +52,8 @@ public:
 
         [[nodiscard]] inline uint64_t hash() const noexcept
         {
-                uint64_t hash{};
-                for (uint32_t i { 0 }; i < m_size; i++)
+                uint64_t hash = 0;
+                for (uint32_t i = 0; i < m_size; i++)
                         hash ^= std::hash<float>{}(m_data[i]) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
 
                 return hash;

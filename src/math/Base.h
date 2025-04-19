@@ -11,7 +11,7 @@
 #ifdef DEBUG_MODE_ENABLED
 #define CUDA_CHECK_ERROR(RESULT, MESSAGE)                                                   \
         do {                                                                                \
-                if (auto code { RESULT }; code != cudaSuccess)                              \
+                if (auto code = RESULT; code != cudaSuccess)                                \
                         throw Logger::fatal_error(LOGGER_PREF(FATAL) + std::string(MESSAGE) \
                                 + " \"" + cudaGetErrorString(code) + "\"");                 \
         }                                                                                   \

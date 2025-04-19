@@ -19,7 +19,7 @@ public:
 
         static Logger &Log()
         {
-                static Logger log;
+                static Logger log{};
                 return log;
         }
 
@@ -44,8 +44,8 @@ public:
         }
 
 private:
-        uint32_t m_fileCount { 0 };
-        std::ofstream m_file;
+        uint32_t             m_fileCount = 0;
+        std::ofstream        m_file;
 
         Logger();
 

@@ -14,9 +14,9 @@ enum LayerType : uint32_t {
 }; // enum LayerType
 
 struct LayerCreateInfo {
-        LayerType type;
-        FunctionType functionType;
-        uint32_t neuronCount;
+        LayerType           type;
+        FunctionType        functionType;
+        uint32_t            neuronCount;
 
 }; // struct LayerCreateInfo
 
