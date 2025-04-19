@@ -12,7 +12,7 @@ and unsupervised training.<br>*No external libraries required*.
 
 # How To Build
 
-> CMake **3.5.0** or later is required to build the project, you can download it
+> CMake **3.13.0** or later is required to build the project, you can download it
 > [here](https://cmake.org/download/).
 
 The CMakeLists.txt script automatically **downloads** and builds the [dependencies](#Dependencies)
