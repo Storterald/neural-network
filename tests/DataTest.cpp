@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "CUDATest.h"
+#include "CudaTestHelper.h"
 
 TEST(DataTest, DefaultConstructorInitializesEmptyData) {
         Data data{};
@@ -24,8 +24,8 @@ TEST(DataTest, DataIsCorrectlyAllocatedOnGPU) {
 
         EXPECT_NE(data.data(), nullptr);
         EXPECT_EQ(data.size(), 10);
-        EXPECT_NO_FATAL_FAILURE(CUDATest::access_values(data));
-        EXPECT_TRUE(CUDATest::check_values(data, 1));
+        EXPECT_NO_FATAL_FAILURE(Helper::access_values(data));
+        EXPECT_TRUE(Helper::check_values(data, 1));
 }
 
 TEST(DataTest, CopyConstructorCorrectlyCopiesData) {

@@ -3,7 +3,7 @@
 #include <types/Vector.h>
 #include <utils/Logger.h>
 
-#include "CUDATest.h"
+#include "CudaTestHelper.h"
 
 TEST(VectorTest, DefaultConstructorInitializesEmptyData) {
         Vector v{};
@@ -27,8 +27,8 @@ TEST(VectorTest, VectorDataIsAccessibleFromGPU) {
 
         EXPECT_NE(v.data(), nullptr);
         EXPECT_EQ(v.size(), 10);
-        EXPECT_NO_FATAL_FAILURE(CUDATest::access_values(v));
-        EXPECT_TRUE(CUDATest::check_values(v, 1));
+        EXPECT_NO_FATAL_FAILURE(Helper::access_values(v));
+        EXPECT_TRUE(Helper::check_values(v, 1));
 }
 
 TEST(VectorTest, ConstructorWithFloatArrayWorks) {

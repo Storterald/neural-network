@@ -1,4 +1,4 @@
-#include "CUDATest.h"
+#include "CudaTestHelper.h"
 
 namespace Kernels {
         
@@ -17,7 +17,7 @@ namespace Kernels {
 
 }
 
-void CUDATest::access_values(const Data &data)
+void Helper::access_values(const Data &data)
 {
         Kernels::access_values<<<1, 1>>>(data.size(), data.data());
 
@@ -27,24 +27,21 @@ void CUDATest::access_values(const Data &data)
                 "Error synchronizing in CUDATest::getPtrFromData.");
 }
 
-bool CUDATest::check_values(const Data &data, float v)
+bool Helper::check_values(const Data &data, float v)
 {
-        bool *d_res{};
+        bool *d_res = nullptr;
         CUDA_CHECK_ERROR(cudaMalloc(&d_res, sizeof(bool)),
                 "Failed to allocate memory on GPU.");
 
         Kernels::check_values<<<1, 1>>>(data.size(), data.data(), v, d_res);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(),
-                "checkValues kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in CUDATest::checkValues.");
+        CUDA_CHECK_ERROR(cudaGetLastError(), "checkValues kernel launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in CUDATest::checkValues.");
 
-        bool res{};
+        bool res = false;
         CUDA_CHECK_ERROR(cudaMemcpy(&res, d_res, sizeof(bool), cudaMemcpyDeviceToHost),
                 "Failed to copy data from the GPU.");
 
-        CUDA_CHECK_ERROR(cudaFree(d_res),
-                "Failed to free GPU memory.");
+        CUDA_CHECK_ERROR(cudaFree(d_res), "Failed to free GPU memory.");
         return res;
 }

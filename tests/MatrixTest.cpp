@@ -3,7 +3,7 @@
 #include <types/Matrix.h>
 #include <utils/Logger.h>
 
-#include "CUDATest.h"
+#include "CudaTestHelper.h"
 
 TEST(MatrixTest, DefaultConstructorInitializesEmptyData) {
         Matrix m{};
@@ -31,8 +31,8 @@ TEST(MatrixTest, MatrixDataIsAccessibleFromGPU) {
         EXPECT_EQ(m.size(), 100);
         EXPECT_EQ(m.width(), 10);
         EXPECT_EQ(m.height(), 10);
-        EXPECT_NO_FATAL_FAILURE(CUDATest::access_values(m));
-        EXPECT_TRUE(CUDATest::check_values(m, 1));
+        EXPECT_NO_FATAL_FAILURE(Helper::access_values(m));
+        EXPECT_TRUE(Helper::check_values(m, 1));
 }
 
 TEST(MatrixTest, ConstructorWithInitializerListWorks) {

@@ -2,7 +2,7 @@
 
 #include <types/Data.h>
 
-namespace CUDATest {
+namespace Helper {
 
         void access_values(const Data &data);
         bool check_values(const Data &data, float v);
