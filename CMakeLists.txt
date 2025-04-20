@@ -15,22 +15,52 @@ endif()
 option(BUILD_MNIST_DATASET     "Build MNIST dataset"     ON)
 option(BUILD_DECODER           "Build decoder"           ON)
 option(BUILD_TESTS             "Build tests"             ON)
-option(BUILD_AS_STATIC_LIBRARY "Build as static library" OFF)
-
-add_library(Cuda STATIC IMPORTED)
-set_property(TARGET Cuda PROPERTY IMPORTED_LOCATION "$ENV{CUDA_PATH}/Lib/x64/cudart_static.lib")
-add_library(Cuda::Lib ALIAS Cuda)
+option(BUILD_MOCK              "Build mock"              ON)
 
 # ------------------------------------------------------------------------------
 # DIRECTORIES
 # ------------------------------------------------------------------------------
 
-set(SRC_DIR         "${CMAKE_HOME_DIRECTORY}/src")
-set(LIBS_DIR        "${CMAKE_HOME_DIRECTORY}/libs")
+set(SRC_DIR         "${CMAKE_CURRENT_LIST_DIR}/src")
+set(LIBS_DIR        "${CMAKE_CURRENT_LIST_DIR}/libs")
 set(GET_PROJECT_DIR "${LIBS_DIR}/GetProject")
 
 # ------------------------------------------------------------------------------
-# PROJECT
+# FLAGS
+# ------------------------------------------------------------------------------
+
+# C++
+set(CMAKE_CXX_STANDARD          20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS             "/Zc:preprocessor /EHs /W4 /wd4711 /wd4514 /wd4577 /wd4710 /wd4625 /wd4626 /wd5045 /wd5026 /wd5027 /wd4820 /wd4866")
+set(CMAKE_CXX_FLAGS_DEBUG       "/MTd")
+set(CMAKE_CXX_FLAGS_RELEASE     "/O2 /MT")
+
+# ASM
+set(CMAKE_ASM_MASM_FLAGS_INIT  "/c /nologo")
+set(CMAKE_ASM_MASM_FLAGS_DEBUG "/Zi")
+
+# Cuda
+set(CMAKE_CUDA_COMPILER               "$ENV{CUDA_PATH}/bin/nvcc.exe")
+set(CMAKE_CUDA_STANDARD               20)
+set(CMAKE_CUDA_STANDARD_REQUIRED      ON)
+set(CMAKE_CUDA_ARCHITECTURES          "native")
+set(CMAKE_CUDA_SEPARABLE_COMPILATION  ON)
+set(CMAKE_CUDA_RESOLVE_DEVICE_SYMBOLS ON)
+set(CMAKE_CUDA_FLAGS_INIT             "-Xcompiler=/Zc:preprocessor")
+set(CMAKE_CUDA_FLAGS_DEBUG            "-Xcompiler=/MTd")
+set(CMAKE_CUDA_FLAGS_RELEASE          "-O3 -Xcompiler=/MT")
+
+# ------------------------------------------------------------------------------
+# Cuda Libraries
+# ------------------------------------------------------------------------------
+
+add_library(CudaRT STATIC IMPORTED)
+set_property(TARGET CudaRT PROPERTY IMPORTED_LOCATION "$ENV{CUDA_PATH}/Lib/x64/cudart_static.lib")
+add_library(Cuda::RTLib ALIAS CudaRT)
+
+# ------------------------------------------------------------------------------
+# Project
 # ------------------------------------------------------------------------------
 
 file(GLOB_RECURSE SOURCES
@@ -38,36 +68,17 @@ file(GLOB_RECURSE SOURCES
         "${SRC_DIR}/*.asm"
         "${SRC_DIR}/*.cu")
 
-if (NOT BUILD_AS_STATIC_LIBRARY)
-        add_executable(NeuralNetwork ${SOURCES})
-        add_executable(NeuralNetwork::Exe ALIAS NeuralNetwork)
-
-        target_compile_definitions(NeuralNetwork
-                PRIVATE BASE_PATH="${CMAKE_HOME_DIRECTORY}")
-        target_include_directories(NeuralNetwork
-                PRIVATE "$ENV{CUDA_PATH}/Include")
-        target_link_libraries(NeuralNetwork
-                PRIVATE Cuda::Lib)
-endif ()
-
-if (BUILD_AS_STATIC_LIBRARY OR BUILD_TESTS)
-        list(REMOVE_ITEM SOURCES "${SRC_DIR}/main.cpp")
-        add_library(NeuralNetworkLib STATIC ${SOURCES})
-        add_library(NeuralNetwork::Lib ALIAS NeuralNetworkLib)
-
-        target_compile_definitions(NeuralNetworkLib
-                PUBLIC BASE_PATH="${CMAKE_HOME_DIRECTORY}")
-        target_include_directories(NeuralNetworkLib
-                PUBLIC "$ENV{CUDA_PATH}/Include")
-        target_link_libraries(NeuralNetworkLib
-                PRIVATE Cuda::Lib)
-endif ()
+add_library(NeuralNetworkLib STATIC ${SOURCES})
+add_library(NeuralNetwork::Lib ALIAS NeuralNetworkLib)
+target_include_directories(NeuralNetworkLib
+        PUBLIC "$ENV{CUDA_PATH}/Include")
+target_link_libraries(NeuralNetworkLib
+        PUBLIC Cuda::RTLib)
 
 # ------------------------------------------------------------------------------
 # DEPENDENCIES
 # ------------------------------------------------------------------------------
 
-# Fetch the latest commit of GetProject
 if (NOT EXISTS ${GET_PROJECT_DIR})
         execute_process(
                 COMMAND git clone "https://github.com/Storterald/GetProject.git"
@@ -87,13 +98,13 @@ include("${GET_PROJECT_DIR}/GetProject.cmake")
 if (BUILD_MNIST_DATASET)
         add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/mnist")
         target_compile_definitions(Mnist
-                PUBLIC BASE_PATH="${CMAKE_HOME_DIRECTORY}")
+                PUBLIC BASE_PATH="${CMAKE_CURRENT_LIST_DIR}")
 endif ()
 
 if (BUILD_DECODER)
         add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/decoder")
         target_compile_definitions(Decoder
-                PUBLIC BASE_PATH="${CMAKE_HOME_DIRECTORY}")
+                PUBLIC BASE_PATH="${CMAKE_CURRENT_LIST_DIR}")
 endif ()
 
 if (BUILD_TESTS)
@@ -103,8 +114,19 @@ if (BUILD_TESTS)
         add_dependencies(NeuralNetworkTest NeuralNetwork::Lib)
 
         target_link_libraries(NeuralNetworkTest
-                PRIVATE NeuralNetwork::Lib
-                PRIVATE Cuda::Lib)
+                PRIVATE NeuralNetwork::Lib)
         target_include_directories(NeuralNetworkTest
+                PRIVATE ${SRC_DIR})
+endif ()
+
+if (BUILD_MOCK)
+        cmake_policy(SET CMP0079 NEW)
+
+        add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/mock")
+        add_dependencies(NeuralNetworkMock NeuralNetwork::Lib)
+
+        target_link_libraries(NeuralNetworkMock
+                PRIVATE NeuralNetwork::Lib)
+        target_include_directories(NeuralNetworkMock
                 PRIVATE ${SRC_DIR})
 endif ()

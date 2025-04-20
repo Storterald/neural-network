@@ -9,10 +9,10 @@
 
 // No checks in release mode to increase speed.
 #ifdef DEBUG_MODE_ENABLED
-#define CUDA_CHECK_ERROR(RESULT, MESSAGE)                                                   \
+#define CUDA_CHECK_ERROR(__result__, __msg__)                                               \
         do {                                                                                \
-                if (auto code = RESULT; code != cudaSuccess)                                \
-                        throw Logger::fatal_error(LOGGER_PREF(FATAL) + std::string(MESSAGE) \
+                if (auto code = __result__; code != cudaSuccess)                            \
+                        throw LOGGER_EX(std::string(__msg__)                                \
                                 + " \"" + cudaGetErrorString(code) + "\"");                 \
         }                                                                                   \
         while(false)

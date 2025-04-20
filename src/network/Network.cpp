@@ -1,6 +1,5 @@
 #include "Network.h"
 
-#include <filesystem>
 #include <fstream>
 #include <future>
 
@@ -13,13 +12,13 @@ constexpr float LAMBDA       = 0.95f;
 Network::Network(
         uint32_t inputSize,
         uint32_t layerCount,
-        const LayerCreateInfo *layerInfos,
-        const char *path) :
+        const LayerCreateInfo layerInfos[],
+        const std::filesystem::path &path) :
 
         m_layerCount(layerCount + 1),
         m_inputSize(inputSize),
         m_outputSize(layerInfos[layerCount - 1].neuronCount),
-        m_L(_create_layers(layerCount, layerInfos, path)),
+        m_L(_create_layers(layerCount, layerInfos, path.string().c_str())),
         m_n(_get_sizes(layerCount, layerInfos)) {}
 
 Network::~Network()
@@ -95,7 +94,7 @@ void Network::train_supervised(
                 f.get();
 }
 
-void Network::encode(const char *path) const
+void Network::encode(const std::filesystem::path &path) const
 {
         // The file must be open in binary mode, and all
         // encode function must write binary.
@@ -261,7 +260,7 @@ void Network::_train_ppo(
                 }
 
 #ifdef DEBUG_MODE_ENABLED
-                Logger::Log() << LOGGER_PREF(DEBUG) << "Execution [" << i << "] done.\n";
+                Logger::Log() << LOGGER_PREF(LOG_DEBUG) << "Execution [" << i << "] done.\n";
 #endif // DEBUG_MODE_ENABLED
 
                 const auto STATE_COUNT = (uint32_t)iterationData.size();
@@ -323,7 +322,7 @@ void Network::_train_ppo(
                 environment.reset();
 
 #ifdef DEBUG_MODE_ENABLED
-                Logger::Log() << LOGGER_PREF(DEBUG) << "Training [" << i << "] done.\n";
+                Logger::Log() << LOGGER_PREF(LOG_DEBUG) << "Training [" << i << "] done.\n";
 #endif // DEBUG_MODE_ENABLED
         }
 }

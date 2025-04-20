@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <future>
 #include <memory>
 
@@ -14,7 +15,7 @@ public:
                 uint32_t inputSize,
                 uint32_t layerCount,
                 const LayerCreateInfo layerInfos[],
-                const char *path = "");
+                const std::filesystem::path &path = "");
 
         [[nodiscard]] Vector forward(Vector input) const;
         void backward(const Vector &input, const Vector &cost);
@@ -36,7 +37,7 @@ public:
                 _train_ppo(valueNetwork, env, epochs, maxSteps);
         }
 
-        void encode(const char *path) const;
+        void encode(const std::filesystem::path &path) const;
 
         [[nodiscard]] inline uint32_t layer_count() const
         {

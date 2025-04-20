@@ -26,29 +26,47 @@ static std::string _time()
 }
 
 Logger::Logger() :
-        m_file(std::ofstream(BASE_PATH "/logs/latest-0.log")) {
-
-        if (!m_file)
-                throw std::runtime_error("Could not open log file.");
-}
+        m_dir(""),
+        m_fileCount(0),
+        m_file() {}
 
 Logger::~Logger()
 {
         m_file.close();
 }
 
+void Logger::set_directory(const std::filesystem::path &path)
+{
+        m_file.close();
+
+        m_dir = path;
+        m_fileCount = 0;
+        m_file = std::ofstream(m_dir / "latest-0.log");
+        if (!m_file)
+                throw std::runtime_error("Could not open log file.");
+}
+
 std::string Logger::pref(LogType type, std::string_view file, int line) {
         return std::format("{} {} {}:{} ", _time(), CONVERTER[type], file, line);
 }
 
+void Logger::_update_file()
+{
+        if (!m_file || ((uint32_t)m_file.tellp()) >= MAX_FILE_SIZE) {
+                if (m_file)
+                        m_file.close();
+
+                m_file = std::ofstream(m_dir / std::format("latest-{}.log", ++m_fileCount));
+                if (!m_file)
+                        throw std::runtime_error("Could not open log file.");
+        }
+}
+
 Logger::fatal_error::fatal_error(const std::string &message)
 {
-
-        // MAcro mainly used for disabling during tests.
-#ifndef LOGGER_FATAL_ERROR_DISABLE_STDOUT
         std::cout << message << std::endl;
-#endif // LOGGER_FATAL_ERROR_DISABLE_STDOUT
 
-        // Flush (std::endl) forces to print everything that has not yet been printed.
+        // Flush (std::endl) forces to print everything that has not yet been
+        // printed.
         Logger::Log().m_file << message << std::endl;
 }

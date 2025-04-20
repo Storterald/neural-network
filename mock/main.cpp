@@ -1,7 +1,10 @@
-#include "network/Network.h"
+#include <network/Network.h>
 
+#include <filesystem>
 #include <algorithm>
 #include <cmath>
+
+namespace fs = std::filesystem;
 
 class SimpleCart : public IEnvironment {
         float              position;
@@ -39,7 +42,7 @@ public:
                 bool done = target - position <= tolerance;
 
 #ifdef DEBUG_MODE_ENABLED
-                Logger::Log() << LOGGER_PREF(DEBUG) << "Reward: " << reward << " Done: " << done << " Action: " << action << '\n';
+                Logger::Log() << LOGGER_PREF(LOG_DEBUG) << "Reward: " << reward << " Done: " << done << " Action: " << action << '\n';
 #endif // DEBUG_MODE_ENABLED
                 return { reward, done };
         }
@@ -48,7 +51,7 @@ public:
         void reset() override 
         {
 #ifdef DEBUG_MODE_ENABLED
-                Logger::Log() << LOGGER_PREF(DEBUG) << "IEnvironment::reset().\n";
+                Logger::Log() << LOGGER_PREF(LOG_DEBUG) << "IEnvironment::reset().\n";
 #endif // DEBUG_MODE_ENABLED
                 position = 0.0f;
                 target = 10.0f;
@@ -58,6 +61,10 @@ public:
 
 int main()
 {
+        const fs::path dir = fs::path(__FILE__).parent_path();
+        fs::create_directory(dir / "logs");
+        Logger::Log().set_directory(dir / "logs");
+
         constexpr bool IN_TRAINING { true };
         constexpr uint32_t MAX_ITERATIONS { 1000 };
         constexpr uint32_t LAYER_COUNT { 3 };
@@ -67,18 +74,14 @@ int main()
                 { .type = FULLY_CONNECTED, .functionType = TANH, .neuronCount = SIZES[2] }
         };
 
-        Network policyNetwork(
-                SIZES[0], LAYER_COUNT - 1,
-                INFOS, BASE_PATH "/Encoded.nnv");
-        Network valueNetwork(
-                SIZES[0], LAYER_COUNT - 1,
-                INFOS, BASE_PATH "/Encoded-Value.nnv");
+        Network policyNetwork(SIZES[0], LAYER_COUNT - 1, INFOS);
+        Network valueNetwork(SIZES[0], LAYER_COUNT - 1, INFOS);
 
         if constexpr (IN_TRAINING) {
                 policyNetwork.train_ppo<SimpleCart>(
                         valueNetwork, MAX_ITERATIONS, 1000);
-                policyNetwork.encode(BASE_PATH "/Encoded.nnv");
-                valueNetwork.encode(BASE_PATH "/Encoded-Value.nnv");
+                policyNetwork.encode(dir / "Encoded.nnv");
+                valueNetwork.encode(dir / "Encoded-Value.nnv");
         } else {
                 SimpleCart env{};
                 for (bool done { false }; !done;) {

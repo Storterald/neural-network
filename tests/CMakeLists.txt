@@ -19,7 +19,6 @@ file(GLOB_RECURSE SOURCES
 add_executable(NeuralNetworkTest ${SOURCES})
 
 target_compile_definitions(NeuralNetworkTest
-        PRIVATE LOGGER_FATAL_ERROR_DISABLE_STDOUT
         PRIVATE DEBUG_MODE_ENABLED)
 
 # ------------------------------------------------------------------------------

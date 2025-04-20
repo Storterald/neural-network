@@ -8,7 +8,7 @@
 
 #define EXPECT_EQ_FLOAT_VEC(expected, actual, thresh)           \
 do {                                                            \
-        for (size_t idx = 0; idx < expected.size(); ++idx)      \
+        for (uint32_t idx = 0; idx < expected.size(); ++idx)    \
             EXPECT_NEAR(expected[idx], actual[idx], thresh);    \
 } while (false)
 

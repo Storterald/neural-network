@@ -11,15 +11,6 @@
       "hidden": true,
       "binaryDir": "${sourceDir}/build/${presetName}",
       "installDir": "${sourceDir}/build/${presetName}",
-      "cacheVariables": {
-        "CMAKE_CXX_STANDARD": "20",
-        "CMAKE_CXX_STANDARD_REQUIRED": true,
-        "CMAKE_CUDA_COMPILER": "$env{CUDA_PATH}/bin/nvcc.exe",
-        "CMAKE_CUDA_STANDARD": "20",
-        "CMAKE_CUDA_STANDARD_REQUIRED": true,
-        "CMAKE_CUDA_ARCHITECTURES": "native",
-        "CMAKE_CUDA_SEPARABLE_COMPILATION": true
-      },
       "warnings": {
         "unusedCli": false
       }
@@ -33,16 +24,6 @@
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
-      },
-      "cacheVariables": {
-        "CMAKE_CXX_FLAGS": "/Zc:preprocessor /EHs /W4 /wd4711 /wd4514 /wd4577 /wd4710 /wd4625 /wd4626 /wd5045 /wd5026 /wd5027 /wd4820 /wd4866",
-        "CMAKE_CXX_FLAGS_DEBUG": "/MTd",
-        "CMAKE_CXX_FLAGS_RELEASE": "/O2 /MT",
-        "CMAKE_ASM_MASM_FLAGS_INIT": "/c /nologo",
-        "CMAKE_ASM_MASM_FLAGS_DEBUG": "/Zi",
-        "CMAKE_CUDA_FLAGS_INIT": "-Xcompiler=/Zc:preprocessor",
-        "CMAKE_CUDA_FLAGS_DEBUG": "-Xcompiler=/MTd",
-        "CMAKE_CUDA_FLAGS_RELEASE": "-O3 -Xcompiler=/MT"
       },
       "vendor": {
         "jetbrains.com/clion": {
