@@ -1,7 +1,6 @@
 #include "Layer.h"
 
 #include "layers/FullyConnectedLayer.h"
-#include "Base.h"
 
 std::unique_ptr<ILayer> Layer::create(
         uint32_t previousLayerSize,

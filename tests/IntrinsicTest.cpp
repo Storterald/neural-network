@@ -22,5 +22,5 @@ TEST(IntrinsicTest, CpuSIMDSupportIsCorrectlyDetected) {
                 }
         }
 
-        EXPECT_EQ(Intrinsic::support(), support);
+        EXPECT_EQ(get_SIMD_support(), support);
 }

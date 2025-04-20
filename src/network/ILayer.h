@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../types/Matrix.h"
+#include "../types/Vector.h"
 
 enum FunctionType : uint32_t {
         TANH,

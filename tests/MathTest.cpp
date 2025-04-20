@@ -2893,33 +2893,47 @@ TEST(CudaTest, Clamp) {
 }
 
 TEST(SSETest, MatrixVectorMul) {
-        Matrix m = { { 1, 2, 1, 1 }, { 0, 1, 0, 1 }, { 2, 3, 4, 1 } };
-        Vector v = { 2, 6, 1, 1 };
+        Matrix m = {
+                { 1, 2, 4, 1, 5 },
+                { 0, 3, 0, 2, 9 },
+                { 2, 3, 4, 1, 3 }
+        };
+        Vector v = { 2, 6, 0, 4, 7 };
 
         Vector result(m.height());
         _Math<MATH_SSE>::matvec_mul(m.width(), m.height(), m.data(), v.data(), result.data());
 
-        EXPECT_EQ(result, Vector({ 16, 7, 27 }));
+        EXPECT_EQ(result, Vector({ 53, 89, 47 }));
 }
 
 TEST(AVXTest, MatrixVectorMul) {
-        Matrix m = { { 1, 2, 1, 1 }, { 0, 1, 0, 1 }, { 2, 3, 4, 1 } };
-        Vector v = { 2, 6, 1, 1 };
+        Matrix m = {
+                { 1, 2, 4, 1, 5, 4, 1, 2, 8 },
+                { 0, 3, 0, 2, 9, 8, 3, 0, 6 },
+                { 2, 3, 4, 2, 3, 1, 6, 2, 0 },
+                { 1, 6, 4, 1, 1, 3, 1, 5, 1 }
+        };
+        Vector v = { 2, 6, 0, 4, 7, 6, 1, 2, 9 };
 
         Vector result(m.height());
         _Math<MATH_AVX>::matvec_mul(m.width(), m.height(), m.data(), v.data(), result.data());
 
-        EXPECT_EQ(result, Vector({ 16, 7, 27 }));
+        EXPECT_EQ(result, Vector({ 154, 194, 67, 87 }));
 }
 
 TEST(AVX512Test, MatrixVectorMul) {
-        Matrix m = { { 1, 2, 1, 1 }, { 0, 1, 0, 1 }, { 2, 3, 4, 1 } };
-        Vector v = { 2, 6, 1, 1 };
+        Matrix m = {
+                { 1, 2, 4, 1, 5, 4, 1, 2, 8, 1, 2, 1, 4, 1, 9, 1, 5, 3 },
+                { 0, 3, 0, 2, 9, 8, 3, 0, 6, 1, 1, 8, 6, 3, 2, 8, 1, 1 },
+                { 2, 3, 4, 2, 3, 1, 6, 2, 0, 1, 2, 1, 9, 5, 3, 2, 2, 8 },
+                { 1, 6, 4, 1, 1, 3, 1, 5, 9, 1, 1, 3, 0, 1, 8, 4, 3, 9 }
+        };
+        Vector v = { 2, 6, 0, 4, 7, 6, 1, 2, 9, 7, 1, 1, 0, 1, 2, 1, 4, 3 };
 
         Vector result(m.height());
         _Math<MATH_AVX512>::matvec_mul(m.width(), m.height(), m.data(), v.data(), result.data());
 
-        EXPECT_EQ(result, Vector({ 16, 7, 27 }));
+        EXPECT_EQ(result, Vector({ 213, 232, 122, 230 }));
 }
 
 TEST(CudaTest, MatrixVectorMul) {

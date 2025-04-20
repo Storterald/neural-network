@@ -1,8 +1,9 @@
 #pragma once
 
-#include <mutex>
 #include <fstream>
+#include <mutex>
 
+#include "../../types/Matrix.h"
 #include "../ILayer.h"
 
 class FullyConnectedLayer final : public ILayer {
@@ -19,7 +20,7 @@ public:
                 std::ifstream &encodedData);
 
         [[nodiscard]] Vector forward(const Vector &input) const override;
-        [[nodiscard]] Vector backward(const Vector &cost,const Vector &input) override;
+        [[nodiscard]] Vector backward(const Vector &cost, const Vector &input) override;
 
         void encode(std::ostream &out) const override;
 

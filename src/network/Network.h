@@ -32,7 +32,7 @@ public:
                 uint32_t maxSteps,
                 Ts ...args) {
 
-                Environment env { args... };
+                Environment env(args...);
                 _train_ppo(valueNetwork, env, epochs, maxSteps);
         }
 

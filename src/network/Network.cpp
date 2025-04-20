@@ -5,7 +5,10 @@
 #include <future>
 
 #include "Layer.h"
-#include "Base.h"
+
+constexpr float CLIP_EPSILON = 0.2f;
+constexpr float GAMMA        = 0.99f;
+constexpr float LAMBDA       = 0.95f;
 
 Network::Network(
         uint32_t inputSize,
