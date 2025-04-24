@@ -1,0 +1,95 @@
+cmake_minimum_required(VERSION 3.13)
+project(NeuralNetwork LANGUAGES CXX ASM_MASM)
+
+# ------------------------------------------------------------------------------
+# FLAGS
+# ------------------------------------------------------------------------------
+
+# C++
+set(CMAKE_CXX_FLAGS             "/Zc:preprocessor /EHs /W4 /wd4711 /wd4514 /wd4577 /wd4710 /wd4625 /wd4626 /wd5045 /wd5026 /wd5027 /wd4820 /wd4866")
+set(CMAKE_CXX_FLAGS_DEBUG       "/MTd")
+set(CMAKE_CXX_FLAGS_RELEASE     "/O2 /MT")
+
+# ASM
+set(CMAKE_ASM_MASM_FLAGS_INIT  "/c /nologo")
+set(CMAKE_ASM_MASM_FLAGS_DEBUG "/Zi")
+
+# Cuda
+if (BUILD_CUDA_SUPPORT)
+        set(CMAKE_CUDA_COMPILER               "$ENV{CUDA_PATH}/bin/nvcc.exe")
+        set(CMAKE_CUDA_STANDARD               20)
+        set(CMAKE_CUDA_STANDARD_REQUIRED      ON)
+        set(CMAKE_CUDA_ARCHITECTURES          "native")
+        set(CMAKE_CUDA_SEPARABLE_COMPILATION  ON)
+        set(CMAKE_CUDA_RESOLVE_DEVICE_SYMBOLS ON)
+        set(CMAKE_CUDA_FLAGS_INIT             "-Xcompiler=/Zc:preprocessor")
+        set(CMAKE_CUDA_FLAGS_DEBUG            "-Xcompiler=/MTd")
+        set(CMAKE_CUDA_FLAGS_RELEASE          "-O3 -Xcompiler=/MT")
+endif ()
+
+# ------------------------------------------------------------------------------
+# PROJECT
+# ------------------------------------------------------------------------------
+
+set(SRC_DIR "${CMAKE_CURRENT_LIST_DIR}/src")
+set(INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/include")
+
+file(GLOB_RECURSE SOURCES
+        "${SRC_DIR}/*.cpp"
+        "${SRC_DIR}/*.asm")
+
+add_library(NeuralNetworkLib STATIC ${SOURCES} ${CUDA_SOURCES})
+add_library(NeuralNetwork::Lib ALIAS NeuralNetworkLib)
+
+file(COPY "${SRC_DIR}/" DESTINATION "${INCLUDE_DIR}/neural-network"
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.cuh")
+
+add_library(NeuralNetworkHeaders INTERFACE)
+target_include_directories(NeuralNetworkHeaders INTERFACE ${INCLUDE_DIR})
+add_library(NeuralNetwork::Headers ALIAS NeuralNetworkHeaders)
+
+if (BUILD_CUDA_SUPPORT)
+        enable_language(CUDA)
+        target_compile_definitions(NeuralNetworkLib
+                PUBLIC BUILD_CUDA_SUPPORT)
+
+        add_library(CudaRT STATIC IMPORTED)
+        set_property(TARGET CudaRT PROPERTY IMPORTED_LOCATION "$ENV{CUDA_PATH}/Lib/x64/cudart_static.lib")
+        add_library(Cuda::RTLib ALIAS CudaRT)
+
+        file(GLOB_RECURSE CUDA_SOURCES
+                "${SRC_DIR}/*.cu")
+
+        target_sources(NeuralNetworkLib
+                PUBLIC ${CUDA_SOURCES})
+        target_include_directories(NeuralNetworkLib
+                PUBLIC "$ENV{CUDA_PATH}/Include")
+        target_link_libraries(NeuralNetworkLib
+                PUBLIC Cuda::RTLib)
+endif ()
+
+# ------------------------------------------------------------------------------
+# SUB DIRECTORIES
+# ------------------------------------------------------------------------------
+
+if (BUILD_TESTS)
+        cmake_policy(SET CMP0079 NEW)  # Added in CMake 3.13
+
+        add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/tests")
+        add_dependencies(NeuralNetworkTest NeuralNetwork::Lib)
+
+        target_link_libraries(NeuralNetworkTest
+                PRIVATE NeuralNetwork::Lib
+                PRIVATE NeuralNetwork::Headers)
+endif ()
+
+if (BUILD_MOCK)
+        cmake_policy(SET CMP0079 NEW)
+
+        add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/mock")
+        add_dependencies(NeuralNetworkMock NeuralNetwork::Lib)
+
+        target_link_libraries(NeuralNetworkMock
+                PRIVATE NeuralNetwork::Lib
+                PRIVATE NeuralNetwork::Headers)
+endif ()

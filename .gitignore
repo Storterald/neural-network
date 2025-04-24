@@ -7,9 +7,9 @@
 build/
 
 # other
-bin/
 libs/
-logs/
+neural-network/mock/logs
+neural-network/include
 
 # files
 **/*.csv
@@ -18,4 +18,5 @@ logs/
 decoder/Decoded.h
 
 # Nvidia project
-NeuralNetwork.ncu-proj
+neural-network/mock/ncu-logs
+Neural Network.ncu-proj

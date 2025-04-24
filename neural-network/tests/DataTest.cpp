@@ -1,6 +1,10 @@
 #include <gtest/gtest.h>
 
+#ifdef BUILD_CUDA_SUPPORT
 #include "CudaTestHelper.h"
+#else // BUILD_CUDA_SUPPORT
+#include <neural-network/types/Data.h>
+#endif // BUILD_CUDA_SUPPORT
 
 TEST(DataTest, DefaultConstructorInitializesEmptyData) {
         Data data{};
@@ -17,6 +21,7 @@ TEST(DataTest, DataIsCorrectlyAllocatedOnCPU) {
         EXPECT_NO_FATAL_FAILURE(float value = data.data()[9]);
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(DataTest, DataIsCorrectlyAllocatedOnGPU) {
         Data data(10);
         for (uint32_t i = 0; i < 10; ++i)
@@ -27,6 +32,7 @@ TEST(DataTest, DataIsCorrectlyAllocatedOnGPU) {
         EXPECT_NO_FATAL_FAILURE(Helper::access_values(data));
         EXPECT_TRUE(Helper::check_values(data, 1));
 }
+#endif // BUILD_CUDA_SUPPORT
 
 TEST(DataTest, CopyConstructorCorrectlyCopiesData) {
         Data data1(10);

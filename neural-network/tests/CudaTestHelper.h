@@ -1,6 +1,6 @@
 #pragma once
 
-#include <types/Data.h>
+#include <neural-network/types/Data.h>
 
 namespace Helper {
 

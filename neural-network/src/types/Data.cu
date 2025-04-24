@@ -39,8 +39,7 @@ Data::Data(const Data &other) : m_size(other.m_size), m_data(nullptr)
         std::memcpy(m_data, other.m_data, m_size * sizeof(float));
 }
 
-Data::Data(Data &&other) noexcept :
-        m_size(other.m_size), m_data(other.m_data) {
+Data::Data(Data &&other) noexcept : m_size(other.m_size), m_data(other.m_data) {
 
         other.m_size = 0;
         other.m_data = nullptr;
@@ -101,9 +100,9 @@ bool Data::operator== (const Data &other) const
         if (m_size != other.m_size)
                 return false;
 
-        bool ans { true };
+        bool ans = true;
         if (m_size < CUDA_MINIMUM) {
-                for (uint32_t i{}; i < m_size && ans; ++i)
+                for (uint32_t i = 0; i < m_size && ans; ++i)
                         ans = m_data[i] == other.m_data[i];
         } else {
                 // Allocate space for the kernel result.
@@ -111,7 +110,7 @@ bool Data::operator== (const Data &other) const
                 CUDA_CHECK_ERROR(cudaMalloc(&d_ans, sizeof(bool)),
                         "Failed to allocate GPU memory.");
 
-                const uint32_t BLOCKS_COUNT { (m_size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
+                const uint32_t BLOCKS_COUNT = (m_size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT;
                 Kernels::compare<<<BLOCKS_COUNT, BLOCK_SIZE>>>(m_size, m_data, other.m_data, d_ans);
 
                 // Copy the result to CPU memory, the default value 'true' is discarded
@@ -123,8 +122,5 @@ bool Data::operator== (const Data &other) const
                 CUDA_CHECK_ERROR(cudaFree(d_ans), "Failed to free GPU memory.");
         }
 
-        // The warning is caused by cudaMalloc and cudaFree, the malloc is counted
-        // but the free is not, this causes CLion to emit a warning.
         return ans;
 }
-

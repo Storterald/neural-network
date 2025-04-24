@@ -32,8 +32,7 @@ template<> void _Math<MATH_SSE>::sum(uint32_t size, const float first[], const f
                 _mm_storeu_ps(&result[i], sumResult);
         }
 
-        for (uint32_t i = end; i < size; ++i)
-                result[i] = first[i] + second[i];
+        _Math<MATH_NORMAL>::sum(size - end, first + end, second + end, result + end);
 }
 
 template<> void _Math<MATH_SSE>::sub(uint32_t size, const float first[], const float second[], float result[])
@@ -48,8 +47,7 @@ template<> void _Math<MATH_SSE>::sub(uint32_t size, const float first[], const f
                 _mm_storeu_ps(&result[i], subResult);
         }
 
-        for (uint32_t i = end; i < size; ++i)
-                result[i] = first[i] - second[i];
+        _Math<MATH_NORMAL>::sub(size - end, first + end, second + end, result + end);
 }
 
 template<> void _Math<MATH_SSE>::mul(uint32_t size, const float first[], const float second[], float result[])
@@ -64,8 +62,7 @@ template<> void _Math<MATH_SSE>::mul(uint32_t size, const float first[], const f
                 _mm_storeu_ps(&result[i], mulResult);
         }
 
-        for (uint32_t i = end; i < size; ++i)
-                result[i] = first[i] * second[i];
+        _Math<MATH_NORMAL>::mul(size - end, first + end, second + end, result + end);
 }
 
 template<> void _Math<MATH_SSE>::div(uint32_t size, const float first[], const float second[], float result[])
@@ -80,8 +77,7 @@ template<> void _Math<MATH_SSE>::div(uint32_t size, const float first[], const f
                 _mm_storeu_ps(&result[i], divResult);
         }
 
-        for (uint32_t i = end; i < size; ++i)
-                result[i] = first[i] / second[i];
+        _Math<MATH_NORMAL>::div(size - end, first + end, second + end, result + end);
 }
 
 template<> void _Math<MATH_SSE>::sum(uint32_t size, const float first[], float scalar, float result[])
@@ -97,8 +93,7 @@ template<> void _Math<MATH_SSE>::sum(uint32_t size, const float first[], float s
                 _mm_storeu_ps(&result[i], sumResult);
         }
 
-        for (uint32_t i = end; i < size; ++i)
-                result[i] = first[i] + scalar;
+        _Math<MATH_NORMAL>::sum(size - end, first + end, scalar, result + end);
 }
 
 template<> void _Math<MATH_SSE>::sub(uint32_t size, const float first[], float scalar, float result[])
@@ -114,8 +109,7 @@ template<> void _Math<MATH_SSE>::sub(uint32_t size, const float first[], float s
                 _mm_storeu_ps(&result[i], subResult);
         }
 
-        for (uint32_t i = end; i < size; ++i)
-                result[i] = first[i] - scalar;
+        _Math<MATH_NORMAL>::sub(size - end, first + end, scalar, result + end);
 }
 
 template<> void _Math<MATH_SSE>::mul(uint32_t size, const float first[], float scalar, float result[])
@@ -131,8 +125,7 @@ template<> void _Math<MATH_SSE>::mul(uint32_t size, const float first[], float s
                 _mm_storeu_ps(&result[i], mulResult);
         }
 
-        for (uint32_t i = end; i < size; ++i)
-                result[i] = first[i] * scalar;
+        _Math<MATH_NORMAL>::mul(size - end, first + end, scalar, result + end);
 }
 
 template<> void _Math<MATH_SSE>::div(uint32_t size, const float first[], float scalar, float result[])
@@ -148,8 +141,7 @@ template<> void _Math<MATH_SSE>::div(uint32_t size, const float first[], float s
                 _mm_storeu_ps(&result[i], divResult);
         }
 
-        for (uint32_t i = end; i < size; ++i)
-                result[i] = first[i] / scalar;
+        _Math<MATH_NORMAL>::div(size - end, first + end, scalar, result + end);
 }
 
 template<> void _Math<MATH_SSE>::tanh(uint32_t size, const float data[], float result[])
@@ -196,18 +188,7 @@ template<> void _Math<MATH_SSE>::tanh(uint32_t size, const float data[], float r
                 _mm_storeu_ps(&result[i], tanh);
         }
 
-        for (uint32_t i = end; i < size; i++) {
-                const float x = data[i];
-                
-                if (std::abs(x) >= 4.9f) {
-                        result[i] = std::copysign(1.0f, x);
-                        continue;
-                }
-                
-                const float x2 = x * x;
-                result[i] = x * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2))) /
-                            (135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f)));
-        }
+        _Math<MATH_NORMAL>::tanh(size - end, data + end, result + end);
 }
 
 template<> void _Math<MATH_SSE>::tanh_derivative(uint32_t size, const float data[], float result[])
@@ -235,21 +216,7 @@ template<> void _Math<MATH_SSE>::tanh_derivative(uint32_t size, const float data
                 _mm_storeu_ps(&result[i], tanhDerivative);
         }
 
-        for (uint32_t i = end; i < size; i++) {
-                const float x = data[i];
-                if (x == 0.0f) {
-                        result[i] = 1.0f;
-                        continue;
-                }
-                
-                if (std::abs(x) > 4.9f) {
-                        result[i] = 0.0f;
-                        continue;
-                }
-                
-                const float tanh = result[i];
-                result[i] = 1 - tanh * tanh;
-        }
+        _Math<MATH_NORMAL>::tanh_derivative(size - end, data + end, result + end);
 }
 
 template<> void _Math<MATH_SSE>::ReLU(uint32_t size, const float data[], float result[])
@@ -265,8 +232,7 @@ template<> void _Math<MATH_SSE>::ReLU(uint32_t size, const float data[], float r
                 _mm_storeu_ps(&result[i], relu);
         }
 
-        for (uint32_t i = end; i < size; i++)
-                result[i] = std::max(0.0f, data[i]);
+        _Math<MATH_NORMAL>::ReLU(size - end, data + end, result + end);
 }
 
 template<> void _Math<MATH_SSE>::ReLU_derivative(uint32_t size, const float data[], float result[])
@@ -284,8 +250,7 @@ template<> void _Math<MATH_SSE>::ReLU_derivative(uint32_t size, const float data
                 _mm_storeu_ps(&result[i], reluDerivative);
         }
 
-        for (uint32_t i = end; i < size; i++)
-                result[i] = data[i] >= 0.0f ? 1.0f : 0.0f;
+        _Math<MATH_NORMAL>::ReLU_derivative(size - end, data + end, result + end);
 }
 
 template<> void _Math<MATH_SSE>::min(uint32_t size, const float data[], float min, float result[])
@@ -301,8 +266,7 @@ template<> void _Math<MATH_SSE>::min(uint32_t size, const float data[], float mi
                 _mm_storeu_ps(&result[i], minResult);
         }
 
-        for (uint32_t i = end; i < size; ++i)
-                result[i] = std::min(data[i], min);
+        _Math<MATH_NORMAL>::min(size - end, data + end, min, result + end);
 }
 
 template<> void _Math<MATH_SSE>::max(uint32_t size, const float data[], float max, float result[])
@@ -318,8 +282,7 @@ template<> void _Math<MATH_SSE>::max(uint32_t size, const float data[], float ma
                 _mm_storeu_ps(&result[i], maxResult);
         }
 
-        for (uint32_t i = end; i < size; ++i)
-                result[i] = std::max(data[i], max);
+        _Math<MATH_NORMAL>::max(size - end, data + end, max, result + end);
 }
 
 template<> void _Math<MATH_SSE>::clamp(uint32_t size, const float data[], float min, float max, float result[])
@@ -336,8 +299,7 @@ template<> void _Math<MATH_SSE>::clamp(uint32_t size, const float data[], float 
                 _mm_storeu_ps(&result[i], clamp);
         }
 
-        for (uint32_t i = end; i < size; ++i)
-                result[i] = std::clamp(data[i], min, max);
+        _Math<MATH_NORMAL>::clamp(size - end, data + end, min, max, result + end);
 }
 
 template<> void _Math<MATH_SSE>::min(uint32_t size, const float first[], const float second[], float result[])
@@ -352,8 +314,7 @@ template<> void _Math<MATH_SSE>::min(uint32_t size, const float first[], const f
                 _mm_storeu_ps(&result[i], minValues);
         }
 
-        for (uint32_t i = end; i < size; i++)
-                result[i] = std::min(first[i], second[i]);
+        _Math<MATH_NORMAL>::min(size - end, first + end, second + end, result + end);
 }
 
 template<> void _Math<MATH_SSE>::max(uint32_t size, const float first[], const float second[], float result[])
@@ -368,8 +329,7 @@ template<> void _Math<MATH_SSE>::max(uint32_t size, const float first[], const f
                 _mm_storeu_ps(&result[i], maxValues);
         }
 
-        for (uint32_t i = end; i < size; i++)
-                result[i] = std::max(first[i], second[i]);
+        _Math<MATH_NORMAL>::max(size - end, first + end, second + end, result + end);
 }
 
 template<> void _Math<MATH_SSE>::clamp(uint32_t size, const float data[], const float min[], const float max[], float result[])
@@ -385,8 +345,7 @@ template<> void _Math<MATH_SSE>::clamp(uint32_t size, const float data[], const 
                 _mm_storeu_ps(&result[i], clamp);
         }
 
-        for (uint32_t i = end; i < size; ++i)
-                result[i] = std::clamp(data[i], min[i], max[i]);
+        _Math<MATH_NORMAL>::clamp(size - end, data + end, min + end, max + end, result + end);
 }
 
 template<> void _Math<MATH_SSE>::matvec_mul(uint32_t width, uint32_t height, const float matrix[], const float vector[], float result[])

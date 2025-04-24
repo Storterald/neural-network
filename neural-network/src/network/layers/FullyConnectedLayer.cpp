@@ -110,7 +110,9 @@ Vector FullyConnectedLayer::backward(const Vector &cost, const Vector &input)
         // ∂ak(L-1)    j=0   ∂ak(L-1)  ∂zjL   ∂ajL     j=0
         Vector previousCosts(m_w.width());
 
+#ifdef BUILD_CUDA_SUPPORT
         if (m_w.size() < CUDA_MINIMUM) {
+#endif // BUILD_CUDA_SUPPORT
                 // Cycles through the columns of the m_w matrix, this
                 // means that it's impossible to use operators on sub-vectors
                 // as the columns are not stored contiguously in memory.
@@ -123,12 +125,14 @@ Vector FullyConnectedLayer::backward(const Vector &cost, const Vector &input)
 
                         previousCosts[k] = dCe;
                 }
+#ifdef BUILD_CUDA_SUPPORT
         } else {
                 // Single kernel for the above operations, the unsafe dereference can
                 // be used as 'dw' and 'previousCosts' are created with the optional
                 // parameter forceGPU
                 _d_backward(input.data(), dw.data(), db.data(), previousCosts.data());
         }
+#endif // BUILD_CUDA_SUPPORT
 
         {
                 std::lock_guard lock(m_mutex);

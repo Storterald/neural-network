@@ -1,5 +1,8 @@
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
+
+namespace fs = std::filesystem;
 
 enum LayerType : uint32_t {
         FULLY_CONNECTED
@@ -7,11 +10,11 @@ enum LayerType : uint32_t {
 }; // enum LayerType
 
 void writeVector(
-        const char *name,
-        uint32_t count,
-        const float *values,
-        std::ofstream &outFile
-) {
+        const char           *name,
+        uint32_t             count,
+        const float          *values,
+        std::ofstream        &outFile) {
+
         outFile << "        std::vector<float> " << name << " /* " << count << " */ {"
                    "\n                ";
 
@@ -34,19 +37,19 @@ void writeVector(
 }
 
 void decodeFullyConnectedLayer(
-        const uint32_t infos[4],
-        std::ifstream &inFile,
-        std::ofstream &outFile
-) {
-        const uint32_t wCount { infos[2] * infos[3] };
-        const auto w { new float[wCount] };
+        const uint32_t        infos[4],
+        std::ifstream         &inFile,
+        std::ofstream         &outFile) {
+
+        const uint32_t wCount = infos[2] * infos[3];
+        const auto w = new float[wCount];
 
         inFile.read((char *)w, wCount * sizeof(float));
         writeVector("weights", wCount, w, outFile);
         delete [] w;
 
-        const uint32_t bCount { infos[3] };
-        const auto b { new float[bCount] };
+        const uint32_t bCount = infos[3];
+        const auto b = new float[bCount];
 
         inFile.read((char *)b, bCount * sizeof(float));
         writeVector("biases", bCount, b, outFile);
@@ -55,11 +58,13 @@ void decodeFullyConnectedLayer(
 
 int main()
 {
-        std::ifstream inFile(BASE_PATH "/Encoded.nnv", std::ios::binary);
+        const fs::path dir = fs::path(__FILE__).parent_path();
+
+        std::ifstream inFile(dir / ".." / "mock" / "Encoded.nnv", std::ios::binary);
         if (!inFile)
                 return EXIT_FAILURE;
 
-        std::ofstream outFile(BASE_PATH "/decoder/Decoded.h");
+        std::ofstream outFile(dir / "Decoded.h");
         if (!outFile)
                 return EXIT_FAILURE;
 

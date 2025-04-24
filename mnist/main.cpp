@@ -1,14 +1,19 @@
+#include <filesystem>
 #include <fstream>
 #include <vector>
 #include <string>
 #include <sstream>
 #include <cstdint>
 
+namespace fs = std::filesystem;
+
 int main() {
-        std::ifstream file(BASE_PATH "/mnist/mnist_test.csv");
+        const fs::path dir = fs::path(__FILE__).parent_path();
+
+        std::ifstream file(dir / "mnist_test.csv");
         std::string line;
 
-        std::ofstream binaryFile(BASE_PATH "/mnist/mnist_test.nntv", std::ios::binary);
+        std::ofstream binaryFile(dir / "mnist_test.nntv", std::ios::binary);
 
         while (std::getline(file, line)) {
                 std::istringstream ss(line);

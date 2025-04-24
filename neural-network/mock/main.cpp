@@ -1,10 +1,10 @@
-#include <network/Network.h>
+#include <neural-network/network/Network.h>
 
 #include <filesystem>
-#include <algorithm>
-#include <cmath>
+#include <chrono>
 
 namespace fs = std::filesystem;
+namespace ch = std::chrono;
 
 class SimpleCart : public IEnvironment {
         float              position;
@@ -17,8 +17,7 @@ public:
         SimpleCart() :
                 position(0.0f),
                 target(10.0f),
-                velocity(0.0f)
-        {}
+                velocity(0.0f) {}
 
         // Get the current state of the environment (just position and velocity)
         [[nodiscard]] Vector getState() const override 
@@ -78,10 +77,15 @@ int main()
         Network valueNetwork(SIZES[0], LAYER_COUNT - 1, INFOS);
 
         if constexpr (IN_TRAINING) {
+                auto start = ch::system_clock::now();
+
                 policyNetwork.train_ppo<SimpleCart>(
                         valueNetwork, MAX_ITERATIONS, 1000);
                 policyNetwork.encode(dir / "Encoded.nnv");
                 valueNetwork.encode(dir / "Encoded-Value.nnv");
+
+                auto end = ch::system_clock::now();
+                std::cout << "Training completed in " << ch::duration_cast<ch::microseconds>(end - start) << ".\n";
         } else {
                 SimpleCart env{};
                 for (bool done { false }; !done;) {

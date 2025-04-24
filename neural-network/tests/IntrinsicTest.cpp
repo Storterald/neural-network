@@ -1,6 +1,6 @@
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
-#include <intrinsic/Intrinsic.h>
+#include <neural-network/intrinsic/Intrinsic.h>
 #include <intrin.h>
 
 TEST(IntrinsicTest, CpuSIMDSupportIsCorrectlyDetected) {

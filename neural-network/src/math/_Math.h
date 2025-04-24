@@ -3,10 +3,13 @@
 #include <cstdint>
 
 enum MathType : uint32_t {
+        MATH_NORMAL =  0,
         MATH_SSE    =  4,
         MATH_AVX    =  8,
-        MATH_AVX512 = 16,
-        MATH_CUDA   =  0
+        MATH_AVX512 = 16
+#ifdef BUILD_CUDA_SUPPORT
+        , MATH_CUDA = (uint32_t)-1
+#endif // BUILD_CUDA_SUPPORT
 };
 
 template<MathType T>

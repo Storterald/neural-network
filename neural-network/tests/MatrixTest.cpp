@@ -1,9 +1,11 @@
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
-#include <types/Matrix.h>
-#include <utils/Logger.h>
+#include <neural-network/types/Matrix.h>
+#include <neural-network/utils/Logger.h>
 
+#ifdef BUILD_CUDA_SUPPORT
 #include "CudaTestHelper.h"
+#endif // BUILD_CUDA_SUPPORT
 
 TEST(MatrixTest, DefaultConstructorInitializesEmptyData) {
         Matrix m{};
@@ -22,6 +24,7 @@ TEST(MatrixTest, SizesConstuctorAllocatesData) {
         EXPECT_NO_FATAL_FAILURE(float value = m[9][9]);
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(MatrixTest, MatrixDataIsAccessibleFromGPU) {
         Matrix m(10, 10);
         for (uint32_t i = 0; i < 100; ++i)
@@ -34,6 +37,7 @@ TEST(MatrixTest, MatrixDataIsAccessibleFromGPU) {
         EXPECT_NO_FATAL_FAILURE(Helper::access_values(m));
         EXPECT_TRUE(Helper::check_values(m, 1));
 }
+#endif // BUILD_CUDA_SUPPORT
 
 TEST(MatrixTest, ConstructorWithInitializerListWorks) {
         std::initializer_list<std::initializer_list<float>> values = { { 1, 2, 3 }, { 4, 5, 6 } };

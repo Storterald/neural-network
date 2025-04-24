@@ -1,8 +1,8 @@
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
-#include <types/Matrix.h> // used for easier test of the matvec_mul function
-#include <types/Vector.h> // used as a device memory container
-#include <math/_Math.h>
+#include <neural-network/types/Matrix.h> // used for easier test of the matvec_mul function
+#include <neural-network/types/Vector.h> // used as a device memory container
+#include <neural-network/math/_Math.h>
 #include <algorithm>
 #include <vector>
 
@@ -11,6 +11,22 @@ do {                                                            \
         for (uint32_t idx = 0; idx < expected.size(); ++idx)    \
             EXPECT_NEAR(expected[idx], actual[idx], thresh);    \
 } while (false)
+
+TEST(MathTest, Sum) {
+        constexpr uint32_t COUNT = 4;
+
+        float v1[COUNT] = { 1, 2, 3, 4 };
+        float v2[COUNT] = { 5, 6, 7, 8 };
+
+        std::vector<float> result(COUNT);
+        _Math<MATH_NORMAL>::sum(COUNT, v1, v2, result.data());
+
+        std::vector<float> expected(COUNT);
+        for (uint32_t i = 0; i < COUNT; ++i)
+                expected[i] = v1[i] + v2[i];
+
+        EXPECT_EQ(result, expected);
+}
 
 TEST(SSETest, SumPrecise) {
         constexpr uint32_t COUNT = 4;
@@ -156,6 +172,7 @@ TEST(AVX512Test, SumMore) {
         EXPECT_EQ(result, expected);
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Sum) {
         constexpr uint32_t COUNT = 16;
 
@@ -168,6 +185,23 @@ TEST(CudaTest, Sum) {
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] + v2[i];
+
+        EXPECT_EQ(result, expected);
+}
+#endif // BUILD_CUDA_SUPPORT
+
+TEST(MathTest, Sub) {
+        constexpr uint32_t COUNT = 4;
+
+        float v1[COUNT] = { 1, 2, 3, 4 };
+        float v2[COUNT] = { 5, 6, 7, 8 };
+
+        std::vector<float> result(COUNT);
+        _Math<MATH_NORMAL>::sub(COUNT, v1, v2, result.data());
+
+        std::vector<float> expected(COUNT);
+        for (uint32_t i = 0; i < COUNT; ++i)
+                expected[i] = v1[i] - v2[i];
 
         EXPECT_EQ(result, expected);
 }
@@ -316,6 +350,7 @@ TEST(AVX512Test, SubMore) {
         EXPECT_EQ(result, expected);
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Sub) {
         constexpr uint32_t COUNT = 16;
 
@@ -328,6 +363,23 @@ TEST(CudaTest, Sub) {
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] - v2[i];
+
+        EXPECT_EQ(result, expected);
+}
+#endif // BUILD_CUDA_SUPPORT
+
+TEST(MathTest, Mul) {
+        constexpr uint32_t COUNT = 4;
+
+        float v1[COUNT] = { 1, 2, 3, 4 };
+        float v2[COUNT] = { 5, 6, 7, 8 };
+
+        std::vector<float> result(COUNT);
+        _Math<MATH_NORMAL>::mul(COUNT, v1, v2, result.data());
+
+        std::vector<float> expected(COUNT);
+        for (uint32_t i = 0; i < COUNT; ++i)
+                expected[i] = v1[i] * v2[i];
 
         EXPECT_EQ(result, expected);
 }
@@ -476,6 +528,7 @@ TEST(AVX512Test, MulMore) {
         EXPECT_EQ(result, expected);
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Mul) {
         constexpr uint32_t COUNT = 16;
 
@@ -488,6 +541,23 @@ TEST(CudaTest, Mul) {
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] * v2[i];
+
+        EXPECT_EQ(result, expected);
+}
+#endif // BUILD_CUDA_SUPPORT
+
+TEST(MathTest, Div) {
+        constexpr uint32_t COUNT = 4;
+
+        float v1[COUNT] = { 1, 2, 3, 4 };
+        float v2[COUNT] = { 5, 6, 7, 8 };
+
+        std::vector<float> result(COUNT);
+        _Math<MATH_NORMAL>::div(COUNT, v1, v2, result.data());
+
+        std::vector<float> expected(COUNT);
+        for (uint32_t i = 0; i < COUNT; ++i)
+                expected[i] = v1[i] / v2[i];
 
         EXPECT_EQ(result, expected);
 }
@@ -636,6 +706,7 @@ TEST(AVX512Test, DivMore) {
         EXPECT_EQ(result, expected);
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Div) {
         constexpr uint32_t COUNT = 16;
 
@@ -648,6 +719,23 @@ TEST(CudaTest, Div) {
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] / v2[i];
+
+        EXPECT_EQ(result, expected);
+}
+#endif // BUILD_CUDA_SUPPORT
+
+TEST(MathTest, SumScalar) {
+        constexpr uint32_t COUNT = 4;
+
+        float data[COUNT] = { 1, 2, 3, 4 };
+        float scalar      = 3.0f;
+
+        std::vector<float> result(COUNT);
+        _Math<MATH_NORMAL>::sum(COUNT, data, scalar, result.data());
+
+        std::vector<float> expected(COUNT);
+        for (uint32_t i = 0; i < COUNT; ++i)
+                expected[i] = data[i] + scalar;
 
         EXPECT_EQ(result, expected);
 }
@@ -796,6 +884,7 @@ TEST(AVX512Test, SumScalarMore) {
         EXPECT_EQ(result, expected);
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, SumScalar) {
         constexpr uint32_t COUNT = 16;
 
@@ -808,6 +897,23 @@ TEST(CudaTest, SumScalar) {
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] + scalar;
+
+        EXPECT_EQ(result, expected);
+}
+#endif // BUILD_CUDA_SUPPORT
+
+TEST(MathTest, SubScalar) {
+        constexpr uint32_t COUNT = 4;
+
+        float data[COUNT] = { 1, 2, 3, 4 };
+        float scalar      = 3.0f;
+
+        std::vector<float> result(COUNT);
+        _Math<MATH_NORMAL>::sub(COUNT, data, scalar, result.data());
+
+        std::vector<float> expected(COUNT);
+        for (uint32_t i = 0; i < COUNT; ++i)
+                expected[i] = data[i] - scalar;
 
         EXPECT_EQ(result, expected);
 }
@@ -956,6 +1062,7 @@ TEST(AVX512Test, SubScalarMore) {
         EXPECT_EQ(result, expected);
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, SubScalar) {
         constexpr uint32_t COUNT = 16;
 
@@ -968,6 +1075,23 @@ TEST(CudaTest, SubScalar) {
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] - scalar;
+
+        EXPECT_EQ(result, expected);
+}
+#endif // BUILD_CUDA_SUPPORT
+
+TEST(MathTest, MulScalar) {
+        constexpr uint32_t COUNT = 4;
+
+        float data[COUNT] = { 1, 2, 3, 4 };
+        float scalar      = 3.0f;
+
+        std::vector<float> result(COUNT);
+        _Math<MATH_NORMAL>::mul(COUNT, data, scalar, result.data());
+
+        std::vector<float> expected(COUNT);
+        for (uint32_t i = 0; i < COUNT; ++i)
+                expected[i] = data[i] * scalar;
 
         EXPECT_EQ(result, expected);
 }
@@ -1116,6 +1240,7 @@ TEST(AVX512Test, MulScalarMore) {
         EXPECT_EQ(result, expected);
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, MulScalar) {
         constexpr uint32_t COUNT = 16;
 
@@ -1128,6 +1253,23 @@ TEST(CudaTest, MulScalar) {
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] * scalar;
+
+        EXPECT_EQ(result, expected);
+}
+#endif // BUILD_CUDA_SUPPORT
+
+TEST(MathTest, DivScalar) {
+        constexpr uint32_t COUNT = 4;
+
+        float data[COUNT] = { 1, 2, 3, 4 };
+        float scalar      = 3.0f;
+
+        std::vector<float> result(COUNT);
+        _Math<MATH_NORMAL>::div(COUNT, data, scalar, result.data());
+
+        std::vector<float> expected(COUNT);
+        for (uint32_t i = 0; i < COUNT; ++i)
+                expected[i] = data[i] / scalar;
 
         EXPECT_EQ(result, expected);
 }
@@ -1276,6 +1418,7 @@ TEST(AVX512Test, DivScalarMore) {
         EXPECT_EQ(result, expected);
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, DivScalar) {
         constexpr uint32_t COUNT = 16;
 
@@ -1290,6 +1433,22 @@ TEST(CudaTest, DivScalar) {
                 expected[i] = data[i] / scalar;
 
         EXPECT_EQ(result, expected);
+}
+#endif // BUILD_CUDA_SUPPORT
+
+TEST(MathTest, Tanh) {
+        constexpr uint32_t COUNT = 4;
+
+        float data[COUNT] = { 1, 2, 3, 4 };
+
+        std::vector<float> result(COUNT);
+        _Math<MATH_NORMAL>::tanh(COUNT, data, result.data());
+
+        std::vector<float> expected(COUNT);
+        for (uint32_t i = 0; i < COUNT; ++i)
+                expected[i] = std::tanh(data[i]);
+
+        EXPECT_EQ_FLOAT_VEC(result, expected, 4);
 }
 
 TEST(SSETest, TanhPrecise) {
@@ -1427,6 +1586,7 @@ TEST(AVX512Test, TanhMore) {
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Tanh) {
         constexpr uint32_t COUNT = 16;
 
@@ -1438,6 +1598,24 @@ TEST(CudaTest, Tanh) {
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::tanh(data[i]);
+
+        EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+}
+#endif // BUILD_CUDA_SUPPORT
+
+TEST(MathTest, TanhDerivative) {
+        constexpr uint32_t COUNT = 4;
+
+        float data[COUNT] = { 1, 2, 3, 4 };
+
+        std::vector<float> result(COUNT);
+        _Math<MATH_NORMAL>::tanh_derivative(COUNT, data, result.data());
+
+        std::vector<float> expected(COUNT);
+        for (uint32_t i = 0; i < COUNT; ++i) {
+                float tanh = std::tanh(data[i]);
+                expected[i] = 1 - tanh * tanh;
+        }
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
 }
@@ -1595,6 +1773,7 @@ TEST(AVX512Test, TanhDerivativeMore) {
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, TanhDerivative) {
         constexpr uint32_t COUNT = 16;
 
@@ -1610,6 +1789,22 @@ TEST(CudaTest, TanhDerivative) {
         }
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+}
+#endif // BUILD_CUDA_SUPPORT
+
+TEST(MathTest, ReLU) {
+        constexpr uint32_t COUNT = 4;
+
+        float data[COUNT] = { 1, 2, 3, 4 };
+
+        std::vector<float> result(COUNT);
+        _Math<MATH_NORMAL>::ReLU(COUNT, data, result.data());
+
+        std::vector<float> expected(COUNT);
+        for (uint32_t i = 0; i < COUNT; ++i)
+                expected[i] = std::max(data[i], 0.0f);
+
+        EXPECT_EQ(result, expected);
 }
 
 TEST(SSETest, ReLUPrecise) {
@@ -1747,6 +1942,7 @@ TEST(AVX512Test, ReLUMore) {
         EXPECT_EQ(result, expected);
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, ReLU) {
         constexpr uint32_t COUNT = 16;
 
@@ -1758,6 +1954,22 @@ TEST(CudaTest, ReLU) {
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(data[i], 0.0f);
+
+        EXPECT_EQ(result, expected);
+}
+#endif // BUILD_CUDA_SUPPORT
+
+TEST(MathTest, ReLUDerivative) {
+        constexpr uint32_t COUNT = 4;
+
+        float data[COUNT] = { 1, 2, 3, 4 };
+
+        std::vector<float> result(COUNT);
+        _Math<MATH_NORMAL>::ReLU_derivative(COUNT, data, result.data());
+
+        std::vector<float> expected(COUNT);
+        for (uint32_t i = 0; i < COUNT; ++i)
+                expected[i] = data[i] >= 0.0f ? 1.0f : 0.0f;
 
         EXPECT_EQ(result, expected);
 }
@@ -1897,6 +2109,7 @@ TEST(AVX512Test, ReLUDerivativeMore) {
         EXPECT_EQ(result, expected);
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, ReLUDerivative) {
         constexpr uint32_t COUNT = 16;
 
@@ -1908,6 +2121,23 @@ TEST(CudaTest, ReLUDerivative) {
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] >= 0.0f ? 1.0f : 0.0f;
+
+        EXPECT_EQ(result, expected);
+}
+#endif // BUILD_CUDA_SUPPORT
+
+TEST(MathTest, MinScalar) {
+        constexpr uint32_t COUNT = 4;
+
+        float data[COUNT] = { 1, 2, 3, 4 };
+        float min         = 3.0f;
+
+        std::vector<float> result(COUNT);
+        _Math<MATH_NORMAL>::min(COUNT, data, min, result.data());
+
+        std::vector<float> expected(COUNT);
+        for (uint32_t i = 0; i < COUNT; ++i)
+                expected[i] = std::min(data[i], min);
 
         EXPECT_EQ(result, expected);
 }
@@ -2056,6 +2286,7 @@ TEST(AVX512Test, MinScalarMore) {
         EXPECT_EQ(result, expected);
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, MinScalar) {
         constexpr uint32_t COUNT = 16;
 
@@ -2068,6 +2299,23 @@ TEST(CudaTest, MinScalar) {
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min(data[i], min);
+
+        EXPECT_EQ(result, expected);
+}
+#endif // BUILD_CUDA_SUPPORT
+
+TEST(MathTest, MaxScalar) {
+        constexpr uint32_t COUNT = 4;
+
+        float data[COUNT] = { 1, 2, 3, 4 };
+        float max         = 3.0f;
+
+        std::vector<float> result(COUNT);
+        _Math<MATH_NORMAL>::max(COUNT, data, max, result.data());
+
+        std::vector<float> expected(COUNT);
+        for (uint32_t i = 0; i < COUNT; ++i)
+                expected[i] = std::max(data[i], max);
 
         EXPECT_EQ(result, expected);
 }
@@ -2216,6 +2464,7 @@ TEST(AVX512Test, MaxScalarMore) {
         EXPECT_EQ(result, expected);
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, MaxScalar) {
         constexpr uint32_t COUNT = 16;
 
@@ -2228,6 +2477,24 @@ TEST(CudaTest, MaxScalar) {
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(data[i], max);
+
+        EXPECT_EQ(result, expected);
+}
+#endif // BUILD_CUDA_SUPPORT
+
+TEST(MathTest, ClampScalar) {
+        constexpr uint32_t COUNT = 4;
+
+        float data[COUNT] = { 1, 2, 3, 4 };
+        float min         = 3.0f;
+        float max         = 4.0f;
+
+        std::vector<float> result(COUNT);
+        _Math<MATH_NORMAL>::clamp(COUNT, data, min, max, result.data());
+
+        std::vector<float> expected(COUNT);
+        for (uint32_t i = 0; i < COUNT; ++i)
+                expected[i] = std::clamp(data[i], min, max);
 
         EXPECT_EQ(result, expected);
 }
@@ -2385,6 +2652,7 @@ TEST(AVX512Test, ClampScalarMore) {
         EXPECT_EQ(result, expected);
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, ClampScalar) {
         constexpr uint32_t COUNT = 16;
 
@@ -2398,6 +2666,23 @@ TEST(CudaTest, ClampScalar) {
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::clamp(data[i], min, max);
+
+        EXPECT_EQ(result, expected);
+}
+#endif // BUILD_CUDA_SUPPORT
+
+TEST(MathTest, Min) {
+        constexpr uint32_t COUNT = 4;
+
+        float v1[COUNT] = { 1, 2, 3, 4 };
+        float v2[COUNT] = { 4, 3, 2, 1 };
+
+        std::vector<float> result(COUNT);
+        _Math<MATH_NORMAL>::min(COUNT, v1, v2, result.data());
+
+        std::vector<float> expected(COUNT);
+        for (uint32_t i = 0; i < COUNT; ++i)
+                expected[i] = std::min(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
 }
@@ -2546,6 +2831,7 @@ TEST(AVX512Test, MinMore) {
         EXPECT_EQ(result, expected);
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Min) {
         constexpr uint32_t COUNT = 16;
 
@@ -2558,6 +2844,23 @@ TEST(CudaTest, Min) {
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min(v1[i], v2[i]);
+
+        EXPECT_EQ(result, expected);
+}
+#endif // BUILD_CUDA_SUPPORT
+
+TEST(MathTest, Max) {
+        constexpr uint32_t COUNT = 4;
+
+        float v1[COUNT] = { 1, 2, 3, 4 };
+        float v2[COUNT] = { 4, 3, 2, 1 };
+
+        std::vector<float> result(COUNT);
+        _Math<MATH_NORMAL>::max(COUNT, v1, v2, result.data());
+
+        std::vector<float> expected(COUNT);
+        for (uint32_t i = 0; i < COUNT; ++i)
+                expected[i] = std::max(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
 }
@@ -2706,6 +3009,7 @@ TEST(AVX512Test, MaxMore) {
         EXPECT_EQ(result, expected);
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Max) {
         constexpr uint32_t COUNT = 16;
 
@@ -2718,6 +3022,24 @@ TEST(CudaTest, Max) {
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(v1[i], v2[i]);
+
+        EXPECT_EQ(result, expected);
+}
+#endif // BUILD_CUDA_SUPPORT
+
+TEST(MathTest, Clamp) {
+        constexpr uint32_t COUNT = 4;
+
+        float data[COUNT] = { 1, 2, 3, 4 };
+        float min[COUNT]  = { 2, 1, 2, 1 };
+        float max[COUNT]  = { 4, 3, 3, 4 };
+
+        std::vector<float> result(COUNT);
+        _Math<MATH_NORMAL>::clamp(COUNT, data, min, max, result.data());
+
+        std::vector<float> expected(COUNT);
+        for (uint32_t i = 0; i < COUNT; ++i)
+                expected[i] = std::clamp(data[i], min[i], max[i]);
 
         EXPECT_EQ(result, expected);
 }
@@ -2875,6 +3197,7 @@ TEST(AVX512Test, ClampMore) {
         EXPECT_EQ(result, expected);
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Clamp) {
         constexpr uint32_t COUNT = 16;
 
@@ -2890,6 +3213,21 @@ TEST(CudaTest, Clamp) {
                 expected[i] = std::clamp(data[i], min[i], max[i]);
 
         EXPECT_EQ(result, expected);
+}
+#endif // BUILD_CUDA_SUPPORT
+
+TEST(MathTest, MatrixVectorMul) {
+        Matrix m = {
+                { 1, 2, 4, 1, 5 },
+                { 0, 3, 0, 2, 9 },
+                { 2, 3, 4, 1, 3 }
+        };
+        Vector v = { 2, 6, 0, 4, 7 };
+
+        Vector result(m.height());
+        _Math<MATH_NORMAL>::matvec_mul(m.width(), m.height(), m.data(), v.data(), result.data());
+
+        EXPECT_EQ(result, Vector({ 53, 89, 47 }));
 }
 
 TEST(SSETest, MatrixVectorMul) {
@@ -2936,6 +3274,7 @@ TEST(AVX512Test, MatrixVectorMul) {
         EXPECT_EQ(result, Vector({ 213, 232, 122, 230 }));
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, MatrixVectorMul) {
         Matrix m = { { 1, 2, 1, 1 }, { 0, 1, 0, 1 }, { 2, 3, 4, 1 } };
         Vector v = { 2, 6, 1, 1 };
@@ -2945,3 +3284,4 @@ TEST(CudaTest, MatrixVectorMul) {
 
         EXPECT_EQ(result, Vector({ 16, 7, 27 }));
 }
+#endif // BUILD_CUDA_SUPPORT

@@ -4,6 +4,7 @@
 #include <string_view>
 
 #include "utils/Logger.h"
+#include "utils/Macros.h"
 
 #if !defined(NDEBUG) && !defined(DEBUG_MODE_ENABLED)
 #define DEBUG_MODE_ENABLED
