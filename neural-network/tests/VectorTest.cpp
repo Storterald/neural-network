@@ -304,4 +304,3 @@ TEST(VectorTest, ScalarClamp) {
         Vector result = v.clamp(8, 12);
         EXPECT_EQ(result, Vector({8, 10, 12}));
 }
-

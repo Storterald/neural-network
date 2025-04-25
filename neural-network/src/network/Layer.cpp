@@ -30,4 +30,3 @@ std::unique_ptr<ILayer> Layer::create(
                 throw LOGGER_EX("Layer type not recognized.");
         }
 }
-
