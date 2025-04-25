@@ -91,7 +91,7 @@ TEST(SpanTest, ImplicitTypePointerCastReturnsPointerToCorrectLocationWhenCreated
         Span<float> s(10, false, d_arr, true);
 
         float *p = s;
-        EXPECT_NO_FATAL_FAILURE(float v = *p);
+        EXPECT_NO_FATAL_FAILURE(float value = *p);
         // While this expectation should be correct, it is not guaranteed to work.
         // EXPECT_DEATH(Helper::access_values(1, p), "");
 
@@ -106,7 +106,7 @@ TEST(SpanTest, ImplicitTypePointerCastReturnsPointerToCorrectLocationWhenCreated
 
         float *p = s;
         EXPECT_NO_FATAL_FAILURE(Helper::access_values(1, p));
-        EXPECT_DEATH(float v = *p, "");
+        EXPECT_DEATH(float value = *p, "");
 }
 #endif // BUILD_CUDA_SUPPORT
 
