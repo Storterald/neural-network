@@ -17,9 +17,9 @@ namespace Kernels {
 
 }
 
-void Helper::access_values(const Data &data)
+void Helper::access_values(uint32_t size, const float *data)
 {
-        Kernels::access_values<<<1, 1>>>(data.size(), data.data());
+        Kernels::access_values<<<1, 1>>>(size, data);
 
         CUDA_CHECK_ERROR(cudaGetLastError(),
                 "getPtrFromData kernel launch failed.");
@@ -27,13 +27,13 @@ void Helper::access_values(const Data &data)
                 "Error synchronizing in CUDATest::getPtrFromData.");
 }
 
-bool Helper::check_values(const Data &data, float v)
+bool Helper::check_values(uint32_t size, const float *data, float v)
 {
         bool *d_res = nullptr;
         CUDA_CHECK_ERROR(cudaMalloc(&d_res, sizeof(bool)),
                 "Failed to allocate memory on GPU.");
 
-        Kernels::check_values<<<1, 1>>>(data.size(), data.data(), v, d_res);
+        Kernels::check_values<<<1, 1>>>(size, data, v, d_res);
 
         CUDA_CHECK_ERROR(cudaGetLastError(), "checkValues kernel launch failed.");
         CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in CUDATest::checkValues.");

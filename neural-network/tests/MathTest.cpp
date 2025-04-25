@@ -180,7 +180,10 @@ TEST(CudaTest, Sum) {
         Vector v2 = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
 
         Vector result(COUNT);
-        _Math<MATH_CUDA>::sum(COUNT, v1.data(), v2.data(), result.data());
+        _Math<MATH_CUDA>::sum(
+                COUNT, v1.as_span(Data::DEVICE, true),
+                v2.as_span(Data::DEVICE, true),
+                result.as_span(Data::DEVICE, true));
 
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -358,7 +361,10 @@ TEST(CudaTest, Sub) {
         Vector v2 = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
 
         Vector result(COUNT);
-        _Math<MATH_CUDA>::sub(COUNT, v1.data(), v2.data(), result.data());
+        _Math<MATH_CUDA>::sub(
+                COUNT, v1.as_span(Data::DEVICE, true),
+                v2.as_span(Data::DEVICE, true),
+                result.as_span(Data::DEVICE, true));
 
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -536,7 +542,10 @@ TEST(CudaTest, Mul) {
         Vector v2 = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
 
         Vector result(COUNT);
-        _Math<MATH_CUDA>::mul(COUNT, v1.data(), v2.data(), result.data());
+        _Math<MATH_CUDA>::mul(
+                COUNT, v1.as_span(Data::DEVICE, true),
+                v2.as_span(Data::DEVICE, true),
+                result.as_span(Data::DEVICE, true));
 
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -714,7 +723,10 @@ TEST(CudaTest, Div) {
         Vector v2 = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
 
         Vector result(COUNT);
-        _Math<MATH_CUDA>::div(COUNT, v1.data(), v2.data(), result.data());
+        _Math<MATH_CUDA>::div(
+                COUNT, v1.as_span(Data::DEVICE, true),
+                v2.as_span(Data::DEVICE, true),
+                result.as_span(Data::DEVICE, true));
 
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -892,7 +904,9 @@ TEST(CudaTest, SumScalar) {
         float scalar = 3.0f;
 
         Vector result(COUNT);
-        _Math<MATH_CUDA>::sum(COUNT, data.data(), scalar, result.data());
+        _Math<MATH_CUDA>::sum(
+                COUNT, data.as_span(Data::DEVICE, true),
+                scalar, result.as_span(Data::DEVICE, true));
 
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1070,7 +1084,9 @@ TEST(CudaTest, SubScalar) {
         float scalar = 3.0f;
 
         Vector result(COUNT);
-        _Math<MATH_CUDA>::sub(COUNT, data.data(), scalar, result.data());
+        _Math<MATH_CUDA>::sub(
+                COUNT, data.as_span(Data::DEVICE, true),
+                scalar, result.as_span(Data::DEVICE, true));
 
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1248,7 +1264,9 @@ TEST(CudaTest, MulScalar) {
         float scalar = 3.0f;
 
         Vector result(COUNT);
-        _Math<MATH_CUDA>::mul(COUNT, data.data(), scalar, result.data());
+        _Math<MATH_CUDA>::mul(
+                COUNT, data.as_span(Data::DEVICE, true),
+                scalar, result.as_span(Data::DEVICE, true));
 
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1426,7 +1444,9 @@ TEST(CudaTest, DivScalar) {
         float scalar = 3.0f;
 
         Vector result(COUNT);
-        _Math<MATH_CUDA>::div(COUNT, data.data(), scalar, result.data());
+        _Math<MATH_CUDA>::div(
+                COUNT, data.as_span(Data::DEVICE, true),
+                scalar, result.as_span(Data::DEVICE, true));
 
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1593,7 +1613,9 @@ TEST(CudaTest, Tanh) {
         Vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
         Vector result(COUNT);
-        _Math<MATH_CUDA>::tanh(COUNT, data.data(), result.data());
+        _Math<MATH_CUDA>::tanh(
+                COUNT, data.as_span(Data::DEVICE, true),
+                result.as_span(Data::DEVICE, true));
 
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1780,7 +1802,9 @@ TEST(CudaTest, TanhDerivative) {
         Vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
         Vector result(COUNT);
-        _Math<MATH_CUDA>::tanh_derivative(COUNT, data.data(), result.data());
+        _Math<MATH_CUDA>::tanh_derivative(
+                COUNT, data.as_span(Data::DEVICE, true),
+                result.as_span(Data::DEVICE, true));
 
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -1949,11 +1973,13 @@ TEST(CudaTest, ReLU) {
         Vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
         Vector result(COUNT);
-        _Math<MATH_CUDA>::ReLU(COUNT, data.data(), result.data());
+        _Math<MATH_CUDA>::ReLU(
+                COUNT, data.as_span(Data::DEVICE, true),
+                result.as_span(Data::DEVICE, true));
 
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
-                expected[i] = std::max(data[i], 0.0f);
+                expected[i] = std::max((float)data[i], 0.0f);
 
         EXPECT_EQ(result, expected);
 }
@@ -2116,7 +2142,9 @@ TEST(CudaTest, ReLUDerivative) {
         Vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
         Vector result(COUNT);
-        _Math<MATH_CUDA>::ReLU_derivative(COUNT, data.data(), result.data());
+        _Math<MATH_CUDA>::ReLU_derivative(
+                COUNT, data.as_span(Data::DEVICE, true),
+                result.as_span(Data::DEVICE, true));
 
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2294,11 +2322,13 @@ TEST(CudaTest, MinScalar) {
         float min   = 3.0f;
 
         Vector result(COUNT);
-        _Math<MATH_CUDA>::min(COUNT, data.data(), min, result.data());
+        _Math<MATH_CUDA>::min(
+                COUNT, data.as_span(Data::DEVICE, true),
+                min, result.as_span(Data::DEVICE, true));
 
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
-                expected[i] = std::min(data[i], min);
+                expected[i] = std::min((float)data[i], min);
 
         EXPECT_EQ(result, expected);
 }
@@ -2472,11 +2502,13 @@ TEST(CudaTest, MaxScalar) {
         float max   = 3.0f;
 
         Vector result(COUNT);
-        _Math<MATH_CUDA>::max(COUNT, data.data(), max, result.data());
+        _Math<MATH_CUDA>::max(
+                COUNT, data.as_span(Data::DEVICE, true),
+                max, result.as_span(Data::DEVICE, true));
 
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
-                expected[i] = std::max(data[i], max);
+                expected[i] = std::max((float)data[i], max);
 
         EXPECT_EQ(result, expected);
 }
@@ -2661,11 +2693,13 @@ TEST(CudaTest, ClampScalar) {
         float max   = 4.0f;
 
         Vector result(COUNT);
-        _Math<MATH_CUDA>::clamp(COUNT, data.data(), min, max, result.data());
+        _Math<MATH_CUDA>::clamp(
+                COUNT, data.as_span(Data::DEVICE, true),
+                min, max, result.as_span(Data::DEVICE, true));
 
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
-                expected[i] = std::clamp(data[i], min, max);
+                expected[i] = std::clamp((float)data[i], min, max);
 
         EXPECT_EQ(result, expected);
 }
@@ -2839,7 +2873,10 @@ TEST(CudaTest, Min) {
         Vector v2 = { 8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1 };
 
         Vector result(COUNT);
-        _Math<MATH_CUDA>::min(COUNT, v1.data(), v2.data(), result.data());
+        _Math<MATH_CUDA>::min(
+                COUNT, v1.as_span(Data::DEVICE, true),
+                v2.as_span(Data::DEVICE, true),
+                result.as_span(Data::DEVICE, true));
 
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3017,7 +3054,10 @@ TEST(CudaTest, Max) {
         Vector v2 = { 8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1 };
 
         Vector result(COUNT);
-        _Math<MATH_CUDA>::max(COUNT, v1.data(), v2.data(), result.data());
+        _Math<MATH_CUDA>::max(
+                COUNT, v1.as_span(Data::DEVICE, true),
+                v2.as_span(Data::DEVICE, true),
+                result.as_span(Data::DEVICE, true));
 
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3206,7 +3246,9 @@ TEST(CudaTest, Clamp) {
         Vector max  = { 4, 3, 3, 4, 3, 3, 4, 4, 3, 3, 4, 4, 3, 3, 4, 3 };
 
         Vector result(COUNT);
-        _Math<MATH_CUDA>::clamp(COUNT, data.data(), min.data(), max.data(), result.data());
+        _Math<MATH_CUDA>::clamp(
+                COUNT, data.as_span(Data::DEVICE, true), min.as_span(Data::DEVICE, true),
+                max.as_span(Data::DEVICE, true), result.as_span(Data::DEVICE, true));
 
         Vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3225,7 +3267,9 @@ TEST(MathTest, MatrixVectorMul) {
         Vector v = { 2, 6, 0, 4, 7 };
 
         Vector result(m.height());
-        _Math<MATH_NORMAL>::matvec_mul(m.width(), m.height(), m.data(), v.data(), result.data());
+        _Math<MATH_NORMAL>::matvec_mul(
+                m.width(), m.height(), m.as_span(Data::HOST, true),
+                v.as_span(Data::HOST, true), result.as_span(Data::HOST, true));
 
         EXPECT_EQ(result, Vector({ 53, 89, 47 }));
 }
@@ -3239,7 +3283,9 @@ TEST(SSETest, MatrixVectorMul) {
         Vector v = { 2, 6, 0, 4, 7 };
 
         Vector result(m.height());
-        _Math<MATH_SSE>::matvec_mul(m.width(), m.height(), m.data(), v.data(), result.data());
+        _Math<MATH_SSE>::matvec_mul(
+                m.width(), m.height(), m.as_span(Data::HOST, true),
+                v.as_span(Data::HOST, true), result.as_span(Data::HOST, true));
 
         EXPECT_EQ(result, Vector({ 53, 89, 47 }));
 }
@@ -3254,7 +3300,9 @@ TEST(AVXTest, MatrixVectorMul) {
         Vector v = { 2, 6, 0, 4, 7, 6, 1, 2, 9 };
 
         Vector result(m.height());
-        _Math<MATH_AVX>::matvec_mul(m.width(), m.height(), m.data(), v.data(), result.data());
+        _Math<MATH_AVX>::matvec_mul(
+                m.width(), m.height(), m.as_span(Data::HOST, true),
+                v.as_span(Data::HOST, true), result.as_span(Data::HOST, true));
 
         EXPECT_EQ(result, Vector({ 154, 194, 67, 87 }));
 }
@@ -3269,7 +3317,9 @@ TEST(AVX512Test, MatrixVectorMul) {
         Vector v = { 2, 6, 0, 4, 7, 6, 1, 2, 9, 7, 1, 1, 0, 1, 2, 1, 4, 3 };
 
         Vector result(m.height());
-        _Math<MATH_AVX512>::matvec_mul(m.width(), m.height(), m.data(), v.data(), result.data());
+        _Math<MATH_AVX512>::matvec_mul(
+                m.width(), m.height(), m.as_span(Data::HOST, true),
+                v.as_span(Data::HOST, true), result.as_span(Data::HOST, true));
 
         EXPECT_EQ(result, Vector({ 213, 232, 122, 230 }));
 }
@@ -3280,7 +3330,9 @@ TEST(CudaTest, MatrixVectorMul) {
         Vector v = { 2, 6, 1, 1 };
 
         Vector result(m.height());
-        _Math<MATH_CUDA>::matvec_mul(m.width(), m.height(), m.data(), v.data(), result.data());
+        _Math<MATH_CUDA>::matvec_mul(
+                m.width(), m.height(), m.as_span(Data::DEVICE, true),
+                v.as_span(Data::DEVICE, true), result.as_span(Data::DEVICE, true));
 
         EXPECT_EQ(result, Vector({ 16, 7, 27 }));
 }

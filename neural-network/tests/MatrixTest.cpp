@@ -3,10 +3,6 @@
 #include <neural-network/types/Matrix.h>
 #include <neural-network/utils/Logger.h>
 
-#ifdef BUILD_CUDA_SUPPORT
-#include "CudaTestHelper.h"
-#endif // BUILD_CUDA_SUPPORT
-
 TEST(MatrixTest, DefaultConstructorInitializesEmptyData) {
         Matrix m{};
 
@@ -14,7 +10,7 @@ TEST(MatrixTest, DefaultConstructorInitializesEmptyData) {
         EXPECT_EQ(m.size(), 0);
 }
 
-TEST(MatrixTest, SizesConstuctorAllocatesData) {
+TEST(MatrixTest, SizesConstructorAllocatesData) {
         Matrix m(10, 10);
 
         EXPECT_NE(m.data(), nullptr);
@@ -24,21 +20,6 @@ TEST(MatrixTest, SizesConstuctorAllocatesData) {
         EXPECT_NO_FATAL_FAILURE(float value = m[9][9]);
 }
 
-#ifdef BUILD_CUDA_SUPPORT
-TEST(MatrixTest, MatrixDataIsAccessibleFromGPU) {
-        Matrix m(10, 10);
-        for (uint32_t i = 0; i < 100; ++i)
-                m.data()[i] = 1;
-
-        EXPECT_NE(m.data(), nullptr);
-        EXPECT_EQ(m.size(), 100);
-        EXPECT_EQ(m.width(), 10);
-        EXPECT_EQ(m.height(), 10);
-        EXPECT_NO_FATAL_FAILURE(Helper::access_values(m));
-        EXPECT_TRUE(Helper::check_values(m, 1));
-}
-#endif // BUILD_CUDA_SUPPORT
-
 TEST(MatrixTest, ConstructorWithInitializerListWorks) {
         std::initializer_list<std::initializer_list<float>> values = { { 1, 2, 3 }, { 4, 5, 6 } };
         Matrix m(values);
@@ -46,14 +27,9 @@ TEST(MatrixTest, ConstructorWithInitializerListWorks) {
         EXPECT_NE(m.data(), nullptr);
         EXPECT_EQ(m.height(), values.size());
         EXPECT_EQ(m.width(), values.begin()->size());
-        EXPECT_TRUE([&]() -> bool {
-                bool value = true;
-                for (uint32_t i = 0; i < m.height(); ++i)
-                        for (uint32_t j = 0; j < m.width(); ++j)
-                                value &= m[i][j] == values.begin()[i].begin()[j];
-
-                return value;
-        }());
+        for (uint32_t i = 0; i < m.height(); ++i)
+                for (uint32_t j = 0; j < m.width(); ++j)
+                        EXPECT_EQ(m[i][j], std::data(std::data(values)[i])[j]);
 }
 
 TEST(MatrixTestDebug, ConstructorWithInitializerListThrowsIfSizesDontMatch) {
@@ -70,7 +46,7 @@ TEST(MatrixTest, AccessOperator) {
 
 TEST(MatrixTestDebug, AccessOperatorThrowsIfIndexOutOfBounds) {
         Matrix m(10, 10);
-        EXPECT_THROW(float *value = m[10], Logger::fatal_error);
+        EXPECT_THROW(Ptr<float> value = m[10], Logger::fatal_error);
 }
 
 TEST(MatrixTest, PairAccessOperator) {
@@ -106,7 +82,7 @@ TEST(MatrixTest, AtFunction) {
 
 TEST(MatrixTestDebug, AtFunctionThrowsIfIndexOutOfBounds) {
         Matrix m(10, 10);
-        EXPECT_THROW(const float *value = m.at(10), Logger::fatal_error);
+        EXPECT_THROW(Ptr<float> value = m.at(10), Logger::fatal_error);
 }
 
 TEST(MatrixTest, PairAtFunction) {

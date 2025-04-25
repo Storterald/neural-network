@@ -20,7 +20,6 @@ struct LayerCreateInfo {
 
 }; // struct LayerCreateInfo
 
-// The interface ILayer, all layers inherit this.
 class ILayer {
 public:
         [[nodiscard]] virtual Vector forward(const Vector &input) const = 0;

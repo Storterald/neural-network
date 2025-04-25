@@ -10,9 +10,9 @@ public:
         Matrix(uint32_t width, uint32_t height);
         Matrix(std::initializer_list<std::initializer_list<float>> values);
 
-        [[nodiscard]] float *operator[] (uint32_t row);
-        [[nodiscard]] float &operator[] (std::pair<uint32_t, uint32_t> position);
-        [[nodiscard]] const float *at(uint32_t row) const;
+        [[nodiscard]] Ptr<float> operator[] (uint32_t row);
+        [[nodiscard]] Ref<float> operator[] (std::pair<uint32_t, uint32_t> position);
+        [[nodiscard]] Ptr<float> at(uint32_t row) const;
         [[nodiscard]] float at(uint32_t row, uint32_t height) const;
 
         [[nodiscard]] inline uint32_t width() const noexcept
@@ -47,7 +47,7 @@ private:
         uint32_t        m_width  = 0;
         uint32_t        m_height = 0;
 
-};
+}; // class Matrix
 
 #ifdef DEBUG_MODE_ENABLED
 #include <iostream>

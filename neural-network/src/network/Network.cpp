@@ -10,10 +10,10 @@ constexpr float GAMMA        = 0.99f;
 constexpr float LAMBDA       = 0.95f;
 
 Network::Network(
-        uint32_t inputSize,
-        uint32_t layerCount,
-        const LayerCreateInfo layerInfos[],
-        const std::filesystem::path &path) :
+        uint32_t                           inputSize,
+        uint32_t                           layerCount,
+        const LayerCreateInfo              layerInfos[],
+        const std::filesystem::path        &path) :
 
         m_layerCount(layerCount + 1),
         m_inputSize(inputSize),
@@ -59,9 +59,9 @@ void Network::backward(Vector dC, const Vector a[])
 }
 
 void Network::train_supervised(
-        uint32_t sampleCount,
-        const float inputs[],
-        const float outputs[]) {
+        uint32_t           sampleCount,
+        const float        inputs[],
+        const float        outputs[]) {
 
 #ifdef DEBUG_MODE_ENABLED
         // Since DEBUG mode uses the Logger, the program must
@@ -112,8 +112,8 @@ void Network::encode(const std::filesystem::path &path) const
 }
 
 std::unique_ptr<ILayer> *Network::_create_layers(
-        uint32_t layerCount,
-        const LayerCreateInfo *layerInfos) const {
+        uint32_t                     layerCount,
+        const LayerCreateInfo        *layerInfos) const {
 
         if (layerCount == 0)
                 throw LOGGER_EX("Cannot initialize Network with no layers. The "
@@ -129,9 +129,9 @@ std::unique_ptr<ILayer> *Network::_create_layers(
 }
 
 std::unique_ptr<ILayer> *Network::_create_layers(
-        uint32_t layerCount,
-        const LayerCreateInfo *layerInfos,
-        const char *path) const {
+        uint32_t                     layerCount,
+        const LayerCreateInfo        *layerInfos,
+        const char                   *path) const {
 
         if (layerCount == 0)
                 throw LOGGER_EX("Cannot initialize Network with no layers. The "
@@ -156,8 +156,8 @@ std::unique_ptr<ILayer> *Network::_create_layers(
 }
 
 uint32_t *Network::_get_sizes(
-        uint32_t layerCount,
-        const LayerCreateInfo *layerInfos) const {
+        uint32_t                     layerCount,
+        const LayerCreateInfo        *layerInfos) const {
 
         auto sizes = new uint32_t[layerCount];
         sizes[0]   = m_inputSize;
@@ -169,10 +169,10 @@ uint32_t *Network::_get_sizes(
 }
 
 std::future<void> Network::_get_supervised_future(
-        uint32_t start,
-        uint32_t end,
-        const float inputs[],
-        const float outputs[]) {
+        uint32_t           start,
+        uint32_t           end,
+        const float        inputs[],
+        const float        outputs[]) {
 
         return std::async(std::launch::async, [&]() -> void {
                 for (uint32_t i = start; i < end; ++i) {
@@ -195,10 +195,10 @@ std::future<void> Network::_get_supervised_future(
 }
 
 void Network::_train_ppo(
-        Network &valueNetwork,
-        IEnvironment &environment,
-        uint32_t epochs,
-        uint32_t maxSteps) {
+        Network             &valueNetwork,
+        IEnvironment        &environment,
+        uint32_t            epochs,
+        uint32_t            maxSteps) {
 
         struct IterationData {
                 uint64_t        stateHash;
@@ -226,7 +226,7 @@ void Network::_train_ppo(
                         const Vector state = environment.getState();
 
                         // Save the state hash only since the values won't be used.
-                        stateHash = state.hash();
+                        stateHash = std::hash<Data>()(state);
 
                         // Forward function of the policy network, keeping
                         // activation values.

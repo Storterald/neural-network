@@ -6,23 +6,39 @@ Vector::Vector(uint32_t size) : Data(size) {}
 
 Vector::Vector(uint32_t size, const float values[]) : Data(size)
 {
-        std::memcpy(m_data, values, m_size * sizeof(float));
+        if (!m_device) {
+                std::memcpy(this->data().get(), values, m_size * sizeof(float));
+                return;
+        }
+
+#if BUILD_CUDA_SUPPORT
+        CUDA_CHECK_ERROR(cudaMemcpy(this->data().get(), values, m_size * sizeof(float),
+                cudaMemcpyHostToDevice), "Failed to copy data to the GPU.");
+#endif // BUILD_CUDA_SUPPORT
 }
 
 Vector::Vector(const std::initializer_list<float> &values) :
         Data((uint32_t)values.size()) {
 
-        std::memcpy(m_data, values.begin(), m_size * sizeof(float));
+        if (!m_device) {
+                std::memcpy(this->data().get(), std::data(values), m_size * sizeof(float));
+                return;
+        }
+
+#if BUILD_CUDA_SUPPORT
+        CUDA_CHECK_ERROR(cudaMemcpy(this->data().get(), std::data(values), m_size * sizeof(float),
+                cudaMemcpyHostToDevice), "Failed to copy data to the GPU.");
+#endif // BUILD_CUDA_SUPPORT
 }
 
-float &Vector::operator[] (uint32_t i)
+Ref<float> Vector::operator[] (uint32_t i)
 {
 #ifdef DEBUG_MODE_ENABLED
         if (i >= m_size)
                 throw LOGGER_EX("Vector sizes must match.");
 #endif // DEBUG_MODE_ENABLED
 
-        return m_data[i];
+        return *(this->data() + i);
 }
 
 float Vector::at(uint32_t i) const
@@ -32,7 +48,7 @@ float Vector::at(uint32_t i) const
                 throw LOGGER_EX("Vector sizes must match.");
 #endif // DEBUG_MODE_ENABLED
 
-        return m_data[i];
+        return *(this->data() + i);
 }
 
 Vector Vector::operator+ (const Vector &other) const
@@ -43,7 +59,7 @@ Vector Vector::operator+ (const Vector &other) const
 #endif // DEBUG_MODE_ENABLED
 
         Vector result(m_size);
-        Math::sum(m_size, m_data, other.m_data, result.m_data);
+        Math::sum(m_size, *this, other, result);
 
         return result;
 }
@@ -56,7 +72,7 @@ Vector Vector::operator- (const Vector &other) const
 #endif // DEBUG_MODE_ENABLED
 
         Vector result(m_size);
-        Math::sub(m_size, m_data, other.m_data, result.m_data);
+        Math::sub(m_size, *this, other, result);
 
         return result;
 }
@@ -69,7 +85,7 @@ Vector Vector::operator* (const Vector &other) const
 #endif // DEBUG_MODE_ENABLED
 
         Vector result(m_size);
-        Math::mul(m_size, m_data, other.m_data, result.m_data);
+        Math::mul(m_size, *this, other, result);
 
         return result;
 }
@@ -79,12 +95,12 @@ Vector Vector::operator/ (const Vector &other) const
 #ifdef DEBUG_MODE_ENABLED
         if (m_size != other.m_size)
                 throw LOGGER_EX("Vector sizes must match.");
-        if (std::ranges::any_of(other, [](float v) -> bool { return v == 0.0f; }))
+        if (std::any_of(other.begin(), other.end(), [](float v) -> bool { return v == 0.0f; }))
                 throw LOGGER_EX("Cannot divide by 0.");
 #endif // DEBUG_MODE_ENABLED
 
         Vector result(m_size);
-        Math::div(m_size, m_data, other.m_data, result.m_data);
+        Math::div(m_size, *this, other, result);
 
         return result;
 }
@@ -96,7 +112,7 @@ void Vector::operator+= (const Vector &other)
                 throw LOGGER_EX("Vector sizes must match.");
 #endif // DEBUG_MODE_ENABLED
 
-        Math::sum(m_size, m_data, other.m_data, m_data);
+        Math::sum(m_size, *this, other, *this);
 }
 
 void Vector::operator-= (const Vector &other)
@@ -106,7 +122,7 @@ void Vector::operator-= (const Vector &other)
                 throw LOGGER_EX("Vector sizes must match.");
 #endif // DEBUG_MODE_ENABLED
 
-        Math::sub(m_size, m_data, other.m_data, m_data);
+        Math::sub(m_size, *this, other, *this);
 }
 
 void Vector::operator*= (const Vector &other)
@@ -116,7 +132,7 @@ void Vector::operator*= (const Vector &other)
                 throw LOGGER_EX("Vector sizes must match.");
 #endif // DEBUG_MODE_ENABLED
 
-        Math::mul(m_size, m_data, other.m_data, m_data);
+        Math::mul(m_size, *this, other, *this);
 }
 
 void Vector::operator/= (const Vector &other)
@@ -124,17 +140,17 @@ void Vector::operator/= (const Vector &other)
 #ifdef DEBUG_MODE_ENABLED
         if (m_size != other.m_size)
                 throw LOGGER_EX("Vector sizes must match.");
-        if (std::ranges::any_of(other, [](float v) -> bool { return v == 0.0f; }))
+        if (std::any_of(other.begin(), other.end(), [](float v) -> bool { return v == 0.0f; }))
                 throw LOGGER_EX("Cannot divide by 0.");
 #endif // DEBUG_MODE_ENABLED
 
-        Math::div(m_size, m_data, other.m_data, m_data);
+        Math::div(m_size, *this, other, *this);
 }
 
 Vector Vector::operator+ (float scalar) const
 {
         Vector result(m_size);
-        Math::sum(m_size, m_data, scalar, result.m_data);
+        Math::sum(m_size, *this, scalar, result);
 
         return result;
 }
@@ -142,7 +158,7 @@ Vector Vector::operator+ (float scalar) const
 Vector Vector::operator- (float scalar) const
 {
         Vector result(m_size);
-        Math::sub(m_size, m_data, scalar, result.m_data);
+        Math::sub(m_size, *this, scalar, result);
 
         return result;
 }
@@ -150,7 +166,7 @@ Vector Vector::operator- (float scalar) const
 Vector Vector::operator* (float scalar) const
 {
         Vector result(m_size);
-        Math::mul(m_size, m_data, scalar, result.m_data);
+        Math::mul(m_size, *this, scalar, result);
 
         return result;
 }
@@ -163,24 +179,24 @@ Vector Vector::operator/ (float scalar) const
 #endif // DEBUG_MODE_ENABLED
 
         Vector result(m_size);
-        Math::div(m_size, m_data, scalar, result.m_data);
+        Math::div(m_size, *this, scalar, result);
 
         return result;
 }
 
 void Vector::operator+= (float scalar)
 {
-        Math::sum(m_size, m_data, scalar, m_data);
+        Math::sum(m_size, *this, scalar, *this);
 }
 
 void Vector::operator-= (float scalar)
 {
-        Math::sub(m_size, m_data, scalar, m_data);
+        Math::sub(m_size, *this, scalar, *this);
 }
 
 void Vector::operator*= (float scalar)
 {
-        Math::mul(m_size, m_data, scalar, m_data);
+        Math::mul(m_size, *this, scalar, *this);
 }
 
 void Vector::operator/= (float scalar)
@@ -190,13 +206,13 @@ void Vector::operator/= (float scalar)
                 throw LOGGER_EX("Cannot divide by 0.");
 #endif // DEBUG_MODE_ENABLED
 
-        Math::div(m_size, m_data, scalar, m_data);
+        Math::div(m_size, *this, scalar, *this);
 }
 
 Vector Vector::min(float min) const
 {
         Vector result(m_size);
-        Math::min(m_size, m_data, min, result.m_data);
+        Math::min(m_size, *this, min, result);
 
         return result;
 }
@@ -204,7 +220,7 @@ Vector Vector::min(float min) const
 Vector Vector::max(float max) const
 {
         Vector result(m_size);
-        Math::max(m_size, m_data, max, result.m_data);
+        Math::max(m_size, *this, max, result);
 
         return result;
 }
@@ -212,7 +228,7 @@ Vector Vector::max(float max) const
 Vector Vector::clamp(float min, float max) const
 {
         Vector result(m_size);
-        Math::clamp(m_size, m_data, min, max, result.m_data);
+        Math::clamp(m_size, *this, min, max, result);
 
         return result;
 }
@@ -225,7 +241,7 @@ Vector Vector::min(const Vector &other) const
 #endif // DEBUG_MODE_ENABLED
 
         Vector result(m_size);
-        Math::min(m_size, m_data, other.m_data, result.m_data);
+        Math::min(m_size, *this, other, result);
 
         return result;
 }
@@ -238,7 +254,7 @@ Vector Vector::max(const Vector &other) const
 #endif // DEBUG_MODE_ENABLED
 
         Vector result(m_size);
-        Math::max(m_size, m_data, other.m_data, result.m_data);
+        Math::max(m_size, *this, other, result);
 
         return result;
 }
@@ -251,7 +267,7 @@ Vector Vector::clamp(const Vector &min, const Vector &max) const
 #endif // DEBUG_MODE_ENABLED
 
         Vector result(m_size);
-        Math::clamp(m_size, m_data, min.m_data, max.m_data, result.m_data);
+        Math::clamp(m_size, *this, min, max, result);
 
         return result;
 }

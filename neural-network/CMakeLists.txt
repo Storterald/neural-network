@@ -6,7 +6,7 @@ project(NeuralNetwork LANGUAGES CXX ASM_MASM)
 # ------------------------------------------------------------------------------
 
 # C++
-set(CMAKE_CXX_FLAGS             "/Zc:preprocessor /EHs /W4 /wd4711 /wd4514 /wd4577 /wd4710 /wd4625 /wd4626 /wd5045 /wd5026 /wd5027 /wd4820 /wd4866")
+set(CMAKE_CXX_FLAGS             "/Zc:preprocessor /EHs /W4 /wd4711 /wd4514 /wd4577 /wd4710 /wd4625 /wd4626 /wd5045 /wd5026 /wd5027 /wd4820 /wd4866 /wd4297")
 set(CMAKE_CXX_FLAGS_DEBUG       "/MTd")
 set(CMAKE_CXX_FLAGS_RELEASE     "/O2 /MT")
 
@@ -22,7 +22,7 @@ if (BUILD_CUDA_SUPPORT)
         set(CMAKE_CUDA_ARCHITECTURES          "native")
         set(CMAKE_CUDA_SEPARABLE_COMPILATION  ON)
         set(CMAKE_CUDA_RESOLVE_DEVICE_SYMBOLS ON)
-        set(CMAKE_CUDA_FLAGS_INIT             "-Xcompiler=/Zc:preprocessor")
+        set(CMAKE_CUDA_FLAGS                  "-Xcompiler=/Zc:preprocessor -Xcompiler=/wd4297")
         set(CMAKE_CUDA_FLAGS_DEBUG            "-Xcompiler=/MTd")
         set(CMAKE_CUDA_FLAGS_RELEASE          "-O3 -Xcompiler=/MT")
 endif ()
@@ -41,6 +41,7 @@ file(GLOB_RECURSE SOURCES
 add_library(NeuralNetworkLib STATIC ${SOURCES} ${CUDA_SOURCES})
 add_library(NeuralNetwork::Lib ALIAS NeuralNetworkLib)
 
+file(REMOVE_RECURSE ${INCLUDE_DIR})
 file(COPY "${SRC_DIR}/" DESTINATION "${INCLUDE_DIR}/neural-network"
         FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.cuh")
 

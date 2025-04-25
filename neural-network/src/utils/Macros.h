@@ -11,14 +11,14 @@
 
 #define GET_ARGS_NAMES(...) __VA_OPT__(EXPAND(__GET_ARGS_NAMES(__VA_ARGS__)))
 
-#define __GET_ARGS_NAMES(type, name, ...)                               \
-        name __VA_OPT__(, __GET_ARGS_NAMES2 PARENS (__VA_ARGS__))
+#define __GET_ARGS_NAMES(type, name, ...)               \
+name __VA_OPT__(, __GET_ARGS_NAMES2 PARENS (__VA_ARGS__))
 
 #define __GET_ARGS_NAMES2() __GET_ARGS_NAMES
 
 #define GET_ARGS(...) __VA_OPT__(EXPAND(__GET_ARGS(__VA_ARGS__)))
 
-#define __GET_ARGS(type, name, ...)                               \
-        type name __VA_OPT__(, __GET_ARGS2 PARENS (__VA_ARGS__))
+#define __GET_ARGS(type, name, ...)                     \
+type name __VA_OPT__(, __GET_ARGS2 PARENS (__VA_ARGS__))
 
 #define __GET_ARGS2() __GET_ARGS

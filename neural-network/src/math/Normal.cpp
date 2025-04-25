@@ -3,56 +3,91 @@
 #include <cmath>
 #include <algorithm>
 
-template<> void _Math<MATH_NORMAL>::sum(uint32_t size, const float first[], const float second[], float result[])
-{
+template<> void _Math<MATH_NORMAL>::sum(
+        uint32_t           size,
+        const float        first[],
+        const float        second[],
+        float              result[]) {
+
         for (uint32_t i = 0; i < size; ++i)
                 result[i] = first[i] + second[i];
 }
 
-template<> void _Math<MATH_NORMAL>::sub(uint32_t size, const float first[], const float second[], float result[])
-{
+template<> void _Math<MATH_NORMAL>::sub(
+        uint32_t           size,
+        const float        first[],
+        const float        second[],
+        float              result[]) {
+
         for (uint32_t i = 0; i < size; ++i)
                 result[i] = first[i] - second[i];
 }
 
-template<> void _Math<MATH_NORMAL>::mul(uint32_t size, const float first[], const float second[], float result[])
-{
+template<> void _Math<MATH_NORMAL>::mul(
+        uint32_t           size,
+        const float        first[],
+        const float        second[],
+        float              result[]) {
+
         for (uint32_t i = 0; i < size; ++i)
                 result[i] = first[i] * second[i];
 }
 
-template<> void _Math<MATH_NORMAL>::div(uint32_t size, const float first[], const float second[], float result[])
-{
+template<> void _Math<MATH_NORMAL>::div(
+        uint32_t           size,
+        const float        first[],
+        const float        second[],
+        float              result[]) {
+
         for (uint32_t i = 0; i < size; ++i)
                 result[i] = first[i] / second[i];
 }
 
-template<> void _Math<MATH_NORMAL>::sum(uint32_t size, const float first[], float scalar, float result[])
-{
+template<> void _Math<MATH_NORMAL>::sum(
+        uint32_t           size,
+        const float        data[],
+        float              scalar,
+        float              result[]) {
+
         for (uint32_t i = 0; i < size; ++i)
-                result[i] = first[i] + scalar;
+                result[i] = data[i] + scalar;
 }
 
-template<> void _Math<MATH_NORMAL>::sub(uint32_t size, const float first[], float scalar, float result[])
-{
+template<> void _Math<MATH_NORMAL>::sub(
+        uint32_t           size,
+        const float        data[],
+        float              scalar,
+        float              result[]) {
+
         for (uint32_t i = 0; i < size; ++i)
-                result[i] = first[i] - scalar;
+                result[i] = data[i] - scalar;
 }
 
-template<> void _Math<MATH_NORMAL>::mul(uint32_t size, const float first[], float scalar, float result[])
-{
+template<> void _Math<MATH_NORMAL>::mul(
+        uint32_t           size,
+        const float        data[],
+        float              scalar,
+        float              result[]) {
+
         for (uint32_t i = 0; i < size; ++i)
-                result[i] = first[i] * scalar;
+                result[i] = data[i] * scalar;
 }
 
-template<> void _Math<MATH_NORMAL>::div(uint32_t size, const float first[], float scalar, float result[])
-{
+template<> void _Math<MATH_NORMAL>::div(
+        uint32_t           size,
+        const float        data[],
+        float              scalar,
+        float              result[]) {
+
         for (uint32_t i = 0; i < size; ++i)
-                result[i] = first[i] / scalar;
+                result[i] = data[i] / scalar;
 }
 
-template<> void _Math<MATH_NORMAL>::tanh(uint32_t size, const float data[], float result[])
-{
+template<> void _Math<MATH_NORMAL>::tanh(
+        uint32_t           size,
+        const float        data[],
+        float              result[]) {
+
         // Around 6-8 times faster than std::tanh in release mode
         for (uint32_t i = 0; i < size; ++i) {
                 const float x = data[i];
@@ -73,8 +108,11 @@ template<> void _Math<MATH_NORMAL>::tanh(uint32_t size, const float data[], floa
         }
 }
 
-template<> void _Math<MATH_NORMAL>::tanh_derivative(uint32_t size, const float data[], float result[])
-{
+template<> void _Math<MATH_NORMAL>::tanh_derivative(
+        uint32_t           size,
+        const float        data[],
+        float              result[]) {
+
         // Uses the _Math<>::tanh to calculate the derivative way faster than
         // with using std::tanh, also more accurate than tanhFast.
         _Math<MATH_NORMAL>::tanh(size, data, result);
@@ -102,56 +140,93 @@ template<> void _Math<MATH_NORMAL>::tanh_derivative(uint32_t size, const float d
         }
 }
 
-template<> void _Math<MATH_NORMAL>::ReLU(uint32_t size, const float data[], float result[])
-{
+template<> void _Math<MATH_NORMAL>::ReLU(
+        uint32_t           size,
+        const float        data[],
+        float              result[]) {
+
         for (uint32_t i = 0; i < size; ++i)
                 result[i] = std::max(data[i], 0.0f);
 }
 
-template<> void _Math<MATH_NORMAL>::ReLU_derivative(uint32_t size, const float data[], float result[])
-{
+template<> void _Math<MATH_NORMAL>::ReLU_derivative(
+        uint32_t           size,
+        const float        data[],
+        float              result[]) {
+
         for (uint32_t i = 0; i < size; ++i)
                 result[i] = data[i] >= 0.0f ? 1.0f : 0.0f;
 }
 
-template<> void _Math<MATH_NORMAL>::min(uint32_t size, const float data[], float min, float result[])
-{
+template<> void _Math<MATH_NORMAL>::min(
+        uint32_t           size,
+        const float        data[],
+        float              min,
+        float              result[]) {
+
         for (uint32_t i = 0; i < size; ++i)
                 result[i] = std::min(data[i], min);
 }
 
-template<> void _Math<MATH_NORMAL>::max(uint32_t size, const float data[], float max, float result[])
-{
+template<> void _Math<MATH_NORMAL>::max(
+        uint32_t           size,
+        const float        data[],
+        float              max,
+        float              result[]) {
+
         for (uint32_t i = 0; i < size; ++i)
                 result[i] = std::max(data[i], max);
 }
 
-template<> void _Math<MATH_NORMAL>::clamp(uint32_t size, const float data[], float min, float max, float result[])
-{
+template<> void _Math<MATH_NORMAL>::clamp(
+        uint32_t           size,
+        const float        data[],
+        float              min,
+        float              max,
+        float              result[]) {
+
         for (uint32_t i = 0; i < size; ++i)
                 result[i] = std::clamp(data[i], min, max);
 }
 
-template<> void _Math<MATH_NORMAL>::min(uint32_t size, const float first[], const float second[], float result[])
-{
+template<> void _Math<MATH_NORMAL>::min(
+        uint32_t           size,
+        const float        first[],
+        const float        second[],
+        float              result[]) {
+
         for (uint32_t i = 0; i < size; ++i)
                 result[i] = std::min(first[i], second[i]);
 }
 
-template<> void _Math<MATH_NORMAL>::max(uint32_t size, const float first[], const float second[], float result[])
-{
+template<> void _Math<MATH_NORMAL>::max(
+        uint32_t           size,
+        const float        first[],
+        const float        second[],
+        float              result[]) {
+
         for (uint32_t i = 0; i < size; ++i)
                 result[i] = std::max(first[i], second[i]);
 }
 
-template<> void _Math<MATH_NORMAL>::clamp(uint32_t size, const float data[], const float min[], const float max[], float result[])
-{
+template<> void _Math<MATH_NORMAL>::clamp(
+        uint32_t           size,
+        const float        data[],
+        const float        min[],
+        const float        max[],
+        float              result[]) {
+
         for (uint32_t i = 0; i < size; ++i)
                 result[i] = std::clamp(data[i], min[i], max[i]);
 }
 
-template<> void _Math<MATH_NORMAL>::matvec_mul(uint32_t width, uint32_t height, const float matrix[], const float vector[], float result[])
-{
+template<> void _Math<MATH_NORMAL>::matvec_mul(
+        uint32_t           width,
+        uint32_t           height,
+        const float        matrix[],
+        const float        vector[],
+        float              result[]) {
+
         // Matrix product visualizer:
         // http://matrixmultiplication.xyz
         for (uint32_t i = 0; i < height; ++i)

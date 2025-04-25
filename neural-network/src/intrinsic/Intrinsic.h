@@ -19,4 +19,4 @@ namespace Intrinsic {
                 return support;
         }
 
-}
+} // namespace Intrinsic

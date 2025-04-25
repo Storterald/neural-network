@@ -4,42 +4,44 @@ namespace Kernels {
 
         __global__ void compare(uint32_t size, const float first[], const float second[], bool *ans)
         {
-                // Reset d_compareAns
                 *ans = true;
-
-                // Stop as soon as values differ
                 for (uint32_t i = 0; i < size && *ans; ++i)
                         *ans  = first[i] == second[i];
         }
 
 } // namespace Kernels
 
-Data::Data(uint32_t size) : m_size(size), m_data(nullptr)
+Data::Data(uint32_t size) : m_size(size), m_device(size >= CUDA_MINIMUM)
 {
-        // Size must be higher than 0 for cudaMallocManaged to work.
-        if (m_size == 0)
+        if (!m_device) {
+                m_data = new float[m_size]();
                 return;
+        }
 
-        // Unified memory is accessible from both CPU and GPU
-        CUDA_CHECK_ERROR(cudaMallocManaged(&m_data, m_size * sizeof(float)),
-                "Failed to allocate unified memory.");
+        CUDA_CHECK_ERROR(cudaMalloc(&m_data, m_size * sizeof(float)),
+                "Failed to allocate memory on the GPU.");
+        CUDA_CHECK_ERROR(cudaMemsetAsync(m_data, 0, m_size * sizeof(float), 0),
+                "Failed to set memory in the GPU.");
+        CUDA_CHECK_ERROR(cudaStreamSynchronize(0), "Error synchronizing in Data::Data");
 }
 
-Data::Data(const Data &other) : m_size(other.m_size), m_data(nullptr)
+Data::Data(const Data &other) : m_size(other.m_size), m_device(other.m_device)
 {
-        // Don't alloc nor copy if the size is 0.
-        if (m_size == 0)
+        if (!m_device) {
+                m_data = new float[m_size];
+                std::memcpy(m_data, other.m_data, m_size * sizeof(float));
                 return;
+        }
 
-        CUDA_CHECK_ERROR(cudaMallocManaged(&m_data, m_size * sizeof(float)),
-                "Failed to allocate unified memory.");
-
-        // Unified memory is allocated on the CPU by default, so a simple std::memcpy
-        // should be faster.
-        std::memcpy(m_data, other.m_data, m_size * sizeof(float));
+        CUDA_CHECK_ERROR(cudaMalloc(&m_data, m_size * sizeof(float)),
+                "Failed to allocate memory on the GPU.");
+        CUDA_CHECK_ERROR(cudaMemcpyAsync(m_data, other.m_data, m_size * sizeof(float),
+                cudaMemcpyDeviceToDevice, 0), "Failed to copy data in the GPU.");
+        CUDA_CHECK_ERROR(cudaStreamSynchronize(0), "Error synchronizing in Data::Data");
 }
 
-Data::Data(Data &&other) noexcept : m_size(other.m_size), m_data(other.m_data) {
+Data::Data(Data &&other) noexcept : m_size(other.m_size), m_data(other.m_data)
+{
 
         other.m_size = 0;
         other.m_data = nullptr;
@@ -50,7 +52,10 @@ Data::~Data()
         if (!m_data)
                 return;
 
-        CUDA_CHECK_ERROR(cudaFree(m_data), "Failed to free GPU memory.");
+        if (!m_device)
+                delete [] m_data;
+        else
+                CUDA_CHECK_ERROR(cudaFree(m_data), "Failed to free GPU memory.");
 }
 
 Data &Data::operator= (const Data &other)
@@ -60,19 +65,25 @@ Data &Data::operator= (const Data &other)
 
         // The buffer must be destroyed and remade either if the buffer size is different
         // or the data is in different places.
-        if (m_size != other.m_size) {
+        if (m_size != other.m_size || m_device != other.m_device) {
                 // If size doesn't match, overwrite m_size and delete old buffer.
+                this->~Data();
                 m_size = other.m_size;
-                if (m_data)
-                        CUDA_CHECK_ERROR(cudaFree(m_data),
-                                "Failed to free GPU memory.");
 
-                CUDA_CHECK_ERROR(cudaMallocManaged(&m_data, m_size * sizeof(float)),
-                        "Failed to allocate unified memory.");
+                if (!m_device)
+                        m_data = new float[m_size];
+                else
+                        CUDA_CHECK_ERROR(cudaMalloc(&m_data, m_size * sizeof(float)),
+                                 "Failed to allocate memory on the GPU.");
         }
 
-        // Once the buffer has the correct size, the data can be copied.
-        std::memcpy(m_data, other.m_data, m_size * sizeof(float));
+        if (!m_device) {
+                std::memcpy(m_data, other.m_data, m_size * sizeof(float));
+        } else {
+                CUDA_CHECK_ERROR(cudaMemcpyAsync(m_data, other.m_data, m_size * sizeof(float),
+                        cudaMemcpyDeviceToDevice, 0), "Failed to copy data in the GPU.");
+                CUDA_CHECK_ERROR(cudaStreamSynchronize(0), "Error synchronizing in Data::operator=");
+        }
 
         return *this;
 }
@@ -82,8 +93,7 @@ Data &Data::operator= (Data &&other) noexcept
         if (this == &other)
                 return *this;
 
-        if (m_data)
-                CUDA_CHECK_ERROR(cudaFree(m_data), "Failed to free GPU memory.");
+        this->~Data();
 
         m_size = other.m_size;
         m_data = other.m_data;
@@ -101,26 +111,22 @@ bool Data::operator== (const Data &other) const
                 return false;
 
         bool ans = true;
-        if (m_size < CUDA_MINIMUM) {
+        if (!m_device) {
                 for (uint32_t i = 0; i < m_size && ans; ++i)
                         ans = m_data[i] == other.m_data[i];
-        } else {
-                // Allocate space for the kernel result.
-                bool *d_ans;
-                CUDA_CHECK_ERROR(cudaMalloc(&d_ans, sizeof(bool)),
-                        "Failed to allocate GPU memory.");
 
-                const uint32_t BLOCKS_COUNT = (m_size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT;
-                Kernels::compare<<<BLOCKS_COUNT, BLOCK_SIZE>>>(m_size, m_data, other.m_data, d_ans);
-
-                // Copy the result to CPU memory, the default value 'true' is discarded
-                // and overwritten with the correct answer.
-                CUDA_CHECK_ERROR(cudaMemcpy(&ans, d_ans, sizeof(bool), cudaMemcpyDeviceToHost),
-                        "Failed to copy data from the GPU.");
-
-                // Free the kernel answer
-                CUDA_CHECK_ERROR(cudaFree(d_ans), "Failed to free GPU memory.");
+                return ans;
         }
 
+        bool *d_ans;
+        CUDA_CHECK_ERROR(cudaMalloc(&d_ans, sizeof(bool)),
+                "Failed to allocate GPU memory.");
+
+        const uint32_t BLOCKS_COUNT = (m_size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT;
+        Kernels::compare<<<BLOCKS_COUNT, BLOCK_SIZE>>>(m_size, m_data, other.m_data, d_ans);
+
+        CUDA_CHECK_ERROR(cudaMemcpy(&ans, d_ans, sizeof(bool),
+                cudaMemcpyDeviceToHost), "Failed to copy data from the GPU.");
+        CUDA_CHECK_ERROR(cudaFree(d_ans), "Failed to free GPU memory.");
         return ans;
 }

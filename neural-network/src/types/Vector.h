@@ -11,7 +11,7 @@ public:
         Vector(uint32_t size, const float values[]);
         Vector(const std::initializer_list<float> &values);
 
-        [[nodiscard]] float &operator[] (uint32_t i);
+        [[nodiscard]] Ref<float> operator[] (uint32_t i);
         [[nodiscard]] float at(uint32_t i) const;
 
         [[nodiscard]] Vector min(float min) const;
@@ -42,7 +42,7 @@ public:
         void operator*= (float scalar);
         void operator/= (float scalar);
 
-};
+}; // class Vector
 
 #ifdef DEBUG_MODE_ENABLED
 #include <iostream>

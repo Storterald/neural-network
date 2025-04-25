@@ -9,15 +9,15 @@
 class FullyConnectedLayer final : public ILayer {
 public:
         FullyConnectedLayer(
-                uint32_t previousLayerSize,
-                uint32_t layerSize,
-                FunctionType functionType);
+                uint32_t            previousLayerSize,
+                uint32_t            layerSize,
+                FunctionType        functionType);
 
         FullyConnectedLayer(
-                uint32_t previousLayerSize,
-                uint32_t layerSize,
-                FunctionType functionType,
-                std::ifstream &encodedData);
+                uint32_t             previousLayerSize,
+                uint32_t             layerSize,
+                FunctionType         functionType,
+                std::ifstream        &encodedData);
 
         [[nodiscard]] Vector forward(const Vector &input) const override;
         [[nodiscard]] Vector backward(const Vector &cost, const Vector &input) override;
@@ -35,6 +35,10 @@ private:
         const FunctionType        m_functionType;
         std::mutex                m_mutex;
 
-        void _d_backward(const float input[], float dw[], const float db[], float result[]);
+        void _d_backward(
+                const float        input[],
+                float              dw[],
+                const float        db[],
+                float              result[]);
 
-}; // class Layer
+}; // class FullyConnectedLayer

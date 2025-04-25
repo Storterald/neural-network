@@ -5,16 +5,16 @@
 #include "../../math/Math.h"
 
 static inline Vector _activation(
-        FunctionType functionType,
-        const Vector &input) {
+        FunctionType        functionType,
+        const Vector        &input) {
 
         Vector result(input.size());
         switch (functionType) {
         case TANH:
-                Math::tanh(input.size(), input.data(), result.data());
+                Math::tanh(input.size(), input, result);
                 break;
         case RELU:
-                Math::ReLU(input.size(), input.data(), result.data());
+                Math::ReLU(input.size(), input, result);
                 break;
         default:
                 throw LOGGER_EX("Activation function not implemented.");
@@ -24,16 +24,16 @@ static inline Vector _activation(
 }
 
 static inline Vector _activation_derivative(
-        FunctionType functionType,
-        const Vector &input) {
+        FunctionType        functionType,
+        const Vector        &input) {
 
         Vector result(input.size());
         switch (functionType) {
         case TANH:
-                Math::tanh_derivative(input.size(), input.data(), result.data());
+                Math::tanh_derivative(input.size(), input, result);
                 break;
         case RELU:
-                Math::ReLU_derivative(input.size(), input.data(), result.data());
+                Math::ReLU_derivative(input.size(), input, result);
                 break;
         default:
                 throw LOGGER_EX("Activation function not implemented.");
@@ -43,9 +43,9 @@ static inline Vector _activation_derivative(
 }
 
 FullyConnectedLayer::FullyConnectedLayer(
-        uint32_t previousLayerSize,
-        uint32_t layerSize,
-        FunctionType functionType) :
+        uint32_t            previousLayerSize,
+        uint32_t            layerSize,
+        FunctionType        functionType) :
 
         m_w(previousLayerSize, layerSize),
         m_b(layerSize),
@@ -56,16 +56,16 @@ FullyConnectedLayer::FullyConnectedLayer(
         std::mt19937 gen(rd());
         std::uniform_real_distribution dis(-0.5f, 0.5f);
 
-        for (uint32_t i{}; i < layerSize; i++)
-                for (uint32_t j{}; j < previousLayerSize; j++)
-                        m_w[i][j] = dis(gen);
+        for (uint32_t i = 0; i < layerSize; i++)
+                for (uint32_t j = 0; j < previousLayerSize; j++)
+                        m_w[{i, j}] = dis(gen);
 }
 
 FullyConnectedLayer::FullyConnectedLayer(
-        uint32_t previousLayerSize,
-        uint32_t layerSize,
-        FunctionType functionType,
-        std::ifstream &encodedData) :
+        uint32_t             previousLayerSize,
+        uint32_t             layerSize,
+        FunctionType         functionType,
+        std::ifstream        &encodedData) :
 
         m_w(previousLayerSize, layerSize),
         m_b(layerSize),
@@ -80,8 +80,12 @@ FullyConnectedLayer::FullyConnectedLayer(
         if (previousLayerSize != sizes[2] || layerSize != sizes[3])
                 throw LOGGER_EX("Encoded sizes and constructor sizes parameters do not match.");
 
-        encodedData.read((char *)m_w.data(), std::streamsize(m_w.size() * sizeof(float)));
-        encodedData.read((char *)m_b.data(), std::streamsize(m_b.size() * sizeof(float)));
+        encodedData.read(
+                (char *)(float *)m_w.as_span(Data::HOST),
+                std::streamsize(m_w.size() * sizeof(float)));
+        encodedData.read(
+                (char *)(float *)m_b.as_span(Data::HOST),
+                std::streamsize(m_b.size() * sizeof(float)));
 }
 
 Vector FullyConnectedLayer::forward(const Vector &input) const
@@ -108,7 +112,7 @@ Vector FullyConnectedLayer::backward(const Vector &cost, const Vector &input)
         //   ∂Ce     nL - 1    ∂zjL    ∂ajL    ∂Ce   nL - 1
         // ⎯⎯⎯⎯⎯⎯⎯ =   Σ    ⎯⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯ =   Σ    wjkL * AFoo'(z) * Lcost
         // ∂ak(L-1)    j=0   ∂ak(L-1)  ∂zjL   ∂ajL     j=0
-        Vector previousCosts(m_w.width());
+        Vector prev(m_w.width());
 
 #ifdef BUILD_CUDA_SUPPORT
         if (m_w.size() < CUDA_MINIMUM) {
@@ -123,14 +127,14 @@ Vector FullyConnectedLayer::backward(const Vector &cost, const Vector &input)
                                 dw[{j, k}] = input.at(k) * db.at(j);
                         }
 
-                        previousCosts[k] = dCe;
+                        prev[k] = dCe;
                 }
 #ifdef BUILD_CUDA_SUPPORT
         } else {
                 // Single kernel for the above operations, the unsafe dereference can
                 // be used as 'dw' and 'previousCosts' are created with the optional
                 // parameter forceGPU
-                _d_backward(input.data(), dw.data(), db.data(), previousCosts.data());
+                _d_backward(input.as_span(), dw.as_span(), db.as_span(), prev.as_span());
         }
 #endif // BUILD_CUDA_SUPPORT
 
@@ -141,7 +145,7 @@ Vector FullyConnectedLayer::backward(const Vector &cost, const Vector &input)
                 m_b -= db * LEARNING_RATE;
         }
 
-        return previousCosts;
+        return prev;
 }
 
 void FullyConnectedLayer::encode(std::ostream &out) const
@@ -155,6 +159,10 @@ void FullyConnectedLayer::encode(std::ostream &out) const
 
         out.write((char *)infos, 4 * sizeof(uint32_t));
 
-        out.write((char *)m_w.data(), std::streamsize(m_w.size() * sizeof(float)));
-        out.write((char *)m_b.data(), std::streamsize(m_b.size() * sizeof(float)));
+        out.write(
+                (char *)(float *)m_w.as_span(Data::HOST),
+                std::streamsize(m_w.size() * sizeof(float)));
+        out.write(
+                (char *)(float *)m_b.as_span(Data::HOST),
+                std::streamsize(m_b.size() * sizeof(float)));
 }

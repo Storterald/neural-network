@@ -3,8 +3,8 @@
 #include "layers/FullyConnectedLayer.h"
 
 std::unique_ptr<ILayer> Layer::create(
-        uint32_t previousLayerSize,
-        const LayerCreateInfo &layerInfo) {
+        uint32_t                     previousLayerSize,
+        const LayerCreateInfo        &layerInfo) {
 
         switch (layerInfo.type) {
         case FULLY_CONNECTED:
@@ -17,9 +17,9 @@ std::unique_ptr<ILayer> Layer::create(
 }
 
 std::unique_ptr<ILayer> Layer::create(
-        uint32_t previousLayerSize,
-        const LayerCreateInfo &layerInfo,
-        std::ifstream &inputFile) {
+        uint32_t                     previousLayerSize,
+        const LayerCreateInfo        &layerInfo,
+        std::ifstream                &inputFile) {
 
         switch (layerInfo.type) {
         case FULLY_CONNECTED:

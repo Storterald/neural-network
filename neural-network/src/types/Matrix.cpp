@@ -17,38 +17,53 @@ Matrix::Matrix(std::initializer_list<std::initializer_list<float>> values) :
                 throw LOGGER_EX("All initializer lists passed to Matrix() must have the same size.");
 #endif // DEBUG_MODE_ENABLED
 
+        if (!m_device) {
+                for (uint32_t i = 0; i < m_height; ++i)
+                        std::memcpy(
+                                this->operator[](i).get(),
+                                std::data(std::data(values)[i]),
+                                m_width * sizeof(float));
+                return;
+        }
+
+#ifdef BUILD_CUDA_SUPPORT
         for (uint32_t i = 0; i < m_height; ++i)
-                std::memcpy((*this)[i], values.begin()[i].begin(), m_width * sizeof(float));
+                CUDA_CHECK_ERROR(cudaMemcpy(
+                        this->operator[](i).get(),
+                        std::data(std::data(values)[i]),
+                        m_size * sizeof(float), cudaMemcpyHostToDevice),
+                        "Failed to copy data to the GPU.");
+#endif // BUILD_CUDA_SUPPORT
 }
 
-float *Matrix::operator[](uint32_t row)
+Ptr<float> Matrix::operator[](uint32_t row)
 {
 #ifdef DEBUG_MODE_ENABLED
         if (row >= m_height)
                 throw LOGGER_EX("Matrix::operator[] access index out of bounds.");
 #endif // DEBUG_MODE_ENABLED
 
-        return m_data + (uintptr_t)row * m_width;
+        return this->data() + row * m_width;
 }
 
-const float *Matrix::at(uint32_t row) const
+Ptr<float> Matrix::at(uint32_t row) const
 {
 #ifdef DEBUG_MODE_ENABLED
         if (row >= m_height)
                 throw LOGGER_EX("Matrix::at access index out of bounds.");
 #endif // DEBUG_MODE_ENABLED
 
-        return m_data + (uintptr_t)row * m_width;
+        return this->data() + row * m_width;
 }
 
-float &Matrix::operator[] (std::pair<uint32_t, uint32_t> position)
+Ref<float> Matrix::operator[] (std::pair<uint32_t, uint32_t> position)
 {
 #ifdef DEBUG_MODE_ENABLED
         if (position.first >= m_height || position.second >= m_width)
                 throw LOGGER_EX("Matrix::at access index out of bounds.");
 #endif // DEBUG_MODE_ENABLED
 
-        return m_data[position.first * m_width + position.second];
+        return *(this->data() + position.first * m_width + position.second);
 }
 
 float Matrix::at(uint32_t row, uint32_t height) const
@@ -58,7 +73,7 @@ float Matrix::at(uint32_t row, uint32_t height) const
                 throw LOGGER_EX("Matrix::at access index out of bounds.");
 #endif // DEBUG_MODE_ENABLED
 
-        return m_data[row * m_width + height];
+        return *(this->data() + row * m_width + height);
 }
 
 Matrix Matrix::operator+ (const Matrix &other) const
@@ -69,7 +84,7 @@ Matrix Matrix::operator+ (const Matrix &other) const
 #endif // DEBUG_MODE_ENABLED
 
         Matrix result(m_width, m_height);
-        Math::sum(m_size, m_data, other.m_data, result.m_data);
+        Math::sum(m_size, *this, other, result);
 
         return result;
 }
@@ -82,7 +97,7 @@ Matrix Matrix::operator- (const Matrix &other) const
 #endif // DEBUG_MODE_ENABLED
 
         Matrix result(m_width, m_height);
-        Math::sub(m_size, m_data, other.m_data, result.m_data);
+        Math::sub(m_size, *this, other, result);
 
         return result;
 }
@@ -94,7 +109,7 @@ void Matrix::operator+= (const Matrix &other)
                 throw LOGGER_EX("Matrix dimensions must match for addition.");
 #endif // DEBUG_MODE_ENABLED
 
-        Math::sum(m_size, m_data, other.m_data, m_data);
+        Math::sum(m_size, *this, other, *this);
 }
 
 void Matrix::operator-= (const Matrix &other)
@@ -104,13 +119,13 @@ void Matrix::operator-= (const Matrix &other)
                 throw LOGGER_EX("Matrix dimensions must match for subtraction.");
 #endif // DEBUG_MODE_ENABLED
 
-        Math::sub(m_size, m_data, other.m_data, m_data);
+        Math::sub(m_size, *this, other, *this);
 }
 
 Matrix Matrix::operator+ (float scalar) const
 {
         Matrix result(m_width, m_height);
-        Math::sum(m_size, m_data, scalar, result.m_data);
+        Math::sum(m_size, *this, scalar, result);
 
         return result;
 }
@@ -118,7 +133,7 @@ Matrix Matrix::operator+ (float scalar) const
 Matrix Matrix::operator- (float scalar) const
 {
         Matrix result(m_width, m_height);
-        Math::sub(m_size, m_data, scalar, result.m_data);
+        Math::sub(m_size, *this, scalar, result);
 
         return result;
 }
@@ -126,7 +141,7 @@ Matrix Matrix::operator- (float scalar) const
 Matrix Matrix::operator* (float scalar) const
 {
         Matrix result(m_width, m_height);
-        Math::mul(m_size, m_data, scalar, result.m_data);
+        Math::mul(m_size, *this, scalar, result);
 
         return result;
 }
@@ -139,24 +154,24 @@ Matrix Matrix::operator/ (float scalar) const
 #endif // DEBUG_MODE_ENABLED
 
         Matrix result(m_width, m_height);
-        Math::div(m_size, m_data, scalar, result.m_data);
+        Math::div(m_size, *this, scalar, result);
 
         return result;
 }
 
 void Matrix::operator+= (float scalar)
 {
-        Math::sum(m_size, m_data, scalar, m_data);
+        Math::sum(m_size, *this, scalar, *this);
 }
 
 void Matrix::operator-= (float scalar)
 {
-        Math::sub(m_size, m_data, scalar, m_data);
+        Math::sub(m_size, *this, scalar, *this);
 }
 
 void Matrix::operator*= (float scalar)
 {
-        Math::mul(m_size, m_data, scalar, m_data);
+        Math::mul(m_size, *this, scalar, *this);
 }
 
 void Matrix::operator/= (float scalar)
@@ -166,7 +181,7 @@ void Matrix::operator/= (float scalar)
                 throw LOGGER_EX("Cannot divide by 0.");
 #endif // DEBUG_MODE_ENABLED
 
-        Math::div(m_size, m_data, scalar, m_data);
+        Math::div(m_size, *this, scalar, *this);
 }
 
 Vector Matrix::operator* (const Vector &vec) const
@@ -177,7 +192,7 @@ Vector Matrix::operator* (const Vector &vec) const
 #endif // DEBUG_MODE_ENABLED
 
         Vector result(m_height);
-        Math::matvec_mul(m_width, m_height, m_data, vec.data(), result.data());
+        Math::matvec_mul(m_width, m_height, *this, vec, result);
 
         return result;
 }

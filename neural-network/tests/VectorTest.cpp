@@ -3,10 +3,6 @@
 #include <neural-network/types/Vector.h>
 #include <neural-network/utils/Logger.h>
 
-#ifdef BUILD_CUDA_SUPPORT
-#include "CudaTestHelper.h"
-#endif // BUILD_CUDA_SUPPORT
-
 TEST(VectorTest, DefaultConstructorInitializesEmptyData) {
         Vector v{};
 
@@ -22,32 +18,14 @@ TEST(VectorTest, SizeConstructorAllocatesData) {
         EXPECT_NO_FATAL_FAILURE(float value = v[9]);
 }
 
-#ifdef BUILD_CUDA_SUPPORT
-TEST(VectorTest, VectorDataIsAccessibleFromGPU) {
-        Vector v(10);
-        for (uint32_t i = 0; i < 10; ++i)
-                v[i] = 1;
-
-        EXPECT_NE(v.data(), nullptr);
-        EXPECT_EQ(v.size(), 10);
-        EXPECT_NO_FATAL_FAILURE(Helper::access_values(v));
-        EXPECT_TRUE(Helper::check_values(v, 1));
-}
-#endif // BUILD_CUDA_SUPPORT
-
 TEST(VectorTest, ConstructorWithFloatArrayWorks) {
         float values[] = { 1.0f, 2.0f, 3.0f };
         Vector v(3, values);
 
         EXPECT_NE(v.data(), nullptr);
         EXPECT_EQ(v.size(), 3);
-        EXPECT_TRUE([&]() -> bool {
-                bool value = true;
-                for (uint32_t i = 0; i < 3; ++i)
-                        value &= v[i] == values[i];
-
-                return value;
-        }());
+        for (uint32_t i = 0; i < 3; ++i)
+                EXPECT_EQ(v[i], values[i]);
 }
 
 TEST(VectorTest, ConstructorWithInitializerListWorks) {
