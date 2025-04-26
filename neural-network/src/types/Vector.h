@@ -50,7 +50,7 @@ public:
 inline std::ostream &operator<< (std::ostream &os, const Vector &vec)
 {
         std::string str;
-        for (uint32_t i { 0 }; i < vec.size() - 1; ++i)
+        for (uint32_t i = 0; i < vec.size() - 1; ++i)
                 str += std::to_string(vec.at(i)) + ", ";
 
         os << "[" << str << vec.at(vec.size() - 1) << "]";

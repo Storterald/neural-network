@@ -11,19 +11,31 @@ class Ref;
 template<typename>
 class Span;
 
+/**
+ * \brief Pointer wrapper around a variable of type \code T\endcode, this class
+ * will likely be completely optimized and treated as \code T *\endcode since
+ * this class serves a purpose only when compiling with \code BUILD_CUDA_SUPPORT\endcode.
+ *
+ * \tparam T The pointed type.
+ */
 template<typename T>
 class Ptr {
         friend class Ref<T>;
 
 public:
+        using value_type = T;
+        using difference_type = ptrdiff_t;
+
+        inline Ptr() : m_pointer(nullptr) {}
+
         Ptr(T *ptr, bool) : m_pointer(ptr) {}
 
-        [[nodiscard]] constexpr bool operator== (const Ptr<T> &other) const noexcept
+        [[nodiscard]] constexpr bool operator== (const Ptr &other) const noexcept
         {
                 return m_pointer == other.m_pointer;
         }
 
-        [[nodiscard]] constexpr bool operator!= (const Ptr<T> &other) const noexcept
+        [[nodiscard]] constexpr bool operator!= (const Ptr &other) const noexcept
         {
                 return !this->operator==(other);
         }
@@ -58,45 +70,45 @@ public:
                 return { m_pointer + i, false };
         }
 
-        [[nodiscard]] constexpr Ptr<T> operator+ (uint32_t offset)
+        [[nodiscard]] constexpr Ptr operator+ (uint32_t offset)
         {
                 return { m_pointer + offset, false };
         }
 
-        [[nodiscard]] constexpr Ptr<T> operator- (uint32_t offset)
+        [[nodiscard]] constexpr Ptr operator- (uint32_t offset)
         {
                 return { m_pointer - offset, false };
         }
 
-        constexpr Ptr<T> &operator+= (uint32_t offset)
+        constexpr Ptr &operator+= (uint32_t offset)
         {
                 m_pointer += offset;
                 return *this;
         }
 
-        constexpr Ptr<T> &operator-= (uint32_t offset)
+        constexpr Ptr &operator-= (uint32_t offset)
         {
                 m_pointer -= offset;
                 return *this;
         }
 
-        [[nodiscard]] constexpr Ptr<T> operator++ (int)
+        [[nodiscard]] constexpr Ptr operator++ (int)
         {
                 return { m_pointer + 1, false };
         }
 
-        [[nodiscard]] constexpr Ptr<T> operator-- (int)
+        [[nodiscard]] constexpr Ptr operator-- (int)
         {
                 return { m_pointer - 1, false };
         }
 
-        constexpr Ptr<T> &operator++ ()
+        constexpr Ptr &operator++ ()
         {
                 ++m_pointer;
                 return *this;
         }
 
-        constexpr Ptr<T> &operator-- ()
+        constexpr Ptr &operator-- ()
         {
                 --m_pointer;
                 return *this;
@@ -112,9 +124,9 @@ public:
                 return false;
         }
 
-        [[nodiscard]] Span<T> span(uint32_t size, bool, bool updateOnDestruction = false) const
+        [[nodiscard]] Span<T> span(uint32_t size, bool, bool = false) const
         {
-                return { size, false, m_pointer, false, updateOnDestruction };
+                return { size, false, m_pointer, false, false };
         }
 
 protected:
@@ -123,18 +135,18 @@ protected:
 }; // class Ptr
 
 /**
- * @brief Reference wrapper around a type T which may be on the host memory or on the
- * device memory.
+ * \brief Reference wrapper around a variable of type \code T\endcode. Like
+ * \code Ptr<T>\endcode, this class will likely be optimized as \code T &\endcode.
  *
- * Uses <code>Ptr\<T\></code> internally.
- *
- * @tparam T The referenced type.
+ * \tparam T The referred variable type.
  */
 template<typename T>
 class Ref {
-        using ArgType = std::conditional_t<(sizeof(T) <= 8), T, const T &>;
+        using ArgType = std::conditional_t<sizeof(T) <= 8, T, const T &>;
 
 public:
+        using value_type = T;
+
         Ref(T *pValue, bool) : m_ptr(pValue, false) {
                 if (!pValue)
                         throw LOGGER_EX("Cannot create null reference.");
@@ -158,18 +170,18 @@ public:
                 return *this;
         }
 
-        Ref<T> &operator= (ArgType value)
+        Ref &operator= (ArgType value)
         {
                 *m_ptr.m_pointer = value;
                 return *this;
         }
 
-        [[nodiscard]] constexpr bool operator== (const Ref<T> &other) const noexcept
+        [[nodiscard]] constexpr bool operator== (const Ref &other) const noexcept
         {
                 return *m_ptr.m_pointer == *other.m_ptr.m_pointer;
         }
 
-        [[nodiscard]] constexpr bool operator!= (const Ref<T> &other) const noexcept
+        [[nodiscard]] constexpr bool operator!= (const Ref &other) const noexcept
         {
                 return !this->operator==(other);
         }
@@ -195,26 +207,32 @@ protected:
 }; // class Ref
 
 /**
- * @brief A owning or non-owning span around some memory that may be on the host
- * or on the device.
+ * \brief A Non-owning span around some memory. This class can be treated as a
+ * \code T *\endcode since the memory wrapped around a span will always be in
+ * the host memory.
  *
- * Span::update() should be called if any modification is done to the pointed data.
- *
- * @tparam T The type of the span pointer
+ * \tparam T The type of the span pointer
  */
 template<typename T>
 class Span {
 public:
+        using value_type = T;
+
         Span(uint32_t size, bool, T *src, bool, bool = false) : m_ptr(src), m_size(size) {}
 
-        [[nodiscard]] constexpr operator T *() const noexcept
+        [[nodiscard]] constexpr operator T *() noexcept
         {
                 return m_ptr;
         }
 
-        [[nodiscard]] inline Ref<T> operator[] (uint32_t i) const
+        [[nodiscard]] constexpr operator const T *() const noexcept
         {
-                return { m_ptr + i, m_device };
+                return m_ptr;
+        }
+
+        [[nodiscard]] inline Ref<T> operator[] (uint32_t i)
+        {
+                return { m_ptr + i, false };
         }
 
         [[nodiscard]] constexpr uint32_t size() const noexcept
@@ -224,15 +242,13 @@ public:
 
         [[nodiscard]] constexpr bool is_owning() const noexcept
         {
-                return m_owning;
+                return false;
         }
 
-        void update() {}
+        constexpr void update() {}
 
 private:
         T                            *m_ptr;
         uint32_t                     m_size;
-        static constexpr bool        m_device = false;
-        static constexpr bool        m_owning = false;
 
 }; // class Span

@@ -15,9 +15,8 @@ Data::Data(uint32_t size) : m_size(size)
 #ifdef BUILD_CUDA_SUPPORT
         CUDA_CHECK_ERROR(cudaMalloc(&m_data, m_size * sizeof(float)),
                 "Failed to allocate memory on the GPU.");
-        CUDA_CHECK_ERROR(cudaMemsetAsync(m_data, 0, m_size * sizeof(float), 0),
+        CUDA_CHECK_ERROR(cudaMemset(m_data, 0, m_size * sizeof(float)),
                 "Failed to set memory in the GPU.");
-        CUDA_CHECK_ERROR(cudaStreamSynchronize(0), "Error synchronizing in Data::Data");
 #endif // BUILD_CUDA_SUPPORT
 }
 
@@ -35,9 +34,8 @@ Data::Data(const Data &other) : m_size(other.m_size)
 #ifdef BUILD_CUDA_SUPPORT
         CUDA_CHECK_ERROR(cudaMalloc(&m_data, m_size * sizeof(float)),
                 "Failed to allocate memory on the GPU.");
-        CUDA_CHECK_ERROR(cudaMemcpyAsync(m_data, other.m_data, m_size * sizeof(float),
-                cudaMemcpyDeviceToDevice, 0), "Failed to copy data in the GPU.");
-        CUDA_CHECK_ERROR(cudaStreamSynchronize(0), "Error synchronizing in Data::Data");
+        CUDA_CHECK_ERROR(cudaMemcpy(m_data, other.m_data, m_size * sizeof(float),
+                cudaMemcpyDeviceToDevice), "Failed to copy data in the GPU.");
 #endif // BUILD_CUDA_SUPPORT
 }
 
@@ -58,6 +56,9 @@ Data::~Data()
         else
                 CUDA_CHECK_ERROR(cudaFree(m_data), "Failed to free GPU memory.");
 #endif // BUILD_CUDA_SUPPORT
+
+        m_data = nullptr;
+        m_size = 0;
 }
 
 Data &Data::operator= (const Data &other)

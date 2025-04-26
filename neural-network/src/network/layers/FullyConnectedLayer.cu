@@ -31,11 +31,12 @@ void FullyConnectedLayer::_d_backward(
         const float        input[],
         float              dw[],
         const float        db[],
-        float              result[]) {
+        float              result[]) const {
 
-        const uint32_t BLOCKS_COUNT { (m_w.width() + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT };
+        const uint32_t BLOCKS_COUNT = (m_w.width() + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT;
         Kernels::backward<<<BLOCKS_COUNT, BLOCK_SIZE>>>(
-                m_w.width(), m_w.height(), input, m_w.as_span(), dw, db, result);
+                m_w.width(), m_w.height(), input,
+                m_w.as_span(Data::DEVICE), dw, db, result);
 
         CUDA_CHECK_ERROR(cudaGetLastError(),
                 "backward kernel launch failed.");

@@ -39,6 +39,6 @@ private:
                 const float        input[],
                 float              dw[],
                 const float        db[],
-                float              result[]);
+                float              result[]) const;
 
 }; // class FullyConnectedLayer

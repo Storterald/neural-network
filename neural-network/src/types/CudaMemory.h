@@ -12,16 +12,21 @@ template<typename>
 class Span;
 
 /**
- * @brief Pointer wrapper around a type T which may be on the host memory or on the
- * device memory.
+ * \brief Pointer wrapper around a variable of type \code T\endcode which may be
+ * on the host memory or on the device memory.
  *
- * @tparam T The pointed type.
+ * \tparam T The pointed type.
  */
 template<typename T>
 class Ptr {
         friend class Ref<T>;
 
 public:
+        using value_type = T;
+        using difference_type = ptrdiff_t;
+
+        inline Ptr() : m_pointer(nullptr), m_value(), m_device(false) {}
+
         Ptr(T *ptr, bool device) : m_pointer(ptr), m_device(device)
         {
                 _update_value();
@@ -69,12 +74,12 @@ public:
                 return *this;
         }
 
-        [[nodiscard]] constexpr bool operator== (const Ptr<T> &other) const noexcept
+        [[nodiscard]] constexpr bool operator== (const Ptr &other) const noexcept
         {
                 return m_pointer == other.m_pointer && m_device == other.m_device;
         }
 
-        [[nodiscard]] constexpr bool operator!= (const Ptr<T> &other) const noexcept
+        [[nodiscard]] constexpr bool operator!= (const Ptr &other) const noexcept
         {
                 return !this->operator==(other);
         }
@@ -111,41 +116,41 @@ public:
                 return { m_pointer + i, m_device };
         }
 
-        [[nodiscard]] constexpr Ptr<T> operator+ (uint32_t offset)
+        [[nodiscard]] constexpr Ptr operator+ (uint32_t offset)
         {
                 return { m_pointer + offset, m_device };
         }
 
-        [[nodiscard]] constexpr Ptr<T> operator- (uint32_t offset)
+        [[nodiscard]] constexpr Ptr operator- (uint32_t offset)
         {
                 return { m_pointer - offset, m_device };
         }
 
-        constexpr Ptr<T> &operator+= (uint32_t offset)
+        constexpr Ptr &operator+= (uint32_t offset)
         {
                 m_pointer += offset;
                 _update_value();
                 return *this;
         }
 
-        constexpr Ptr<T> &operator-= (uint32_t offset)
+        constexpr Ptr &operator-= (uint32_t offset)
         {
                 m_pointer -= offset;
                 _update_value();
                 return *this;
         }
 
-        [[nodiscard]] constexpr Ptr<T> operator++ (int)
+        [[nodiscard]] constexpr Ptr operator++ (int)
         {
                 return { m_pointer + 1, m_device };
         }
 
-        [[nodiscard]] constexpr Ptr<T> operator-- (int)
+        [[nodiscard]] constexpr Ptr operator-- (int)
         {
                 return { m_pointer - 1, m_device };
         }
 
-        constexpr Ptr<T> &operator++ ()
+        constexpr Ptr &operator++ ()
         {
                 ++m_pointer;
                 _update_value();
@@ -194,18 +199,20 @@ protected:
 }; // class Ptr
 
 /**
- * @brief Reference wrapper around a type T which may be on the host memory or on the
- * device memory.
+ * \brief Reference wrapper around a variable of type \code T\endcode which may
+ * be on the host memory or on the device memory.
  *
- * Uses <code>Ptr\<T\></code> internally.
+ * Uses \code Ptr<T>\endcode internally.
  *
- * @tparam T The referenced type.
+ * \tparam T The referred type.
  */
 template<typename T>
 class Ref {
-        using ArgType = std::conditional_t<(sizeof(T) <= 8), T, const T &>;
+        using ArgType = std::conditional_t<sizeof(T) <= 8, T, const T &>;
 
 public:
+        using value_type = T;
+
         Ref(T *pValue, bool device) : m_ptr(pValue, device) {
                 if (!pValue)
                         throw LOGGER_EX("Cannot create null reference.");
@@ -229,18 +236,18 @@ public:
                 return *this;
         }
 
-        Ref<T> &operator= (ArgType value)
+        Ref &operator= (ArgType value)
         {
                 _update_value(value);
                 return *this;
         }
 
-        [[nodiscard]] constexpr bool operator== (const Ref<T> &other) const noexcept
+        [[nodiscard]] constexpr bool operator== (const Ref &other) const noexcept
         {
                 return m_ptr.m_value == other.m_ptr.m_value;
         }
 
-        [[nodiscard]] constexpr bool operator!= (const Ref<T> &other) const noexcept
+        [[nodiscard]] constexpr bool operator!= (const Ref &other) const noexcept
         {
                 return !this->operator==(other);
         }
@@ -276,16 +283,19 @@ protected:
 }; // class Ref
 
 /**
- * @brief A owning or non-owning span around some memory that may be on the host
+ * \brief A owning or non-owning span around some memory that may be on the host
  * or on the device.
  *
- * Span::update() should be called if any modification is done to the pointed data.
+ * \code Span::update()\endcode should be called if any modification is done to
+ * the pointed data.
  *
- * @tparam T The type of the span pointer
+ * \tparam T The type of the span pointer
  */
 template<typename T>
 class Span {
 public:
+        using value_type = T;
+
         Span(uint32_t size, bool device, T *src, bool srcDevice, bool updateOnDestruction = false) :
                 m_src(src), m_size(size), m_device(device),
                 m_updateOnDestruction(updateOnDestruction) {
@@ -310,7 +320,6 @@ public:
                         "Failed to allocate memory in the GPU.");
                 CUDA_CHECK_ERROR(cudaMemcpy(m_ptr, src, m_size * sizeof(T),
                         cudaMemcpyHostToDevice), "Failed to copy data to the GPU.");
-                CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in Span::Span");
         }
 
         ~Span()
@@ -331,12 +340,17 @@ public:
                 m_updateOnDestruction = false;
         }
 
-        [[nodiscard]] constexpr operator T *() const noexcept
+        [[nodiscard]] constexpr operator T *() noexcept
         {
                 return m_ptr;
         }
 
-        [[nodiscard]] inline Ref<T> operator[] (uint32_t i) const
+        [[nodiscard]] constexpr operator const T *() const noexcept
+        {
+                return m_ptr;
+        }
+
+        [[nodiscard]] inline Ref<T> operator[] (uint32_t i)
         {
                 return { m_ptr + i, m_device };
         }
@@ -362,8 +376,6 @@ public:
                 else
                         CUDA_CHECK_ERROR(cudaMemcpy(m_src, m_ptr, m_size * sizeof(T),
                                 cudaMemcpyDeviceToHost), "Failed to copy data from the GPU.");
-
-                CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in Span::update");
         }
 
 private:

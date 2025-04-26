@@ -55,9 +55,9 @@ private:
 inline std::ostream &operator<< (std::ostream &os, const Matrix &mat)
 {
         std::string str;
-        for (uint32_t i { 0 }; i < mat.height(); ++i) {
+        for (uint32_t i = 0; i < mat.height(); ++i) {
                 str += '[';
-                for (uint32_t j { 0 }; j < mat.width() - 1; ++j)
+                for (uint32_t j = 0; j < mat.width() - 1; ++j)
                         str += std::to_string(mat.at(i)[j]) + ", ";
 
                 str += std::to_string(mat.at(i)[mat.width() - 1]) + ']';

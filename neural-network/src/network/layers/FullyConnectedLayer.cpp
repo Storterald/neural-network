@@ -4,7 +4,7 @@
 
 #include "../../math/Math.h"
 
-static inline Vector _activation(
+static Vector _activation(
         FunctionType        functionType,
         const Vector        &input) {
 
@@ -23,7 +23,7 @@ static inline Vector _activation(
         return result;
 }
 
-static inline Vector _activation_derivative(
+static Vector _activation_derivative(
         FunctionType        functionType,
         const Vector        &input) {
 
@@ -51,7 +51,6 @@ FullyConnectedLayer::FullyConnectedLayer(
         m_b(layerSize),
         m_functionType(functionType) {
 
-        // Initialize the weight matrix with random values
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_real_distribution dis(-0.5f, 0.5f);
@@ -131,10 +130,9 @@ Vector FullyConnectedLayer::backward(const Vector &cost, const Vector &input)
                 }
 #ifdef BUILD_CUDA_SUPPORT
         } else {
-                // Single kernel for the above operations, the unsafe dereference can
-                // be used as 'dw' and 'previousCosts' are created with the optional
-                // parameter forceGPU
-                _d_backward(input.as_span(), dw.as_span(), db.as_span(), prev.as_span());
+                _d_backward(
+                        input.as_span(Data::DEVICE, true), dw.as_span(Data::DEVICE, true),
+                        db.as_span(Data::DEVICE, true), prev.as_span(Data::DEVICE, true));
         }
 #endif // BUILD_CUDA_SUPPORT
 

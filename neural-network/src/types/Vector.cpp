@@ -1,5 +1,7 @@
 #include "Vector.h"
 
+#include <ranges>
+
 #include "../math/Math.h"
 
 Vector::Vector(uint32_t size) : Data(size) {}
@@ -95,7 +97,7 @@ Vector Vector::operator/ (const Vector &other) const
 #ifdef DEBUG_MODE_ENABLED
         if (m_size != other.m_size)
                 throw LOGGER_EX("Vector sizes must match.");
-        if (std::any_of(other.begin(), other.end(), [](float v) -> bool { return v == 0.0f; }))
+        if (std::ranges::any_of(other, [](float v) -> bool { return v == 0.0f; }))
                 throw LOGGER_EX("Cannot divide by 0.");
 #endif // DEBUG_MODE_ENABLED
 
@@ -140,7 +142,7 @@ void Vector::operator/= (const Vector &other)
 #ifdef DEBUG_MODE_ENABLED
         if (m_size != other.m_size)
                 throw LOGGER_EX("Vector sizes must match.");
-        if (std::any_of(other.begin(), other.end(), [](float v) -> bool { return v == 0.0f; }))
+        if (std::ranges::any_of(other, [](float v) -> bool { return v == 0.0f; }))
                 throw LOGGER_EX("Cannot divide by 0.");
 #endif // DEBUG_MODE_ENABLED
 

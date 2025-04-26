@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstdint>
-
 #include "../Base.h"
 #include "Memory.h"
 
@@ -53,8 +51,8 @@ public:
 
         [[nodiscard]] inline Span<float> as_span(DataLocation location = KEEP, bool updateOnDestruction = false) const
         {
-                return Ptr<float>(m_data, m_device).span(m_size,
-                        location == KEEP ? m_device : location != HOST, updateOnDestruction);
+                const bool device = location == KEEP ? m_device : location == DEVICE;
+                return Ptr(m_data, m_device).span(m_size, device, updateOnDestruction);
         }
 
         [[nodiscard]] constexpr DataLocation location() const noexcept
@@ -80,7 +78,7 @@ template<>
 struct std::hash<Data> {
         std::size_t operator() (const Data &data) const noexcept
         {
-                float *span = data.as_span(Data::HOST);
+                const float *span = data.as_span(Data::HOST);
 
                 uint64_t hash = 0;
                 for (uint32_t i = 0; i < data.size(); i++)
