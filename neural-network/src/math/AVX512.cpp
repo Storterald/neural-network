@@ -394,6 +394,30 @@ template<> void _Math<MATH_AVX512>::clamp(
         _Math<MATH_AVX>::clamp(size - end, data + end, min + end, max + end, result + end);
 }
 
+template<> void _Math<MATH_AVX512>::compare(
+        uint32_t           size,
+        const float        first[],
+        const float        second[],
+        bool               *result) {
+
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
+
+        *result = false;
+
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
+                const __m512 values      = _mm512_loadu_ps(&first[i]);
+                const __m512 otherValues = _mm512_loadu_ps(&second[i]);
+
+                const __mmask16 cmp = _mm512_cmp_ps_mask(values, otherValues, _CMP_EQ_OS);
+                if (cmp != 0xFFFF) {
+                        *result = false;
+                        return;
+                }
+        }
+
+        _Math<MATH_AVX>::compare(size - end, first + end, second + end, result);
+}
+
 template<> void _Math<MATH_AVX512>::matvec_mul(
         uint32_t           width,
         uint32_t           height,

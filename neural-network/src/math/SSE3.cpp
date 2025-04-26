@@ -1,13 +1,17 @@
 #include "_Math.h"
 
-#include <immintrin.h>
+#include <xmmintrin.h> // SSE
+#include <emmintrin.h> // SSE2
+#include <pmmintrin.h> // SSE3
 
-// An equivalent of _mm512_abs_ps for SSE does not exists, so this just
-// changes the most significant bit of the numbers to 0 (positive).
-#define _mm_abs_ps(X) _mm_and_ps(X, _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF)))
+using __mmask8 = int;
 
-// An equivalent of _mm512_reduce_add_ps for SSE does not exists.
-static inline float _reduce_add_ps_sse(__m128 v) {
+#define _mm_abs_ps(v) _mm_and_ps(v, _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF)))
+#define _mm_fmadd_ps(a, b, c) _mm_add_ps(_mm_mul_ps(a, b), c)
+#define _mm_fnmadd_ps(a, b, c) _mm_sub_ps(c, _mm_mul_ps(a, b))
+
+static inline float _mm_reduce_add_ps(__m128 v)
+{
         __m128 shuf = _mm_movehdup_ps(v);
         __m128 sums = _mm_add_ps(v, shuf);
         shuf        = _mm_movehl_ps(shuf, sums);
@@ -15,9 +19,29 @@ static inline float _reduce_add_ps_sse(__m128 v) {
         return _mm_cvtss_f32(sums);
 }
 
-#define _mm_reduce_add_ps(X) _reduce_add_ps_sse(X)
+static inline __m128 _mm_mask_blend_ps(__mmask8 k, __m128 a, __m128 b)
+{
+        const __m128i blend_mask = _mm_set_epi32(
+               (k & 0x8) * -1,
+               (k & 0x4) * -1,
+               (k & 0x2) * -1,
+               (k & 0x1) * -1);
 
-template<> void _Math<MATH_SSE>::sum(
+        const __m128 blend_mask_ps = _mm_castsi128_ps(blend_mask);
+
+        return _mm_or_ps(
+            _mm_andnot_ps(blend_mask_ps, a),
+            _mm_and_ps(blend_mask_ps, b)
+        );
+}
+
+#define _mm_cmp_ps__CMP_EQ_OQ _mm_cmpeq_ps
+#define _mm_cmp_ps__CMP_GE_OQ _mm_cmpge_ps
+#define _mm_cmp_ps__CMP_GT_OQ _mm_cmpgt_ps
+
+#define _mm_cmp_ps_mask(a, b, cmp) _mm_movemask_ps(_mm_cmp_ps_##cmp(a, b))
+
+template<> void _Math<MATH_SSE3>::sum(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -36,7 +60,7 @@ template<> void _Math<MATH_SSE>::sum(
         _Math<MATH_NORMAL>::sum(size - end, first + end, second + end, result + end);
 }
 
-template<> void _Math<MATH_SSE>::sub(
+template<> void _Math<MATH_SSE3>::sub(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -55,7 +79,7 @@ template<> void _Math<MATH_SSE>::sub(
         _Math<MATH_NORMAL>::sub(size - end, first + end, second + end, result + end);
 }
 
-template<> void _Math<MATH_SSE>::mul(
+template<> void _Math<MATH_SSE3>::mul(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -74,7 +98,7 @@ template<> void _Math<MATH_SSE>::mul(
         _Math<MATH_NORMAL>::mul(size - end, first + end, second + end, result + end);
 }
 
-template<> void _Math<MATH_SSE>::div(
+template<> void _Math<MATH_SSE3>::div(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -93,7 +117,7 @@ template<> void _Math<MATH_SSE>::div(
         _Math<MATH_NORMAL>::div(size - end, first + end, second + end, result + end);
 }
 
-template<> void _Math<MATH_SSE>::sum(
+template<> void _Math<MATH_SSE3>::sum(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -113,7 +137,7 @@ template<> void _Math<MATH_SSE>::sum(
         _Math<MATH_NORMAL>::sum(size - end, data + end, scalar, result + end);
 }
 
-template<> void _Math<MATH_SSE>::sub(
+template<> void _Math<MATH_SSE3>::sub(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -133,7 +157,7 @@ template<> void _Math<MATH_SSE>::sub(
         _Math<MATH_NORMAL>::sub(size - end, data + end, scalar, result + end);
 }
 
-template<> void _Math<MATH_SSE>::mul(
+template<> void _Math<MATH_SSE3>::mul(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -153,7 +177,7 @@ template<> void _Math<MATH_SSE>::mul(
         _Math<MATH_NORMAL>::mul(size - end, data + end, scalar, result + end);
 }
 
-template<> void _Math<MATH_SSE>::div(
+template<> void _Math<MATH_SSE3>::div(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -173,7 +197,7 @@ template<> void _Math<MATH_SSE>::div(
         _Math<MATH_NORMAL>::div(size - end, data + end, scalar, result + end);
 }
 
-template<> void _Math<MATH_SSE>::tanh(
+template<> void _Math<MATH_SSE3>::tanh(
         uint32_t           size,
         const float        data[],
         float              result[]) {
@@ -223,7 +247,7 @@ template<> void _Math<MATH_SSE>::tanh(
         _Math<MATH_NORMAL>::tanh(size - end, data + end, result + end);
 }
 
-template<> void _Math<MATH_SSE>::tanh_derivative(
+template<> void _Math<MATH_SSE3>::tanh_derivative(
         uint32_t           size,
         const float        data[],
         float              result[]) {
@@ -231,7 +255,7 @@ template<> void _Math<MATH_SSE>::tanh_derivative(
         const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         // Tanh values are stored in the result array, then overwritten.
-        _Math<MATH_SSE>::tanh(size, data, result);
+        _Math<MATH_SSE3>::tanh(size, data, result);
 
         const __m128 threshold = _mm_set1_ps(4.9f);
         const __m128 zero      = _mm_setzero_ps();
@@ -244,9 +268,8 @@ template<> void _Math<MATH_SSE>::tanh_derivative(
 
                 const __mmask8 mask_large = _mm_cmp_ps_mask(_mm_abs_ps(values), threshold, _CMP_GT_OQ);
                 tanhDerivative            = _mm_mask_blend_ps(mask_large, tanhDerivative, zero);
-
-                const __mmask8 mask_zero = _mm_cmp_ps_mask(values, zero, _CMP_EQ_OQ);
-                tanhDerivative           = _mm_mask_blend_ps(mask_zero, tanhDerivative, one);
+                const __mmask8 mask_zero  = _mm_cmp_ps_mask(values, zero, _CMP_EQ_OQ);
+                tanhDerivative            = _mm_mask_blend_ps(mask_zero, tanhDerivative, one);
 
                 _mm_storeu_ps(&result[i], tanhDerivative);
         }
@@ -254,7 +277,7 @@ template<> void _Math<MATH_SSE>::tanh_derivative(
         _Math<MATH_NORMAL>::tanh_derivative(size - end, data + end, result + end);
 }
 
-template<> void _Math<MATH_SSE>::ReLU(
+template<> void _Math<MATH_SSE3>::ReLU(
         uint32_t           size,
         const float        data[],
         float              result[]) {
@@ -273,7 +296,7 @@ template<> void _Math<MATH_SSE>::ReLU(
         _Math<MATH_NORMAL>::ReLU(size - end, data + end, result + end);
 }
 
-template<> void _Math<MATH_SSE>::ReLU_derivative(
+template<> void _Math<MATH_SSE3>::ReLU_derivative(
         uint32_t           size,
         const float        data[],
         float              result[]) {
@@ -294,7 +317,7 @@ template<> void _Math<MATH_SSE>::ReLU_derivative(
         _Math<MATH_NORMAL>::ReLU_derivative(size - end, data + end, result + end);
 }
 
-template<> void _Math<MATH_SSE>::min(
+template<> void _Math<MATH_SSE3>::min(
         uint32_t           size,
         const float        data[],
         float              min,
@@ -314,7 +337,7 @@ template<> void _Math<MATH_SSE>::min(
         _Math<MATH_NORMAL>::min(size - end, data + end, min, result + end);
 }
 
-template<> void _Math<MATH_SSE>::max(
+template<> void _Math<MATH_SSE3>::max(
         uint32_t           size,
         const float        data[],
         float              max,
@@ -334,7 +357,7 @@ template<> void _Math<MATH_SSE>::max(
         _Math<MATH_NORMAL>::max(size - end, data + end, max, result + end);
 }
 
-template<> void _Math<MATH_SSE>::clamp(
+template<> void _Math<MATH_SSE3>::clamp(
         uint32_t           size,
         const float        data[],
         float              min,
@@ -356,7 +379,7 @@ template<> void _Math<MATH_SSE>::clamp(
         _Math<MATH_NORMAL>::clamp(size - end, data + end, min, max, result + end);
 }
 
-template<> void _Math<MATH_SSE>::min(
+template<> void _Math<MATH_SSE3>::min(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -375,7 +398,7 @@ template<> void _Math<MATH_SSE>::min(
         _Math<MATH_NORMAL>::min(size - end, first + end, second + end, result + end);
 }
 
-template<> void _Math<MATH_SSE>::max(
+template<> void _Math<MATH_SSE3>::max(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -394,7 +417,7 @@ template<> void _Math<MATH_SSE>::max(
         _Math<MATH_NORMAL>::max(size - end, first + end, second + end, result + end);
 }
 
-template<> void _Math<MATH_SSE>::clamp(
+template<> void _Math<MATH_SSE3>::clamp(
         uint32_t           size,
         const float        data[],
         const float        min[],
@@ -415,7 +438,31 @@ template<> void _Math<MATH_SSE>::clamp(
         _Math<MATH_NORMAL>::clamp(size - end, data + end, min + end, max + end, result + end);
 }
 
-template<> void _Math<MATH_SSE>::matvec_mul(
+template<> void _Math<MATH_SSE3>::compare(
+        uint32_t           size,
+        const float        first[],
+        const float        second[],
+        bool               *result) {
+
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
+
+        *result = true;
+
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
+                const __m128 values      = _mm_loadu_ps(&first[i]);
+                const __m128 otherValues = _mm_loadu_ps(&second[i]);
+                const __mmask8 mask      = _mm_cmp_ps_mask(values, otherValues, _CMP_EQ_OQ);
+
+                if (mask != 0xF) {
+                        *result = false;
+                        return;
+                }
+        }
+
+        _Math<MATH_NORMAL>::compare(size - end, first + end, second + end, result);
+}
+
+template<> void _Math<MATH_SSE3>::matvec_mul(
         uint32_t           width,
         uint32_t           height,
         const float        matrix[],

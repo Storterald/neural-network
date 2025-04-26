@@ -4,23 +4,27 @@
 #include <intrin.h>
 
 TEST(IntrinsicTest, CpuSIMDSupportIsCorrectlyDetected) {
-        SIMD support = SIMD_SSE;
+        constexpr int EAX = 0;
+        constexpr int EBX = 1;
+        constexpr int ECX = 2;
+        constexpr int EDX = 3;
 
-        int cpuInfo[4]{};
-        __cpuid(cpuInfo, 1);
+        const SIMD support = []() -> SIMD {
+                int regs[4]{};
+                __cpuid(regs, 7);
+                if (regs[EBX] & (1 << 16))
+                        return SIMD_AVX512;
 
-        if ((cpuInfo[3] & (1 << 25)) == 0 || (cpuInfo[3] & (1 << 26)) == 0)
-                support = SIMD_UNSUPPORTED;
-        else if ((cpuInfo[2] & (1 << 27)) != 0 && (cpuInfo[2] & (1 << 28)) != 0) {
-                unsigned long long xcrFeatureMask = _xgetbv(_XCR_XFEATURE_ENABLED_MASK);
-                if ((xcrFeatureMask & 0x6) == 0x6) {
-                        __cpuid(cpuInfo, 7);
-                        if ((xcrFeatureMask & 0xE6) == 0xE6 && (cpuInfo[1] & (1 << 16)) != 0)
-                                support = SIMD_AVX512;
-                        else
-                                support = SIMD_AVX;
-                }
-        }
+                __cpuid(regs, 0);
+
+                if (regs[ECX] & (1 << 12))
+                        return SIMD_AVX;
+
+                if (regs[ECX] & (1 << 0))
+                        return SIMD_SSE3;
+
+                return SIMD_UNSUPPORTED;
+        }();
 
         EXPECT_EQ(get_SIMD_support(), support);
 }

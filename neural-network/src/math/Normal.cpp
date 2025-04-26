@@ -220,6 +220,17 @@ template<> void _Math<MATH_NORMAL>::clamp(
                 result[i] = std::clamp(data[i], min[i], max[i]);
 }
 
+template<> void _Math<MATH_NORMAL>::compare(
+        uint32_t           size,
+        const float        first[],
+        const float        second[],
+        bool               *result) {
+
+        *result = true;
+        for (uint32_t i = 0; i < size && *result; ++i)
+                *result = first[i] == second[i];
+}
+
 template<> void _Math<MATH_NORMAL>::matvec_mul(
         uint32_t           width,
         uint32_t           height,

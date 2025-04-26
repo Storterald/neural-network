@@ -2,23 +2,42 @@
 
 #include <immintrin.h>
 
-// An equivalent of _mm512_abs_ps for AVX does not exists, so this just
-// changes the most significant bit of the numbers to 0 (positive).
-#define _mm256_abs_ps(X) _mm256_and_ps(X, _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF)))
+#define _mm256_abs_ps(X) (_mm256_and_ps(X, _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF))))
+#define _mm256_cmp_ps_mask(a, b, cmp) ((__mmask8)_mm256_movemask_ps(_mm256_cmp_ps(a, b, cmp)))
 
-// An equivalent of _mm512_reduce_add_ps for SSE does not exists.
-static inline float _reduce_add_ps_avx(__m256 v) {
-        __m128 low    = _mm256_castps256_ps128(v);
-        __m128 high   = _mm256_extractf128_ps(v, 1);
-        __m128 sum128 = _mm_add_ps(low, high);
-        __m128 shuf   = _mm_movehdup_ps(sum128);
-        __m128 sums   = _mm_add_ps(sum128, shuf);
-        shuf          = _mm_movehl_ps(shuf, sums);
-        sums          = _mm_add_ss(sums, shuf);
+static inline float _mm256_reduce_add_ps(__m256 v)
+{
+        const __m128 low    = _mm256_castps256_ps128(v);
+        const __m128 high   = _mm256_extractf128_ps(v, 1);
+        const __m128 sum128 = _mm_add_ps(low, high);
+        __m128 shuf         = _mm_movehdup_ps(sum128);
+        __m128 sums         = _mm_add_ps(sum128, shuf);
+        shuf                = _mm_movehl_ps(shuf, sums);
+        sums                = _mm_add_ss(sums, shuf);
         return _mm_cvtss_f32(sums);
 }
 
-#define _mm256_reduce_add_ps(X) _reduce_add_ps_avx(X)
+static inline __m256 __mm256_mask_blend_ps(__mmask8 k, __m256 a, __m256 b)
+{
+        const __m256i blend_mask = _mm256_set_epi32(
+               (k & 0x80) * -1,
+               (k & 0x40) * -1,
+               (k & 0x20) * -1,
+               (k & 0x10) * -1,
+               (k & 0x08) * -1,
+               (k & 0x04) * -1,
+               (k & 0x02) * -1,
+               (k & 0x01) * -1);
+
+        const __m256 blend_mask_ps = _mm256_castsi256_ps(blend_mask);
+
+        return _mm256_or_ps(
+            _mm256_andnot_ps(blend_mask_ps, a),
+            _mm256_and_ps(blend_mask_ps, b)
+        );
+}
+
+#define _mm256_mask_blend_ps __mm256_mask_blend_ps
 
 template<> void _Math<MATH_AVX>::sum(
         uint32_t           size,
@@ -36,7 +55,7 @@ template<> void _Math<MATH_AVX>::sum(
                 _mm256_storeu_ps(&result[i], sumResult);
         }
 
-        _Math<MATH_SSE>::sum(size - end, first + end, second + end, result + end);
+        _Math<MATH_SSE3>::sum(size - end, first + end, second + end, result + end);
 }
 
 template<> void _Math<MATH_AVX>::sub(
@@ -55,7 +74,7 @@ template<> void _Math<MATH_AVX>::sub(
                 _mm256_storeu_ps(&result[i], subResult);
         }
 
-        _Math<MATH_SSE>::sub(size - end, first + end, second + end, result + end);
+        _Math<MATH_SSE3>::sub(size - end, first + end, second + end, result + end);
 }
 
 template<> void _Math<MATH_AVX>::mul(
@@ -74,7 +93,7 @@ template<> void _Math<MATH_AVX>::mul(
                 _mm256_storeu_ps(&result[i], mulResult);
         }
 
-        _Math<MATH_SSE>::mul(size - end, first + end, second + end, result + end);
+        _Math<MATH_SSE3>::mul(size - end, first + end, second + end, result + end);
 }
 
 template<> void _Math<MATH_AVX>::div(
@@ -93,7 +112,7 @@ template<> void _Math<MATH_AVX>::div(
                 _mm256_storeu_ps(&result[i], divResult);
         }
 
-        _Math<MATH_SSE>::div(size - end, first + end, second + end, result + end);
+        _Math<MATH_SSE3>::div(size - end, first + end, second + end, result + end);
 }
 
 template<> void _Math<MATH_AVX>::sum(
@@ -113,7 +132,7 @@ template<> void _Math<MATH_AVX>::sum(
                 _mm256_storeu_ps(&result[i], sumResult);
         }
 
-        _Math<MATH_SSE>::sum(size - end, data + end, scalar, result + end);
+        _Math<MATH_SSE3>::sum(size - end, data + end, scalar, result + end);
 }
 
 template<> void _Math<MATH_AVX>::sub(
@@ -133,7 +152,7 @@ template<> void _Math<MATH_AVX>::sub(
                 _mm256_storeu_ps(&result[i], subResult);
         }
 
-        _Math<MATH_SSE>::sub(size - end, data + end, scalar, result + end);
+        _Math<MATH_SSE3>::sub(size - end, data + end, scalar, result + end);
 }
 
 template<> void _Math<MATH_AVX>::mul(
@@ -153,7 +172,7 @@ template<> void _Math<MATH_AVX>::mul(
                 _mm256_storeu_ps(&result[i], mulResult);
         }
 
-        _Math<MATH_SSE>::mul(size - end, data + end, scalar, result + end);
+        _Math<MATH_SSE3>::mul(size - end, data + end, scalar, result + end);
 }
 
 template<> void _Math<MATH_AVX>::div(
@@ -173,7 +192,7 @@ template<> void _Math<MATH_AVX>::div(
                 _mm256_storeu_ps(&result[i], divResult);
         }
 
-        _Math<MATH_SSE>::div(size - end, data + end, scalar, result + end);
+        _Math<MATH_SSE3>::div(size - end, data + end, scalar, result + end);
 }
 
 template<> void _Math<MATH_AVX>::tanh(
@@ -218,7 +237,7 @@ template<> void _Math<MATH_AVX>::tanh(
                 _mm256_storeu_ps(&result[i], tanh);
         }
 
-        _Math<MATH_SSE>::tanh(size - end, data + end, result + end);
+        _Math<MATH_SSE3>::tanh(size - end, data + end, result + end);
 }
 
 template<> void _Math<MATH_AVX>::tanh_derivative(
@@ -241,14 +260,13 @@ template<> void _Math<MATH_AVX>::tanh_derivative(
 
                 const __mmask8 mask_large = _mm256_cmp_ps_mask(_mm256_abs_ps(values), threshold, _CMP_GT_OQ);
                 tanhDerivative            = _mm256_mask_blend_ps(mask_large, tanhDerivative, zero);
-
-                const __mmask8 mask_zero = _mm256_cmp_ps_mask(values, zero, _CMP_EQ_OQ);
-                tanhDerivative           = _mm256_mask_blend_ps(mask_zero, tanhDerivative, one);
+                const __mmask8 mask_zero  = _mm256_cmp_ps_mask(values, zero, _CMP_EQ_OQ);
+                tanhDerivative            = _mm256_mask_blend_ps(mask_zero, tanhDerivative, one);
 
                 _mm256_storeu_ps(&result[i], tanhDerivative);
         }
 
-        _Math<MATH_SSE>::tanh_derivative(size - end, data + end, result + end);
+        _Math<MATH_SSE3>::tanh_derivative(size - end, data + end, result + end);
 }
 
 template<> void _Math<MATH_AVX>::ReLU(
@@ -267,7 +285,7 @@ template<> void _Math<MATH_AVX>::ReLU(
                 _mm256_storeu_ps(&result[i], relu);
         }
 
-        _Math<MATH_SSE>::ReLU(size - end, data + end, result + end);
+        _Math<MATH_SSE3>::ReLU(size - end, data + end, result + end);
 }
 
 template<> void _Math<MATH_AVX>::ReLU_derivative(
@@ -288,7 +306,7 @@ template<> void _Math<MATH_AVX>::ReLU_derivative(
                 _mm256_storeu_ps(&result[i], reluDerivative);
         }
 
-        _Math<MATH_SSE>::ReLU_derivative(size - end, data + end, result + end);
+        _Math<MATH_SSE3>::ReLU_derivative(size - end, data + end, result + end);
 }
 
 template<> void _Math<MATH_AVX>::min(
@@ -308,7 +326,7 @@ template<> void _Math<MATH_AVX>::min(
                 _mm256_storeu_ps(&result[i], minResult);
         }
 
-        _Math<MATH_SSE>::min(size - end, data + end, min, result + end);
+        _Math<MATH_SSE3>::min(size - end, data + end, min, result + end);
 }
 
 
@@ -329,7 +347,7 @@ template<> void _Math<MATH_AVX>::max(
                 _mm256_storeu_ps(&result[i], maxResult);
         }
 
-        _Math<MATH_SSE>::max(size - end, data + end, max, result + end);
+        _Math<MATH_SSE3>::max(size - end, data + end, max, result + end);
 }
 
 template<> void _Math<MATH_AVX>::clamp(
@@ -351,7 +369,7 @@ template<> void _Math<MATH_AVX>::clamp(
                 _mm256_storeu_ps(&result[i], clamp);
         }
 
-        _Math<MATH_SSE>::clamp(size - end, data + end, min, max, result + end);
+        _Math<MATH_SSE3>::clamp(size - end, data + end, min, max, result + end);
 }
 
 template<> void _Math<MATH_AVX>::min(
@@ -370,7 +388,7 @@ template<> void _Math<MATH_AVX>::min(
                 _mm256_storeu_ps(&result[i], minValues);
         }
 
-        _Math<MATH_SSE>::min(size - end, first + end, second + end, result + end);
+        _Math<MATH_SSE3>::min(size - end, first + end, second + end, result + end);
 }
 
 template<> void _Math<MATH_AVX>::max(
@@ -389,7 +407,7 @@ template<> void _Math<MATH_AVX>::max(
                 _mm256_storeu_ps(&result[i], maxValues);
         }
 
-        _Math<MATH_SSE>::max(size - end, first + end, second + end, result + end);
+        _Math<MATH_SSE3>::max(size - end, first + end, second + end, result + end);
 }
 
 template<> void _Math<MATH_AVX>::clamp(
@@ -410,7 +428,31 @@ template<> void _Math<MATH_AVX>::clamp(
                 _mm256_storeu_ps(&result[i], clamp);
         }
 
-        _Math<MATH_SSE>::clamp(size - end, data + end, min + end, max + end, result + end);
+        _Math<MATH_SSE3>::clamp(size - end, data + end, min + end, max + end, result + end);
+}
+
+template<> void _Math<MATH_AVX>::compare(
+        uint32_t           size,
+        const float        first[],
+        const float        second[],
+        bool               *result) {
+
+        const uint32_t end = size & ~(SIMD_WIDTH - 1);
+
+        *result = true;
+
+        for (uint32_t i = 0; i < end; i+=SIMD_WIDTH) {
+                const __m256 values      = _mm256_loadu_ps(&first[i]);
+                const __m256 otherValues = _mm256_loadu_ps(&second[i]);
+
+                const __mmask8 cmp = _mm256_cmp_ps_mask(values, otherValues, _CMP_EQ_OS);
+                if (cmp != 0xFF) {
+                        *result = false;
+                        return;
+                }
+        }
+
+        _Math<MATH_SSE3>::compare(size - end, first + end, second + end, result);
 }
 
 template<> void _Math<MATH_AVX>::matvec_mul(

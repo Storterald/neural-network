@@ -1,16 +1,44 @@
-#pragma once
-
-#ifndef BUILD_CUDA_SUPPORT
-
 #include "Data.h"
 
-Data::Data(uint32_t size) : m_size(size), m_data(new float[size]()) {}
+#include "../math/Math.h"
 
-Data::Data(const Data &other) : m_size(other.m_size), m_data(new float[other.m_size])
+Data::Data(uint32_t size) : m_size(size)
+#ifdef BUILD_CUDA_SUPPORT
+        , m_device(size >= CUDA_MINIMUM)
+#endif // BUILD_CUDA_SUPPORT
 {
-        // Unified memory is allocated on the CPU by default, so a simple std::memcpy
-        // should be faster.
-        std::memcpy(m_data, other.m_data, m_size * sizeof(float));
+        if (!m_device) {
+                m_data = new float[m_size]();
+                return;
+        }
+
+#ifdef BUILD_CUDA_SUPPORT
+        CUDA_CHECK_ERROR(cudaMalloc(&m_data, m_size * sizeof(float)),
+                "Failed to allocate memory on the GPU.");
+        CUDA_CHECK_ERROR(cudaMemsetAsync(m_data, 0, m_size * sizeof(float), 0),
+                "Failed to set memory in the GPU.");
+        CUDA_CHECK_ERROR(cudaStreamSynchronize(0), "Error synchronizing in Data::Data");
+#endif // BUILD_CUDA_SUPPORT
+}
+
+Data::Data(const Data &other) : m_size(other.m_size)
+#ifdef BUILD_CUDA_SUPPORT
+        , m_device(other.m_size >= CUDA_MINIMUM)
+#endif // BUILD_CUDA_SUPPORT
+{
+        if (!m_device) {
+                m_data = new float[m_size];
+                std::memcpy(m_data, other.m_data, m_size * sizeof(float));
+                return;
+        }
+
+#ifdef BUILD_CUDA_SUPPORT
+        CUDA_CHECK_ERROR(cudaMalloc(&m_data, m_size * sizeof(float)),
+                "Failed to allocate memory on the GPU.");
+        CUDA_CHECK_ERROR(cudaMemcpyAsync(m_data, other.m_data, m_size * sizeof(float),
+                cudaMemcpyDeviceToDevice, 0), "Failed to copy data in the GPU.");
+        CUDA_CHECK_ERROR(cudaStreamSynchronize(0), "Error synchronizing in Data::Data");
+#endif // BUILD_CUDA_SUPPORT
 }
 
 Data::Data(Data &&other) noexcept : m_size(other.m_size), m_data(other.m_data)
@@ -21,7 +49,15 @@ Data::Data(Data &&other) noexcept : m_size(other.m_size), m_data(other.m_data)
 
 Data::~Data()
 {
-        delete [] m_data;
+        if (!m_data)
+                return;
+
+        if (!m_device)
+                delete [] m_data;
+#ifdef BUILD_CUDA_SUPPORT
+        else
+                CUDA_CHECK_ERROR(cudaFree(m_data), "Failed to free GPU memory.");
+#endif // BUILD_CUDA_SUPPORT
 }
 
 Data &Data::operator= (const Data &other)
@@ -31,17 +67,27 @@ Data &Data::operator= (const Data &other)
 
         // The buffer must be destroyed and remade either if the buffer size is different
         // or the data is in different places.
-        if (m_size != other.m_size) {
+        if (m_size != other.m_size || m_device != other.m_device) {
                 // If size doesn't match, overwrite m_size and delete old buffer.
+                this->~Data();
                 m_size = other.m_size;
-                if (m_data)
-                        delete [] m_data;
 
-                m_data = new float [m_size];
+                if (!m_device)
+                        m_data = new float[m_size];
+#ifdef BUILD_CUDA_SUPPORT
+                else
+                        CUDA_CHECK_ERROR(cudaMalloc(&m_data, m_size * sizeof(float)),
+                                 "Failed to allocate memory on the GPU.");
+#endif // BUILD_CUDA_SUPPORT
         }
 
-        // Once the buffer has the correct size, the data can be copied.
-        std::memcpy(m_data, other.m_data, m_size * sizeof(float));
+        if (!m_device)
+                std::memcpy(m_data, other.m_data, m_size * sizeof(float));
+#ifdef BUILD_CUDA_SUPPORT
+        else
+                CUDA_CHECK_ERROR(cudaMemcpy(m_data, other.m_data, m_size * sizeof(float),
+                        cudaMemcpyDeviceToDevice), "Failed to copy data in the GPU.");
+#endif // BUILD_CUDA_SUPPORT
 
         return *this;
 }
@@ -51,7 +97,7 @@ Data &Data::operator= (Data &&other) noexcept
         if (this == &other)
                 return *this;
 
-        delete [] m_data;
+        this->~Data();
 
         m_size = other.m_size;
         m_data = other.m_data;
@@ -64,14 +110,11 @@ Data &Data::operator= (Data &&other) noexcept
 
 bool Data::operator== (const Data &other) const
 {
+        // Check if sizes match, if not don't check individual values
         if (m_size != other.m_size)
                 return false;
 
-        bool ans = true;
-        for (uint32_t i = 0; i < m_size && ans; ++i)
-                ans = m_data[i] == other.m_data[i];
-
+        bool ans;
+        Math::compare(m_size, *this, other, &ans);
         return ans;
 }
-
-#endif // BUILD_CUDA_SUPPORT

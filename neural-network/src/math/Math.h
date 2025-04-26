@@ -109,6 +109,12 @@ namespace Math {
                 const Data        &max,
                 Data              &result);
 
+        void compare(
+                uint32_t          size,
+                const Data        &first,
+                const Data        &second,
+                bool              *result);
+
         void matvec_mul(
                 uint32_t          width,
                 uint32_t          height,

@@ -2,7 +2,7 @@
 
 enum SIMD {
         SIMD_UNSUPPORTED,
-        SIMD_SSE,
+        SIMD_SSE3,
         SIMD_AVX,
         SIMD_AVX512
 };

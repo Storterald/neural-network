@@ -1,10 +1,23 @@
 .CODE
 PUBLIC get_SIMD_support
 
+AVX512_F         EQU 00010000H
+; this is not the AVX instruction set bit (10000000H), instead the FMA bit, which
+; means AVX support and fused multiply-add support. This will classify the listed
+; CPU generations as SSE3 ones, as they only support the AVX instruction set:
+;   - Pentium
+;   - Celeron
+;   - Sandy Bridge
+;   - Ivy Bridge
+;   - Bulldozer (without Piledriver cores)
+AVX              EQU 00001000H
+SSE3             EQU 00000001H
+
+; SIMD enum
 SIMD_UNSUPPORTED EQU 0
-SIMD_SSE EQU 1
-SIMD_AVX EQU 2
-SIMD_AVX512 EQU 3
+SIMD_SSE3        EQU 1
+SIMD_AVX         EQU 2
+SIMD_AVX512      EQU 3
 
 ; SIMD get_SIMD_support()
 get_SIMD_support PROC
@@ -16,39 +29,43 @@ get_SIMD_support PROC
         PUSH rcx
         PUSH rdx
 
-        ; Flags for CPUID
+        ; eax = 7, ecx = 0 : Extended Features
         MOV eax, 7
         MOV ecx, 0
 
         ; https://en.wikipedia.org/wiki/CPUID
         CPUID
 
-        ; TEST performs a bitwise AND (&).
-        TEST ebx, 00010000H ; 1 << 16
-        JNZ AVX512_SUPPORTED
+        TEST ebx, AVX512_F
+        JNZ avx512_supported
 
-        TEST ecx, 10000000H ; 1 << 28
-        JNZ AVX_SUPPORTED
+        ; eax = 1, ecx = 0 : Processor Info and Feature Bits
+        MOV eax, 1
+        MOV ecx, 0
 
-        TEST edx, 02000000H ; 1 << 25
-        JNZ SSE_SUPPORTED
+        CPUID
+
+        TEST ecx, AVX
+        JNZ avx_supported
+
+        TEST ecx, SSE3
+        JNZ sse3_supported
 
         MOV eax, SIMD_UNSUPPORTED
-        JMP END_SIMD
+        JMP return
 
-AVX512_SUPPORTED:
+avx512_supported:
         MOV eax, SIMD_AVX512
-        JMP END_SIMD
+        JMP return
 
-AVX_SUPPORTED:
+avx_supported:
         MOV eax, SIMD_AVX
-        JMP END_SIMD
+        JMP return
 
-SSE_SUPPORTED:
-        MOV eax, SIMD_SSE
-        JMP END_SIMD
+sse3_supported:
+        MOV eax, SIMD_SSE3
 
-END_SIMD:
+return:
         POP rdx
         POP rcx
         POP rbx

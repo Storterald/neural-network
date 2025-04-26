@@ -4,7 +4,7 @@
 
 enum MathType : uint32_t {
         MATH_NORMAL =  0,
-        MATH_SSE    =  4,
+        MATH_SSE3   =  4,
         MATH_AVX    =  8,
         MATH_AVX512 = 16
 #ifdef BUILD_CUDA_SUPPORT
@@ -122,6 +122,12 @@ public:
                 const float        min[],
                 const float        max[],
                 float              result[]);
+
+        static void compare(
+                uint32_t           size,
+                const float        first[],
+                const float        second[],
+                bool               *result);
 
         static void matvec_mul(
                 uint32_t           width,
