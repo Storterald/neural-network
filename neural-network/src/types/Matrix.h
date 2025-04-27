@@ -49,6 +49,22 @@ private:
 
 }; // class Matrix
 
+[[nodiscard]] inline Matrix operator+ (float scalar, const Matrix &mat) {
+        return mat + scalar;
+}
+
+[[nodiscard]] inline Matrix operator- (float scalar, const Matrix &mat) {
+        return mat - scalar;
+}
+
+[[nodiscard]] inline Matrix operator* (float scalar, const Matrix &mat) {
+        return mat * scalar;
+}
+
+[[nodiscard]] inline Matrix operator/ (float scalar, const Matrix &mat) {
+        return mat / scalar;
+}
+
 #ifdef DEBUG_MODE_ENABLED
 #include <iostream>
 #include <string>

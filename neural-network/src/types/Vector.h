@@ -44,6 +44,22 @@ public:
 
 }; // class Vector
 
+[[nodiscard]] inline Vector operator+ (float scalar, const Vector &vec) {
+        return vec + scalar;
+}
+
+[[nodiscard]] inline Vector operator- (float scalar, const Vector &vec) {
+        return vec - scalar;
+}
+
+[[nodiscard]] inline Vector operator* (float scalar, const Vector &vec) {
+        return vec * scalar;
+}
+
+[[nodiscard]] inline Vector operator/ (float scalar, const Vector &vec) {
+        return vec / scalar;
+}
+
 #ifdef DEBUG_MODE_ENABLED
 #include <iostream>
 #include <string>
