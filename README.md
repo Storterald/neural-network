@@ -5,11 +5,11 @@ and unsupervised training.<br>*No external libraries required*.
 
 # Requirements
 
- - CMake `>= 3.13.0`
- - Visual Studio `2022`
+ - CMake
+ - Visual Studio 2022
  - Ninja
- - Nvidia CUDA Toolkit
  - git
+ - Nvidia CUDA Toolkit *(optional)*
 
 # How To Build
 
@@ -17,8 +17,8 @@ and unsupervised training.<br>*No external libraries required*.
 > [here](https://cmake.org/download/).
 
 The CMakeLists.txt script automatically **downloads** and builds the [dependencies](#Dependencies)
-needed by the project, these **do not** include the [requirements](#Requirements).
-This means that the **first** configuration will be **slower** then the other ones.
+needed by the project.
+This means that the **first** configuration will be **slower** than the other ones.
 
 To **configure and build** the project run in a terminal:
 
@@ -27,12 +27,9 @@ cmake . --preset msvc-release
 cmake --build . --preset msvc-release-build
 ```
 
-The configure command will **fail** if the build is done **without** a selected
-**build** preset, this is to ensure no unknown errors occur.
-
 When configuring with `cmake . --preset`, the **configure** preset should be
-used, eg: **msvc-release**, when building with `cmake . --build --preset`, the
-corresponding **build** preset should be used, eg: **msvc-release-build**.
+used, e.g.: **msvc-release**, when building with `cmake . --build --preset`, the
+corresponding **build** preset should be used, e.g.: **msvc-release-build**.
 
 > A debug (`-debug`) version of the preset can also be used.
 
