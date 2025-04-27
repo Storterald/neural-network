@@ -34,13 +34,6 @@ endif ()
 set(SRC_DIR "${CMAKE_CURRENT_LIST_DIR}/src")
 set(INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/include")
 
-file(GLOB_RECURSE SOURCES
-        "${SRC_DIR}/*.cpp"
-        "${SRC_DIR}/*.asm")
-
-add_library(NeuralNetworkLib STATIC ${SOURCES} ${CUDA_SOURCES})
-add_library(NeuralNetwork::Lib ALIAS NeuralNetworkLib)
-
 file(REMOVE_RECURSE ${INCLUDE_DIR})
 file(COPY "${SRC_DIR}/" DESTINATION "${INCLUDE_DIR}/neural-network"
         FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.cuh")
@@ -48,6 +41,14 @@ file(COPY "${SRC_DIR}/" DESTINATION "${INCLUDE_DIR}/neural-network"
 add_library(NeuralNetworkHeaders INTERFACE)
 target_include_directories(NeuralNetworkHeaders INTERFACE ${INCLUDE_DIR})
 add_library(NeuralNetwork::Headers ALIAS NeuralNetworkHeaders)
+
+file(GLOB_RECURSE SOURCES
+        "${SRC_DIR}/*.cpp"
+        "${SRC_DIR}/*.asm")
+
+add_library(NeuralNetworkLib STATIC ${SOURCES} ${CUDA_SOURCES})
+target_link_libraries(NeuralNetworkLib PRIVATE NeuralNetwork::Headers)
+add_library(NeuralNetwork::Lib ALIAS NeuralNetworkLib)
 
 if (BUILD_CUDA_SUPPORT)
         enable_language(CUDA)

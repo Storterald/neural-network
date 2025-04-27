@@ -1,6 +1,22 @@
-#include "Matrix.h"
+#include <neural-network/types/Matrix.h>
 
-#include "../math/Math.h"
+#include <initializer_list>
+#include <algorithm> // std::ranges::any_of
+#include <iterator>  // std::data
+#include <cstdint>
+#include <cstring>   // std::memcpy
+
+#include <neural-network/types/Memory.h>
+#include <neural-network/utils/Logger.h>
+#include <neural-network/types/Data.h>
+#include <neural-network/math/Math.h>
+#include <neural-network/Base.h>
+
+#ifdef BUILD_CUDA_SUPPORT
+#include <cuda_runtime.h>
+
+#include <neural-network/CudaBase.h>
+#endif // BUILD_CUDA_SUPPORT
 
 Matrix::Matrix(uint32_t width, uint32_t height) :
         Data(width * height),
@@ -56,14 +72,14 @@ Ptr<float> Matrix::at(uint32_t row) const
         return this->data() + row * m_width;
 }
 
-Ref<float> Matrix::operator[] (std::pair<uint32_t, uint32_t> position)
+Ref<float> Matrix::operator[] (Indexer position)
 {
 #ifdef DEBUG_MODE_ENABLED
-        if (position.first >= m_height || position.second >= m_width)
+        if (position.row >= m_height || position.column >= m_width)
                 throw LOGGER_EX("Matrix::at access index out of bounds.");
 #endif // DEBUG_MODE_ENABLED
 
-        return *(this->data() + position.first * m_width + position.second);
+        return *(this->data() + (position.row * m_width + position.column));
 }
 
 float Matrix::at(uint32_t row, uint32_t height) const

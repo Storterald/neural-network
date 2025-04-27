@@ -1,6 +1,8 @@
-#include "_Math.h"
+#include <neural-network/math/_Math.h>
 
 #include <immintrin.h>
+
+#include <cstdint>
 
 #define _mm256_abs_ps(X) (_mm256_and_ps(X, _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF))))
 #define _mm256_cmp_ps_mask(a, b, cmp) ((__mmask8)_mm256_movemask_ps(_mm256_cmp_ps(a, b, cmp)))

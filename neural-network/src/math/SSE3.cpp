@@ -1,8 +1,10 @@
-#include "_Math.h"
+#include <neural-network/math/_Math.h>
 
 #include <xmmintrin.h> // SSE
 #include <emmintrin.h> // SSE2
 #include <pmmintrin.h> // SSE3
+
+#include <cstdint>
 
 using __mmask8 = int;
 

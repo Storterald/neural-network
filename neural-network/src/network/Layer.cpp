@@ -1,6 +1,12 @@
-#include "Layer.h"
+#include <neural-network/network/Layer.h>
 
-#include "layers/FullyConnectedLayer.h"
+#include <cstdint>
+#include <fstream>
+#include <memory>
+
+#include <neural-network/network/layers/FullyConnectedLayer.h>
+#include <neural-network/network/ILayer.h>
+#include <neural-network/utils/Logger.h>
 
 std::unique_ptr<ILayer> Layer::create(
         uint32_t                     previousLayerSize,

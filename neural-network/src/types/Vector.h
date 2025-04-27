@@ -1,8 +1,15 @@
 #pragma once
 
 #include <initializer_list>
+#include <cstdint>
 
-#include "Data.h"
+#include <neural-network/types/Data.h>
+#include <neural-network/Base.h>
+
+#ifdef DEBUG_MODE_ENABLED
+#include <iostream>
+#include <string>
+#endif // DEBUG_MODE_ENABLED
 
 class Vector : public Data {
 public:
@@ -61,8 +68,6 @@ public:
 }
 
 #ifdef DEBUG_MODE_ENABLED
-#include <iostream>
-#include <string>
 inline std::ostream &operator<< (std::ostream &os, const Vector &vec)
 {
         std::string str;

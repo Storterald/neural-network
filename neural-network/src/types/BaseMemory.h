@@ -1,6 +1,10 @@
 #pragma once
 
-#include "../Base.h"
+#include <type_traits>
+#include <cstddef>
+
+#include <neural-network/utils/Logger.h>
+#include <neural-network/Base.h>
 
 template<typename>
 class Ptr;
@@ -23,12 +27,16 @@ class Ptr {
         friend class Ref<T>;
 
 public:
+        static_assert(std::is_trivially_copyable_v<T>,
+                "Ptr<T> requires T to be trivially copiable. "
+                "https://en.cppreference.com/w/cpp/named_req/TriviallyCopyable");
+
         using value_type = T;
         using difference_type = ptrdiff_t;
 
-        inline Ptr() : m_pointer(nullptr) {}
+        inline Ptr() noexcept : m_pointer(nullptr) {}
 
-        Ptr(T *ptr, bool) : m_pointer(ptr) {}
+        Ptr(T *ptr, bool, void *) noexcept : m_pointer(ptr) {}
 
         [[nodiscard]] constexpr bool operator== (const Ptr &other) const noexcept
         {
@@ -60,7 +68,7 @@ public:
                 return Ref<T>(m_pointer, false);
         }
 
-        [[nodiscard]] constexpr Ref<T> operator[] (uint32_t i) const
+        [[nodiscard]] constexpr Ref<T> operator[] (uint32_t i)
         {
 #ifdef DEBUG_MODE_ENABLED
                 if (!m_pointer)
@@ -70,51 +78,56 @@ public:
                 return { m_pointer + i, false };
         }
 
-        [[nodiscard]] constexpr Ptr operator+ (uint32_t offset)
+        [[nodiscard]] constexpr Ptr operator+ (uint32_t offset) const noexcept
         {
                 return { m_pointer + offset, false };
         }
 
-        [[nodiscard]] constexpr Ptr operator- (uint32_t offset)
+        [[nodiscard]] constexpr Ptr operator- (uint32_t offset) const noexcept
         {
                 return { m_pointer - offset, false };
         }
 
-        constexpr Ptr &operator+= (uint32_t offset)
+        constexpr Ptr &operator+= (uint32_t offset) noexcept
         {
                 m_pointer += offset;
                 return *this;
         }
 
-        constexpr Ptr &operator-= (uint32_t offset)
+        constexpr Ptr &operator-= (uint32_t offset) noexcept
         {
                 m_pointer -= offset;
                 return *this;
         }
 
-        [[nodiscard]] constexpr Ptr operator++ (int)
+        [[nodiscard]] constexpr Ptr operator++ (int) const noexcept
         {
                 return { m_pointer + 1, false };
         }
 
-        [[nodiscard]] constexpr Ptr operator-- (int)
+        [[nodiscard]] constexpr Ptr operator-- (int) const noexcept
         {
                 return { m_pointer - 1, false };
         }
 
-        constexpr Ptr &operator++ ()
+        constexpr Ptr &operator++ () noexcept
         {
                 ++m_pointer;
                 return *this;
         }
 
-        constexpr Ptr &operator-- ()
+        constexpr Ptr &operator-- () noexcept
         {
                 --m_pointer;
                 return *this;
         }
 
-        [[nodiscard]] constexpr T *get() const noexcept
+        [[nodiscard]] constexpr T *get() noexcept
+        {
+                return m_pointer;
+        }
+
+        [[nodiscard]] constexpr const T *get() const noexcept
         {
                 return m_pointer;
         }
@@ -142,18 +155,18 @@ protected:
  */
 template<typename T>
 class Ref {
-        using ArgType = std::conditional_t<sizeof(T) <= 8, T, const T &>;
+        using HostT = std::conditional_t<sizeof(T) <= 8, T, const T &>;
 
 public:
         using value_type = T;
 
-        Ref(T *pValue, bool) : m_ptr(pValue, false) {
+        Ref(T *pValue, bool, void *) : m_ptr(pValue, false) {
                 if (!pValue)
                         throw LOGGER_EX("Cannot create null reference.");
         }
 
         Ref(const Ref &other) = delete;
-        Ref &operator= (const Ref &other)
+        Ref &operator= (const Ref &other) noexcept
         {
                 if (this != std::addressof(other))
                         *m_ptr.m_pointer = *other.m_ptr.m_pointer;
@@ -170,7 +183,7 @@ public:
                 return *this;
         }
 
-        Ref &operator= (ArgType value)
+        Ref &operator= (HostT value) noexcept
         {
                 *m_ptr.m_pointer = value;
                 return *this;
@@ -187,11 +200,6 @@ public:
         }
 
         [[nodiscard]] constexpr Ptr<T> &operator& () noexcept
-        {
-                return m_ptr;
-        }
-
-        [[nodiscard]] constexpr const Ptr<T> &operator& () const noexcept
         {
                 return m_ptr;
         }
@@ -218,7 +226,8 @@ class Span {
 public:
         using value_type = T;
 
-        Span(uint32_t size, bool, T *src, bool, bool = false) : m_ptr(src), m_size(size) {}
+        Span(uint32_t size, bool, T *src, bool, bool = false, void * = 0) noexcept :
+                m_ptr(src), m_size(size) {}
 
         [[nodiscard]] constexpr operator T *() noexcept
         {
@@ -235,6 +244,16 @@ public:
                 return { m_ptr + i, false };
         }
 
+        [[nodiscard]] inline Ref<T> begin() const
+        {
+                return { m_ptr };
+        }
+
+        [[nodiscard]] inline Ref<T> end() const
+        {
+                return { m_ptr + m_size };
+        }
+
         [[nodiscard]] constexpr uint32_t size() const noexcept
         {
                 return m_size;
@@ -245,7 +264,7 @@ public:
                 return false;
         }
 
-        constexpr void update() {}
+        constexpr void update() const noexcept {}
 
 private:
         T                            *m_ptr;

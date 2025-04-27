@@ -1,6 +1,8 @@
 #pragma once
 
-#include "../types/Data.h"
+#include <cstdint>
+
+#include <neural-network/types/Data.h>
 
 namespace Math {
         void sum(

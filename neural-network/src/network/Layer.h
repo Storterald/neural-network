@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "ILayer.h"
+#include <neural-network/network/ILayer.h>
 
 namespace Layer {
         std::unique_ptr<ILayer> create(

@@ -1,23 +1,22 @@
-#include "_Math.h"
+#include <neural-network/math/_Math.h>
 
-#include "../types/Memory.h"
+#include <cuda_runtime.h>
+#include <cuda/std/__algorithm/clamp.h>
+#include <cuda/std/__algorithm/max.h>
+#include <cuda/std/__algorithm/min.h>
+#include <cuda/std/cmath>
+
+#include <cstdint>
+
+#include <neural-network/utils/Macros.h>
+#include <neural-network/types/Memory.h>
 
 namespace Utils {
 
-        __device__ inline float min(float a, float b)
-        {
-                return a < b ? a : b;
-        }
-
-        __device__ inline float max(float a, float b)
-        {
-                return a > b ? a : b;
-        }
-
         __device__ inline float tanh(float x)
         {
-                if (std::fabsf(x) >= 4.9f)
-                        return std::copysignf(1.0f, x);
+                if (cuda::std::fabsf(x) >= 4.9f)
+                        return cuda::std::copysignf(1.0f, x);
 
                 const float x2 = x * x;
                 return x * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2))) /
@@ -29,7 +28,7 @@ namespace Utils {
                 if (x == 0.0f)
                         return 1.0f;
 
-                if (std::fabsf(x) > 4.9f)
+                if (cuda::std::fabsf(x) > 4.9f)
                         return 0.0f;
 
                 const float tanh = Utils::tanh(x);
@@ -166,7 +165,7 @@ namespace Kernels {
                 const uint32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
                 
                 if (idx < size)
-                        result[idx] = Utils::max(0.0f, data[idx]);
+                        result[idx] = cuda::std::max(0.0f, data[idx]);
         }
 
         __global__ void ReLU_derivative(
@@ -189,7 +188,7 @@ namespace Kernels {
                 const uint32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
                 
                 if (idx < size)
-                        result[idx] = Utils::min(data[idx], min);
+                        result[idx] = cuda::std::min(data[idx], min);
         }
 
         __global__ void max(
@@ -201,7 +200,7 @@ namespace Kernels {
                 const uint32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
                 
                 if (idx < size)
-                        result[idx] = Utils::max(data[idx], max);
+                        result[idx] = cuda::std::max(data[idx], max);
         }
 
         __global__ void clamp(
@@ -212,9 +211,9 @@ namespace Kernels {
                 float              result[]) {
 
                 const uint32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-                
+
                 if (idx < size)
-                        result[idx] = Utils::min(Utils::max(data[idx], min), max);
+                        result[idx] = cuda::std::clamp(data[idx], min, max);
         }
 
         __global__ void min(
@@ -226,7 +225,7 @@ namespace Kernels {
                 const uint32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
                 
                 if (idx < size)
-                        result[idx] = Utils::min(first[idx], second[idx]);
+                        result[idx] = cuda::std::min(first[idx], second[idx]);
         }
 
         __global__ void max(
@@ -238,7 +237,7 @@ namespace Kernels {
                 const uint32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
                 
                 if (idx < size)
-                        result[idx] = Utils::max(first[idx], second[idx]);
+                        result[idx] = cuda::std::max(first[idx], second[idx]);
         }
 
         __global__ void clamp(
@@ -251,7 +250,7 @@ namespace Kernels {
                 const uint32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
                 
                 if (idx < size)
-                        result[idx] = Utils::min(Utils::max(data[idx], min[idx]), max[idx]);
+                        result[idx] = cuda::std::clamp(data[idx], min[idx], max[idx]);
         }
 
         __global__ void compare(

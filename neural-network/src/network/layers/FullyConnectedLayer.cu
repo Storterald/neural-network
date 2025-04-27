@@ -1,4 +1,11 @@
-#include "FullyConnectedLayer.h"
+#include <neural-network/network/layers/FullyConnectedLayer.h>
+
+#include <cuda_runtime.h>
+
+#include <cstdint>
+
+#include <neural-network/types/Data.h>
+#include <neural-network/CudaBase.h>
 
 namespace Kernels {
 
@@ -38,8 +45,6 @@ void FullyConnectedLayer::_d_backward(
                 m_w.width(), m_w.height(), input,
                 m_w.as_span(Data::DEVICE), dw, db, result);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(),
-                "backward kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(),
-                "Error synchronizing in FullyConnectedLayer::_d_backward.");
+        CUDA_CHECK_ERROR(cudaGetLastError(), "backward kernel launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in FullyConnectedLayer::_d_backward.");
 }

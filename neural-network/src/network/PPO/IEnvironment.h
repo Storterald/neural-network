@@ -2,7 +2,7 @@
 
 #include <utility>
 
-#include "../../types/Vector.h"
+#include <neural-network/types/Vector.h>
 
 class IEnvironment {
 public:

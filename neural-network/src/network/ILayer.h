@@ -1,6 +1,8 @@
 #pragma once
 
-#include "../types/Vector.h"
+#include <cstdint>
+
+#include <neural-network/types/Vector.h>
 
 enum FunctionType : uint32_t {
         TANH,

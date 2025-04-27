@@ -1,8 +1,14 @@
-#include "FullyConnectedLayer.h"
+#include <neural-network/network/layers/FullyConnectedLayer.h>
 
+#include <cstdint>
 #include <random>
+#include <mutex>
 
-#include "../../math/Math.h"
+#include <neural-network/network/ILayer.h>
+#include <neural-network/types/Vector.h>
+#include <neural-network/types/Matrix.h>
+#include <neural-network/types/Data.h>
+#include <neural-network/math/Math.h>
 
 static Vector _activation(
         FunctionType        functionType,
@@ -100,8 +106,7 @@ Vector FullyConnectedLayer::backward(const Vector &cost, const Vector &input)
         //  ∂Ce      ∂zjL   ∂ajL   ∂Ce
         // ⎯⎯⎯⎯⎯ = ⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯ = 1 * AFoo'(z) * Lcost
         //  ∂bL      ∂bL    ∂zjL   ∂ajL
-        const Vector db = _activation_derivative(
-                m_functionType, m_w * input + m_b) * cost;
+        const Vector db = _activation_derivative(m_functionType, m_w * input + m_b) * cost;
 
         //  ∂Ce      ∂zjL    ∂ajL   ∂Ce
         // ⎯⎯⎯⎯⎯ = ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯ = input * AFoo'(z) * Lcost

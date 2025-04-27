@@ -1,11 +1,20 @@
 #pragma once
 
+#include <cstdint>
+
+#include <neural-network/Base.h>
+
+#ifdef DEBUG_MODE_ENABLED
+#include <cuda_runtime.h>
+
+#include <string>
+
+#include <neural-network/utils/Logger.h>
+#endif // DEBUG_MODE_ENABLED
+
 #ifndef BUILD_CUDA_SUPPORT
 #error CudaBase.h cannot be included without BUILD_CUDA_SUPPORT
 #endif // !BUILD_CUDA_SUPPORT
-
-#include <cuda_runtime.h>
-#include <device_launch_parameters.h>
 
 // No checks in release mode to increase speed.
 #ifdef DEBUG_MODE_ENABLED

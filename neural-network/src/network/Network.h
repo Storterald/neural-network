@@ -1,11 +1,14 @@
 #pragma once
 
+#include <string_view>
 #include <filesystem>
+#include <cstdint>
 #include <future>
 #include <memory>
 
-#include "PPO/IEnvironment.h"
-#include "ILayer.h"
+#include <neural-network/network/PPO/IEnvironment.h>
+#include <neural-network/network/ILayer.h>
+#include <neural-network/types/Vector.h>
 
 class Network {
 public:
@@ -70,7 +73,7 @@ private:
         std::unique_ptr<ILayer> *_create_layers(
                 uint32_t                     layerCount,
                 const LayerCreateInfo        *layerInfos,
-                const char                   *path) const;
+                const std::string_view       &path) const;
 
         uint32_t *_get_sizes(
                 uint32_t                     layerCount,

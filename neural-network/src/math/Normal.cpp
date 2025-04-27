@@ -1,7 +1,8 @@
-#include "_Math.h"
+#include <neural-network/math/_Math.h>
 
-#include <cmath>
 #include <algorithm>
+#include <cstdint>
+#include <cmath>
 
 template<> void _Math<MATH_NORMAL>::sum(
         uint32_t           size,

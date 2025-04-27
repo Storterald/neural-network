@@ -1,8 +1,21 @@
-#include "Vector.h"
+#include <neural-network/types/Vector.h>
 
-#include <ranges>
+#include <initializer_list>
+#include <algorithm> // std::ranges::any_of
+#include <iterator>  // std::data
+#include <cstdint>
+#include <cstring>   // std::memcpy
 
-#include "../math/Math.h"
+#include <neural-network/types/Memory.h>
+#include <neural-network/types/Data.h>
+#include <neural-network/math/Math.h>
+#include <neural-network/Base.h>
+
+#ifdef BUILD_CUDA_SUPPORT
+#include <cuda_runtime.h>
+
+#include <neural-network/CudaBase.h>
+#endif // BUILD_CUDA_SUPPORT
 
 Vector::Vector(uint32_t size) : Data(size) {}
 

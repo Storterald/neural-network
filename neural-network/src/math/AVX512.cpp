@@ -1,6 +1,8 @@
-#include "_Math.h"
+#include <neural-network/math/_Math.h>
 
 #include <immintrin.h>
+
+#include <cstdint>
 
 template<> void _Math<MATH_AVX512>::sum(
         uint32_t           size,

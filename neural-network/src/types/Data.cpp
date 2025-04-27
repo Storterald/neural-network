@@ -1,6 +1,17 @@
-#include "Data.h"
+#include <neural-network/types/Data.h>
 
-#include "../math/Math.h"
+#ifdef BUILD_CUDA_SUPPORT
+#include <cuda_runtime.h>
+#endif // BUILD_CUDA_SUPPORT
+
+#include <cstdint>
+#include <cstring> // std::memcpy
+
+#include <neural-network/math/Math.h>
+
+#ifdef BUILD_CUDA_SUPPORT
+#include <neural-network/CudaBase.h>
+#endif // BUILD_CUDA_SUPPORT
 
 Data::Data(uint32_t size) : m_size(size)
 #ifdef BUILD_CUDA_SUPPORT

@@ -1,7 +1,10 @@
 #pragma once
 
-#include "../Base.h"
-#include "Memory.h"
+#include <functional> // std::hash<float>
+#include <cstdint>
+#include <cstddef>    // size_t
+
+#include <neural-network/types/Memory.h>
 
 class Data {
 public:
@@ -52,7 +55,7 @@ public:
         [[nodiscard]] inline Span<float> as_span(DataLocation location = KEEP, bool updateOnDestruction = false) const
         {
                 const bool device = location == KEEP ? m_device : location == DEVICE;
-                return Ptr(m_data, m_device).span(m_size, device, updateOnDestruction);
+                return { m_size, device, m_data, m_device, updateOnDestruction };
         }
 
         [[nodiscard]] constexpr DataLocation location() const noexcept
@@ -74,9 +77,11 @@ private:
 
 }; // class Data
 
+namespace std {
+
 template<>
-struct std::hash<Data> {
-        std::size_t operator() (const Data &data) const noexcept
+struct hash<Data> {
+        size_t operator() (const Data &data) const noexcept
         {
                 const float *span = data.as_span(Data::HOST);
 
@@ -87,4 +92,6 @@ struct std::hash<Data> {
                 return hash;
         }
 
-}; // struct std::hash<Data>
+}; // struct hash<Data>
+
+} // namespace std

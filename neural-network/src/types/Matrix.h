@@ -1,17 +1,31 @@
 #pragma once
 
-#include <utility>
+#include <initializer_list>
+#include <cstdint>
 
-#include "Vector.h"
+#include <neural-network/types/Memory.h>
+#include <neural-network/types/Vector.h>
+#include <neural-network/Base.h>
+
+#ifdef DEBUG_MODE_ENABLED
+#include <iostream>
+#include <string>
+#endif // DEBUG_MODE_ENABLED
 
 class Matrix : public Data {
 public:
+        struct Indexer {
+                uint32_t row;
+                uint32_t column;
+
+        };
+
         inline Matrix() = default;
         Matrix(uint32_t width, uint32_t height);
         Matrix(std::initializer_list<std::initializer_list<float>> values);
 
         [[nodiscard]] Ptr<float> operator[] (uint32_t row);
-        [[nodiscard]] Ref<float> operator[] (std::pair<uint32_t, uint32_t> position);
+        [[nodiscard]] Ref<float> operator[] (Indexer position);
         [[nodiscard]] Ptr<float> at(uint32_t row) const;
         [[nodiscard]] float at(uint32_t row, uint32_t height) const;
 
@@ -66,17 +80,15 @@ private:
 }
 
 #ifdef DEBUG_MODE_ENABLED
-#include <iostream>
-#include <string>
 inline std::ostream &operator<< (std::ostream &os, const Matrix &mat)
 {
         std::string str;
         for (uint32_t i = 0; i < mat.height(); ++i) {
                 str += '[';
                 for (uint32_t j = 0; j < mat.width() - 1; ++j)
-                        str += std::to_string(mat.at(i)[j]) + ", ";
+                        str += std::to_string(mat.at(i, j)) + ", ";
 
-                str += std::to_string(mat.at(i)[mat.width() - 1]) + ']';
+                str += std::to_string(mat.at(i, mat.width() - 1)) + ']';
         }
 
         os << "[" << str << "]";

@@ -1,13 +1,16 @@
-#include "Network.h"
+#include <neural-network/network/Network.h>
 
+#include <unordered_map>
+#include <filesystem>
 #include <fstream>
+#include <cstdint>
+#include <vector>
 #include <future>
 
-#include "Layer.h"
-
-constexpr float CLIP_EPSILON = 0.2f;
-constexpr float GAMMA        = 0.99f;
-constexpr float LAMBDA       = 0.95f;
+#include <neural-network/network/PPO/IEnvironment.h>
+#include <neural-network/network/Layer.h>
+#include <neural-network/types/Vector.h>
+#include <neural-network/utils/Logger.h>
 
 Network::Network(
         uint32_t                           inputSize,
@@ -64,12 +67,8 @@ void Network::train_supervised(
         const float        outputs[]) {
 
 #ifdef DEBUG_MODE_ENABLED
-        // Since DEBUG mode uses the Logger, the program must
-        // run in single thread to avoid gibberish in the log file.
         constexpr uint32_t threads = 1;
 #else
-        // If there are less samples than threads allocate
-        // sampleCount threads.
         const uint32_t threads = std::min(std::thread::hardware_concurrency(), sampleCount);
 #endif // DEBUG_MODE_ENABLED
 
@@ -86,25 +85,20 @@ void Network::train_supervised(
                 const uint32_t end   = start + count;
                 offset              += count;
 
-                futures.emplace_back(_get_supervised_future(start, end, inputs, outputs));
+                futures.push_back(_get_supervised_future(
+                        start, end, inputs, outputs));
         }
 
-        // Wait for all threads to finish
         for (std::future<void> &f : futures)
                 f.get();
 }
 
 void Network::encode(const std::filesystem::path &path) const
 {
-        // The file must be open in binary mode, and all
-        // encode function must write binary.
         std::ofstream file(path, std::ios::binary);
         if (!file)
                 throw LOGGER_EX("Error opening file.");
 
-        // Calls the encode function on all layers, the encode
-        // function uses std::ofstream::write, writing binary and
-        // moving the position of std::ofstream::tellp.
         for (uint32_t L = 0; L < m_layerCount - 1; ++L)
                 m_L[L]->encode(file);
 
@@ -131,20 +125,21 @@ std::unique_ptr<ILayer> *Network::_create_layers(
 std::unique_ptr<ILayer> *Network::_create_layers(
         uint32_t                     layerCount,
         const LayerCreateInfo        *layerInfos,
-        const char                   *path) const {
+        const std::string_view       &path) const {
+
+        namespace fs = std::filesystem;
 
         if (layerCount == 0)
                 throw LOGGER_EX("Cannot initialize Network with no layers. The "
                                 "minimum required amount is 1, the output layer.");
 
-        // If the path is empty use other layer constructor.
-        if (path[0] == '\0')
+        if (path.empty())
                 return _create_layers(layerCount, layerInfos);
 
-        if (!std::filesystem::exists(path))
+        if (!fs::exists(path))
                 throw LOGGER_EX("File given to Network() does not exist.");
 
-        std::ifstream file(path, std::ios::binary);
+        std::ifstream file(fs::path(path), std::ios::binary);
         auto layers = new std::unique_ptr<ILayer>[layerCount];
         layers[0]   = Layer::create(m_inputSize, layerInfos[0], file);
 
@@ -176,17 +171,14 @@ std::future<void> Network::_get_supervised_future(
 
         return std::async(std::launch::async, [&]() -> void {
                 for (uint32_t i = start; i < end; ++i) {
-                        // All activation values are stored to back-propagate the network.
                         const auto a = new Vector[m_layerCount];
                         a[0]         = Vector(m_inputSize, inputs);
 
                         for (uint32_t L = 1; L < m_layerCount; ++L)
                                 a[L] = m_L[L - 1]->forward(a[L - 1]);
 
-                        // The cost of the last layer neurons is calculated with
-                        // (ajL - yj) ^ 2, this mean that the derivative ∂C is
-                        // equal to 2 * (ajL - y).
-                        Vector dC = (a[m_layerCount - 1] - Vector(m_outputSize, outputs + i * m_outputSize)) * 2.0f;
+                        const Vector y(m_outputSize, outputs + (uintptr_t)i * m_outputSize);
+                        const Vector dC = 2.0f * (a[m_layerCount - 1] - y);
 
                         this->backward(dC, a);
                         delete [] a;
@@ -209,51 +201,36 @@ void Network::_train_ppo(
                 Vector          *valueActivations;
         };
 
-        // Saving variables here for quicker and clearer access
         const uint32_t valueLayerCount = valueNetwork.m_layerCount;
 
-        // Keep policies between epochs.
+        // The policies are saved between epochs for better training.
         std::unordered_map<uint64_t, Vector> oldPolicies;
 
         for (uint32_t i = 0; i < epochs; ++i) {
                 std::vector<IterationData> iterationData;
                 for (uint32_t s = 0, done = false; !done && s < maxSteps; ++s) {
-                        iterationData.push_back({});
+                        iterationData.emplace_back();
                         auto &[stateHash, reward, predictedReward, policy, pa, va] = iterationData.back();
 
-                        // The current state of the environment, updated
-                        // every time IEnvironment::step() is called.
                         const Vector state = environment.getState();
+                        stateHash = std::hash<Data>{}(state);
 
-                        // Save the state hash only since the values won't be used.
-                        stateHash = std::hash<Data>()(state);
-
-                        // Forward function of the policy network, keeping
-                        // activation values.
                         pa    = new Vector[m_layerCount];
                         pa[0] = state;
 
                         for (uint32_t L = 1; L < m_layerCount; ++L)
                                 pa[L] = m_L[L - 1]->forward(pa[L - 1]);
 
-                        // Saving the chosen policy in a different vector
-                        // as it will substitute the oldPolicies reference.
                         policy = pa[m_layerCount - 1];
 
-                        // Forward function of the value network, keeping
-                        // activation values. Value are not used right now,
-                        // but they will be used later.
                         va    = new Vector[valueLayerCount];
                         va[0] = state;
 
                         for (uint32_t L = 1; L < valueLayerCount; ++L)
                                 va[L] = valueNetwork.m_L[L - 1]->forward(va[L - 1]);
 
-                        // Saving the predicted rewards in a different vector
-                        // to make the next steps easier.
                         predictedReward = va[valueLayerCount - 1].at(0);
 
-                        // Step the Environment forward, updating the state.
                         auto [_reward, _done] = environment.step(pa[m_layerCount - 1]);
                         reward                = _reward;
                         done                  = _done;
@@ -266,8 +243,6 @@ void Network::_train_ppo(
                 const auto STATE_COUNT = (uint32_t)iterationData.size();
                 float *advantages      = new float[STATE_COUNT], previous = 0.0f;
 
-                // Compute advantages before the training as the calculation is done
-                // backwards to use the previous advantage as a part of the formula.
                 for (int32_t s = (int32_t)STATE_COUNT - 1; s >= 0; --s) {
                         const float reward              = iterationData[s].reward;
                         const float predictedReward     = iterationData[s].predictedReward;
@@ -279,24 +254,16 @@ void Network::_train_ppo(
                         previous          = advantages[s];
                 }
 
-                // Trains the networks
                 for (uint32_t s = 0; s < STATE_COUNT; ++s) {
                         auto &[stateHash, reward, predictedReward, policy, pa, va] = iterationData[s];
 
-                        // Save content of arrays in variables for quicker access.
                         const float advantage = advantages[s];
-                        policy = policy.max(EPSILON);
+                        policy                = policy.max(EPSILON); // prevent division by 0.
+                        const Vector vdC      = { (predictedReward - reward) * 2.0f };
 
-                        // Value network cost, the cost in a PPO environment is a single
-                        // value back-propagated throughout all the output neurons.
-                        Vector vdC = { (predictedReward - reward) * 2.0f };
-
-                        // Train the value network and delete dynamically allocated array.
                         valueNetwork.backward(vdC, va);
                         delete [] va;
 
-                        // If the current state has never been met, the old policy
-                        // is set to the current policy.
                         oldPolicies.insert({stateHash, policy});
 
                         //               ⌈      π𝜃ɴᴇᴡ(aₜ|sₜ)                           ⌉
@@ -306,23 +273,17 @@ void Network::_train_ppo(
                         const Vector clippedRatio  = ratio.clamp(1.0f - CLIP_EPSILON, 1.0f + CLIP_EPSILON);
                         const Vector surrogateLoss = (ratio * advantage).min(clippedRatio * advantage);
 
-                        // Replace the old policy with the new one, it is important to
-                        // save the policy after .max(EPSILON) is done to prevent division
-                        // by 0 in the 'ratio' calculation.
                         oldPolicies[stateHash] = policy;
 
-                        // Train the policy network and delete dynamically allocated array.
                         this->backward(surrogateLoss, pa);
                         delete [] pa;
                 }
 
-                // Delete advantages and reset environment in preparation for
-                // next epoch.
                 delete [] advantages;
                 environment.reset();
 
 #ifdef DEBUG_MODE_ENABLED
-                Logger::Log() << LOGGER_PREF(LOG_DEBUG) << "Training [" << i << "] done.\n";
+                Logger::Log() << LOGGER_PREF(LOG_DEBUG) << "Training [" << i << "] completed.\n";
 #endif // DEBUG_MODE_ENABLED
         }
 }

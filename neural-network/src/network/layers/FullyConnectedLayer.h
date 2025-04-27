@@ -1,10 +1,12 @@
 #pragma once
 
-#include <fstream>
+#include <cstdint>
+#include <ostream>
 #include <mutex>
 
-#include "../../types/Matrix.h"
-#include "../ILayer.h"
+#include <neural-network/network/ILayer.h>
+#include <neural-network/types/Matrix.h>
+#include <neural-network/types/Vector.h>
 
 class FullyConnectedLayer final : public ILayer {
 public:

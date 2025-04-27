@@ -2,6 +2,7 @@
 
 #include <string_view>
 #include <filesystem>
+#include <exception>
 #include <fstream>
 #include <string>
 

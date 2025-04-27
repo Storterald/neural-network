@@ -53,24 +53,24 @@ TEST(MatrixTest, PairAccessOperator) {
         Matrix m(10, 10);
         m[{9, 9}] = 3.0f;
 
-        EXPECT_EQ(m[std::pair(9, 9)], 3.0f);
+        EXPECT_EQ(m[{Matrix::Indexer(9, 9)}], 3.0f);
 }
 
 TEST(MatrixTest, PairAccessOperatorMatchesAccessOperator) {
         Matrix m(10, 10);
         m[{9, 9}] = 3.0f;
 
-        EXPECT_EQ(m[std::pair(9, 9)], m[9][9]);
+        EXPECT_EQ(m[Matrix::Indexer(9, 9)], m[9][9]);
 }
 
 TEST(MatrixTestDebug, PairAccessOperatorThrowsIfRowIndexOutOfBounds) {
         Matrix m(10, 10);
-        EXPECT_THROW(float value = m[std::pair(10, 9)], Logger::fatal_error);
+        EXPECT_THROW(float value = m[Matrix::Indexer(10, 9)], Logger::fatal_error);
 }
 
 TEST(MatrixTestDebug, PairAccessOperatorThrowsIfHeightIndexOutOfBounds) {
         Matrix m(10, 10);
-        EXPECT_THROW(float value = m[std::pair(9, 10)], Logger::fatal_error);
+        EXPECT_THROW(float value = m[Matrix::Indexer(9, 10)], Logger::fatal_error);
 }
 
 TEST(MatrixTest, AtFunction) {

@@ -1,7 +1,11 @@
-#include "Logger.h"
+#include <neural-network/utils/Logger.h>
 
+#include <string_view>
+#include <filesystem>
+#include <stdexcept>
 #include <iostream>
 #include <format>
+#include <string>
 #include <ctime>
 
 static constexpr std::string_view CONVERTER[4] {
@@ -18,9 +22,8 @@ static std::string _time()
 
         // Get time as formatted string
         std::time(&rawTime);
-        std::tm tm{};
-        localtime_s(&tm, &rawTime);
-        std::strftime(buffer, sizeof(buffer), "%X", &tm);
+        std::tm *tm = std::localtime(&rawTime);
+        std::strftime(buffer, sizeof(buffer), "%X", tm);
 
         return buffer;
 }
@@ -52,7 +55,7 @@ std::string Logger::pref(LogType type, std::string_view file, int line) {
 
 void Logger::_update_file()
 {
-        if (!m_file || ((uint32_t)m_file.tellp()) >= MAX_FILE_SIZE) {
+        if (!m_file || (uint32_t)m_file.tellp() >= MAX_FILE_SIZE) {
                 if (m_file)
                         m_file.close();
 
@@ -65,8 +68,5 @@ void Logger::_update_file()
 Logger::fatal_error::fatal_error(const std::string &message)
 {
         std::cout << message << std::endl;
-
-        // Flush (std::endl) forces to print everything that has not yet been
-        // printed.
         Logger::Log().m_file << message << std::endl;
 }

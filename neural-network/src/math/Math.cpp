@@ -1,7 +1,13 @@
-#include "Math.h"
+#include <neural-network/math/Math.h>
 
-#include "../intrinsic/Intrinsic.h"
-#include "_Math.h"
+#include <type_traits>
+#include <concepts>
+#include <cstdint>
+
+#include <neural-network/intrinsic/Intrinsic.h>
+#include <neural-network/utils/Macros.h>
+#include <neural-network/types/Data.h>
+#include <neural-network/math/_Math.h>
 
 template<typename T>
 static constexpr auto _get(T &&v, Data::DataLocation location)
