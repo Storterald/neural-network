@@ -210,7 +210,7 @@ template<> void _Math<MATH_AVX512>::tanh_derivative(
 
         const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
-        _Math<MATH_AVX512>::tanh(size, data, result);
+        _Math<MATH_AVX512>::tanh(size - end, data, result);
 
         const __m512 threshold = _mm512_set1_ps(4.9f);
         const __m512 zero      = _mm512_setzero_ps();

@@ -255,7 +255,7 @@ template<> void _Math<MATH_SSE3>::tanh_derivative(
         const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         // Tanh values are stored in the result array, then overwritten.
-        _Math<MATH_SSE3>::tanh(size, data, result);
+        _Math<MATH_SSE3>::tanh(size - end, data, result);
 
         const __m128 threshold = _mm_set1_ps(4.9f);
         const __m128 zero      = _mm_setzero_ps();

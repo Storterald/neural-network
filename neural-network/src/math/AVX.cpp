@@ -247,7 +247,7 @@ template<> void _Math<MATH_AVX>::tanh_derivative(
 
         const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
-        _Math<MATH_AVX>::tanh(size, data, result);
+        _Math<MATH_AVX>::tanh(size - end, data, result);
 
         const __m256 threshold = _mm256_set1_ps(4.9f);
         const __m256 zero      = _mm256_setzero_ps();
