@@ -10,6 +10,7 @@
 
 #include <neural-network/utils/Macros.h>
 #include <neural-network/types/Memory.h>
+#include <neural-network/Base.h>
 
 namespace Utils {
 
@@ -294,6 +295,8 @@ template<> void _Math<MATH_CUDA>:: __name__ (GET_ARGS(__VA_ARGS__))             
         CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in _Math<MATH_CUDA>::" #__name__);       \
 }
 
+NN_BEGIN
+
 DECLARE_CUDA_FUNCTION(sum, size,
         uint32_t,             size,
         const float *,        first,
@@ -421,3 +424,5 @@ DECLARE_CUDA_FUNCTION(matvec_mul, width,
         const float *,        matrix,
         const float *,        vector,
         float *,              result)
+
+NN_END

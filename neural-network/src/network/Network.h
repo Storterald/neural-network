@@ -9,6 +9,9 @@
 #include <neural-network/network/PPO/IEnvironment.h>
 #include <neural-network/network/ILayer.h>
 #include <neural-network/types/Vector.h>
+#include <neural-network/Base.h>
+
+NN_BEGIN
 
 class Network {
 public:
@@ -92,3 +95,5 @@ private:
                 uint32_t            maxSteps);
 
 }; // class Network
+
+NN_END

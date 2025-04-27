@@ -10,17 +10,17 @@
 #include <neural-network/types/Data.h>
 #include <neural-network/math/Math.h>
 
-static Vector _activation(
-        FunctionType        functionType,
-        const Vector        &input) {
+static NN Vector _activation(
+        NN FunctionType        functionType,
+        const NN Vector        &input) {
 
-        Vector result(input.size());
+        NN Vector result(input.size());
         switch (functionType) {
-        case TANH:
-                Math::tanh(input.size(), input, result);
+        case NN TANH:
+                NN Math::tanh(input.size(), input, result);
                 break;
-        case RELU:
-                Math::ReLU(input.size(), input, result);
+        case NN RELU:
+                NN Math::ReLU(input.size(), input, result);
                 break;
         default:
                 throw LOGGER_EX("Activation function not implemented.");
@@ -29,17 +29,17 @@ static Vector _activation(
         return result;
 }
 
-static Vector _activation_derivative(
-        FunctionType        functionType,
-        const Vector        &input) {
+static NN Vector _activation_derivative(
+        NN FunctionType        functionType,
+        const NN Vector        &input) {
 
-        Vector result(input.size());
+        NN Vector result(input.size());
         switch (functionType) {
-        case TANH:
-                Math::tanh_derivative(input.size(), input, result);
+        case NN TANH:
+                NN Math::tanh_derivative(input.size(), input, result);
                 break;
-        case RELU:
-                Math::ReLU_derivative(input.size(), input, result);
+        case NN RELU:
+                NN Math::ReLU_derivative(input.size(), input, result);
                 break;
         default:
                 throw LOGGER_EX("Activation function not implemented.");
@@ -47,6 +47,8 @@ static Vector _activation_derivative(
 
         return result;
 }
+
+NN_BEGIN
 
 FullyConnectedLayer::FullyConnectedLayer(
         uint32_t            previousLayerSize,
@@ -169,3 +171,5 @@ void FullyConnectedLayer::encode(std::ostream &out) const
                 (char *)(float *)m_b.as_span(Data::HOST),
                 std::streamsize(m_b.size() * sizeof(float)));
 }
+
+NN_END

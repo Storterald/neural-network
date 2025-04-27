@@ -18,6 +18,8 @@
 #include <neural-network/CudaBase.h>
 #endif // BUILD_CUDA_SUPPORT
 
+NN_BEGIN
+
 Matrix::Matrix(uint32_t width, uint32_t height) :
         Data(width * height),
         m_width(width),
@@ -212,3 +214,5 @@ Vector Matrix::operator* (const Vector &vec) const
 
         return result;
 }
+
+NN_END

@@ -3,6 +3,9 @@
 #include <memory>
 
 #include <neural-network/network/ILayer.h>
+#include <neural-network/Base.h>
+
+NN_BEGIN
 
 namespace Layer {
         std::unique_ptr<ILayer> create(
@@ -15,3 +18,5 @@ namespace Layer {
                 std::ifstream                &inputFile);
 
 } // namespace Layer
+
+NN_END

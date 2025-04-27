@@ -8,11 +8,12 @@
 #include <neural-network/utils/Macros.h>
 #include <neural-network/types/Data.h>
 #include <neural-network/math/_Math.h>
+#include <neural-network/Base.h>
 
 template<typename T>
-static constexpr auto _get(T &&v, Data::DataLocation location)
+static constexpr auto _get(T &&v, NN Data::DataLocation location)
 {
-        if constexpr (std::same_as<std::remove_cvref_t<T>, Data>)
+        if constexpr (std::same_as<std::remove_cvref_t<T>, NN Data>)
                 return v.as_span(location, true);
         else
                 return v;
@@ -54,6 +55,8 @@ void Math:: __name__ (GET_ARGS(__VA_ARGS__))                                    
         CHECK_IF_CUDA_MINIMUM(__name__, __size__, GET_ARGS_NAMES(__VA_ARGS__)); \
         SIMD_SWITCH(__name__, GET_ARGS_NAMES(__VA_ARGS__));                     \
 }
+
+NN_BEGIN
 
 DECLARE_MATH_FUNCTION(sum, size,
         uint32_t,            size,
@@ -173,3 +176,5 @@ DECLARE_MATH_FUNCTION(matvec_mul, width * height,
         const Data &,        matrix,
         const Data &,        vector,
         Data &,              result)
+
+NN_END

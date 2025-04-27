@@ -17,6 +17,8 @@
 #include <neural-network/CudaBase.h>
 #endif // BUILD_CUDA_SUPPORT
 
+NN_BEGIN
+
 Vector::Vector(uint32_t size) : Data(size) {}
 
 Vector::Vector(uint32_t size, const float values[]) : Data(size)
@@ -286,3 +288,5 @@ Vector Vector::clamp(const Vector &min, const Vector &max) const
 
         return result;
 }
+
+NN_END

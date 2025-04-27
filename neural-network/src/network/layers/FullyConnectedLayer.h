@@ -7,6 +7,9 @@
 #include <neural-network/network/ILayer.h>
 #include <neural-network/types/Matrix.h>
 #include <neural-network/types/Vector.h>
+#include <neural-network/Base.h>
+
+NN_BEGIN
 
 class FullyConnectedLayer final : public ILayer {
 public:
@@ -44,3 +47,5 @@ private:
                 float              result[]) const;
 
 }; // class FullyConnectedLayer
+
+NN_END

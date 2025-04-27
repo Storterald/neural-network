@@ -11,6 +11,8 @@
 #include <string>
 #endif // DEBUG_MODE_ENABLED
 
+NN_BEGIN
+
 class Vector : public Data {
 public:
         inline Vector() = default;
@@ -51,24 +53,26 @@ public:
 
 }; // class Vector
 
-[[nodiscard]] inline Vector operator+ (float scalar, const Vector &vec) {
+NN_END
+
+[[nodiscard]] inline NN Vector operator+ (float scalar, const NN Vector &vec) {
         return vec + scalar;
 }
 
-[[nodiscard]] inline Vector operator- (float scalar, const Vector &vec) {
+[[nodiscard]] inline NN Vector operator- (float scalar, const NN Vector &vec) {
         return vec - scalar;
 }
 
-[[nodiscard]] inline Vector operator* (float scalar, const Vector &vec) {
+[[nodiscard]] inline NN Vector operator* (float scalar, const NN Vector &vec) {
         return vec * scalar;
 }
 
-[[nodiscard]] inline Vector operator/ (float scalar, const Vector &vec) {
+[[nodiscard]] inline NN Vector operator/ (float scalar, const NN Vector &vec) {
         return vec / scalar;
 }
 
 #ifdef DEBUG_MODE_ENABLED
-inline std::ostream &operator<< (std::ostream &os, const Vector &vec)
+inline std::ostream &operator<< (std::ostream &os, const NN Vector &vec)
 {
         std::string str;
         for (uint32_t i = 0; i < vec.size() - 1; ++i)

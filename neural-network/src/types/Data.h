@@ -6,6 +6,8 @@
 
 #include <neural-network/types/Memory.h>
 
+NN_BEGIN
+
 class Data {
 public:
         enum DataLocation {
@@ -72,12 +74,16 @@ private:
 
 }; // class Data
 
+NN_END
+
 namespace std {
 
 template<>
-struct hash<Data> {
-        size_t operator() (const Data &data) const noexcept
+struct hash<NN Data> {
+        size_t operator() (const NN Data &data) const noexcept
         {
+                USE_NN
+
                 const float *span = data.as_span(Data::HOST);
 
                 uint64_t hash = 0;

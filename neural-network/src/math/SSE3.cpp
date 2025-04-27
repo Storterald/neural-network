@@ -6,6 +6,8 @@
 
 #include <cstdint>
 
+#include <neural-network/Base.h>
+
 using __mmask8 = int;
 
 #define _mm_abs_ps(v) _mm_and_ps(v, _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF)))
@@ -42,6 +44,8 @@ static inline __m128 _mm_mask_blend_ps(__mmask8 k, __m128 a, __m128 b)
 #define _mm_cmp_ps__CMP_GT_OQ _mm_cmpgt_ps
 
 #define _mm_cmp_ps_mask(a, b, cmp) _mm_movemask_ps(_mm_cmp_ps_##cmp(a, b))
+
+NN_BEGIN
 
 template<> void _Math<MATH_SSE3>::sum(
         uint32_t           size,
@@ -490,3 +494,5 @@ template<> void _Math<MATH_SSE3>::matvec_mul(
                         result[i] += matrix[i * width + j] * vector[j];
         }
 }
+
+NN_END

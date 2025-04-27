@@ -13,6 +13,8 @@
 #include <neural-network/CudaBase.h>
 #endif // BUILD_CUDA_SUPPORT
 
+NN_BEGIN
+
 Data::Data(uint32_t size) : m_size(size)
 #ifdef BUILD_CUDA_SUPPORT
         , m_device(size >= CUDA_MINIMUM)
@@ -130,3 +132,5 @@ bool Data::operator== (const Data &other) const
         Math::compare(m_size, *this, other, &ans);
         return ans;
 }
+
+NN_END

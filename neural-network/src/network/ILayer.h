@@ -3,6 +3,9 @@
 #include <cstdint>
 
 #include <neural-network/types/Vector.h>
+#include <neural-network/Base.h>
+
+NN_BEGIN
 
 enum FunctionType : uint32_t {
         TANH,
@@ -34,3 +37,5 @@ public:
         virtual ~ILayer() = default;
 
 }; // interface ILayer
+
+NN_END

@@ -8,6 +8,8 @@
 #include <string>
 #include <ctime>
 
+#include <neural-network/Base.h>
+
 static constexpr std::string_view CONVERTER[4] {
         "INFO ",
         "DEBUG",
@@ -27,6 +29,8 @@ static std::string _time()
 
         return buffer;
 }
+
+NN_BEGIN
 
 Logger::Logger() :
         m_dir(""),
@@ -70,3 +74,5 @@ Logger::fatal_error::fatal_error(const std::string &message)
         std::cout << message << std::endl;
         Logger::Log().m_file << message << std::endl;
 }
+
+NN_END

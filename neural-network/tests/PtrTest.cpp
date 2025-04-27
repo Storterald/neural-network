@@ -1,12 +1,15 @@
 #include <gtest/gtest.h>
 
 #include <neural-network/types/Memory.h>
+#include <neural-network/Base.h>
 
 #ifdef BUILD_CUDA_SUPPORT
 #include <cuda_runtime.h>
 
 #include <neural-network/CudaBase.h>
 #endif // BUILD_CUDA_SUPPORT
+
+USE_NN
 
 TEST(PtrTest, ConstructorWorksWithNullptrOnHost) {
         EXPECT_NO_THROW(Ptr<float> p(nullptr, false));

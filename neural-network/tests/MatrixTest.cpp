@@ -4,6 +4,9 @@
 
 #include <neural-network/types/Matrix.h>
 #include <neural-network/utils/Logger.h>
+#include <neural-network/Base.h>
+
+USE_NN
 
 TEST(MatrixTest, DefaultConstructorInitializesEmptyData) {
         Matrix m{};

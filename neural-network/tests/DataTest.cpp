@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 
 #include <neural-network/types/Data.h>
+#include <neural-network/Base.h>
+
+USE_NN
 
 TEST(DataTest, DefaultConstructorInitializesEmptyData) {
         Data data{};

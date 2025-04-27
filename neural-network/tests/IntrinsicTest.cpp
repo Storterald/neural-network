@@ -3,6 +3,9 @@
 #include <intrin.h>
 
 #include <neural-network/intrinsic/Intrinsic.h>
+#include <neural-network/Base.h>
+
+USE_NN
 
 TEST(IntrinsicTest, CpuSIMDSupportIsCorrectlyDetected) {
         constexpr int EAX = 0;

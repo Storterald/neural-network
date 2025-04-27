@@ -29,6 +29,8 @@
 #define CUDA_CHECK_ERROR(f, ...) f
 #endif // DEBUG_MODE_ENABLED
 
+NN_BEGIN
+
 // Math related constants.
 constexpr uint32_t BLOCK_BITSHIFT = 8;
 constexpr uint32_t BLOCK_SIZE = 1 << BLOCK_BITSHIFT;
@@ -36,3 +38,5 @@ constexpr uint32_t BLOCK_SIZE = 1 << BLOCK_BITSHIFT;
 // Since copying data to the GPU and back, and launching CUDA kernels
 // has a cost, for small amount of data it's not worth it to use CUDA.
 constexpr uint32_t CUDA_MINIMUM = 10000;
+
+NN_END

@@ -3,6 +3,9 @@
 #include <cstdint>
 
 #include <neural-network/types/Data.h>
+#include <neural-network/Base.h>
+
+NN_BEGIN
 
 namespace Math {
         void sum(
@@ -125,3 +128,5 @@ namespace Math {
                 Data              &result);
 
 } // namespace Math
+
+NN_END

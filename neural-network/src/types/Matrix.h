@@ -12,6 +12,8 @@
 #include <string>
 #endif // DEBUG_MODE_ENABLED
 
+NN_BEGIN
+
 class Matrix : public Data {
 public:
         struct Indexer {
@@ -63,24 +65,26 @@ private:
 
 }; // class Matrix
 
-[[nodiscard]] inline Matrix operator+ (float scalar, const Matrix &mat) {
+NN_END
+
+[[nodiscard]] inline NN Matrix operator+ (float scalar, const NN Matrix &mat) {
         return mat + scalar;
 }
 
-[[nodiscard]] inline Matrix operator- (float scalar, const Matrix &mat) {
+[[nodiscard]] inline NN Matrix operator- (float scalar, const NN Matrix &mat) {
         return mat - scalar;
 }
 
-[[nodiscard]] inline Matrix operator* (float scalar, const Matrix &mat) {
+[[nodiscard]] inline NN Matrix operator* (float scalar, const NN Matrix &mat) {
         return mat * scalar;
 }
 
-[[nodiscard]] inline Matrix operator/ (float scalar, const Matrix &mat) {
+[[nodiscard]] inline NN Matrix operator/ (float scalar, const NN Matrix &mat) {
         return mat / scalar;
 }
 
 #ifdef DEBUG_MODE_ENABLED
-inline std::ostream &operator<< (std::ostream &os, const Matrix &mat)
+inline std::ostream &operator<< (std::ostream &os, const NN Matrix &mat)
 {
         std::string str;
         for (uint32_t i = 0; i < mat.height(); ++i) {

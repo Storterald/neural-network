@@ -4,6 +4,9 @@
 
 #include <neural-network/types/Vector.h>
 #include <neural-network/utils/Logger.h>
+#include <neural-network/Base.h>
+
+USE_NN
 
 TEST(VectorTest, DefaultConstructorInitializesEmptyData) {
         Vector v{};

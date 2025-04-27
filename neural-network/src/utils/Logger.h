@@ -6,12 +6,17 @@
 #include <fstream>
 #include <string>
 
+#include <neural-network/Base.h>
+
+NN_BEGIN
+
 enum LogType {
         LOG_INFO,
         LOG_DEBUG,
         LOG_ERROR,
         LOG_FATAL
-};
+
+}; // enum LogType
 
 class Logger {
 public:
@@ -50,7 +55,9 @@ private:
 
         void _update_file();
 
-};
+}; // class Logger
 
-#define LOGGER_PREF(type) Logger::pref(type, __FILE__, __LINE__)
-#define LOGGER_EX(msg) Logger::fatal_error(LOGGER_PREF(LOG_FATAL) + msg)
+NN_END
+
+#define LOGGER_PREF(type) NN Logger::pref(NN LOG_##type, __FILE__, __LINE__)
+#define LOGGER_EX(msg) NN Logger::fatal_error(LOGGER_PREF(FATAL) + msg)

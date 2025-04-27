@@ -6,6 +6,8 @@
 #include <neural-network/utils/Logger.h>
 #include <neural-network/Base.h>
 
+NN_BEGIN
+
 template<typename>
 class Ptr;
 
@@ -276,3 +278,5 @@ private:
         uint32_t                     m_size;
 
 }; // class Span
+
+NN_END

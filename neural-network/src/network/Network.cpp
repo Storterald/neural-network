@@ -11,6 +11,9 @@
 #include <neural-network/network/Layer.h>
 #include <neural-network/types/Vector.h>
 #include <neural-network/utils/Logger.h>
+#include <neural-network/Base.h>
+
+NN_BEGIN
 
 Network::Network(
         uint32_t                           inputSize,
@@ -237,7 +240,7 @@ void Network::_train_ppo(
                 }
 
 #ifdef DEBUG_MODE_ENABLED
-                Logger::Log() << LOGGER_PREF(LOG_DEBUG) << "Execution [" << i << "] done.\n";
+                Logger::Log() << LOGGER_PREF(DEBUG) << "Execution [" << i << "] done.\n";
 #endif // DEBUG_MODE_ENABLED
 
                 const auto STATE_COUNT = (uint32_t)iterationData.size();
@@ -283,7 +286,9 @@ void Network::_train_ppo(
                 environment.reset();
 
 #ifdef DEBUG_MODE_ENABLED
-                Logger::Log() << LOGGER_PREF(LOG_DEBUG) << "Training [" << i << "] completed.\n";
+                Logger::Log() << LOGGER_PREF(DEBUG) << "Training [" << i << "] completed.\n";
 #endif // DEBUG_MODE_ENABLED
         }
 }
+
+NN_END

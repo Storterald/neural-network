@@ -1,11 +1,14 @@
 #pragma once
 
+namespace nn {
+
 enum SIMD {
         SIMD_UNSUPPORTED,
         SIMD_SSE3,
         SIMD_AVX,
         SIMD_AVX512
-};
+
+}; // enum SIMD
 
 extern "C" {
         extern SIMD get_SIMD_support();
@@ -20,3 +23,5 @@ namespace Intrinsic {
         }
 
 } // namespace Intrinsic
+
+} // namespace nn

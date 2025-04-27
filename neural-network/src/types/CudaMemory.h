@@ -9,6 +9,8 @@
 #include <neural-network/CudaBase.h>
 #include <neural-network/Base.h>
 
+NN_BEGIN
+
 template<typename>
 class Ptr;
 
@@ -475,3 +477,5 @@ private:
         }
 
 }; // class Span
+
+NN_END

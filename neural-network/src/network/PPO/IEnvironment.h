@@ -3,6 +3,9 @@
 #include <utility>
 
 #include <neural-network/types/Vector.h>
+#include <neural-network/Base.h>
+
+NN_BEGIN
 
 class IEnvironment {
 public:
@@ -15,3 +18,5 @@ public:
         virtual ~IEnvironment() = default;
 
 }; // interface IEnvironment
+
+NN_END

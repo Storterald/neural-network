@@ -4,6 +4,8 @@
 
 #include <cstdint>
 
+#include <neural-network/Base.h>
+
 #define _mm256_abs_ps(X) (_mm256_and_ps(X, _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF))))
 #define _mm256_cmp_ps_mask(a, b, cmp) ((__mmask8)_mm256_movemask_ps(_mm256_cmp_ps(a, b, cmp)))
 
@@ -40,6 +42,8 @@ static inline __m256 __mm256_mask_blend_ps(__mmask8 k, __m256 a, __m256 b)
 }
 
 #define _mm256_mask_blend_ps __mm256_mask_blend_ps
+
+NN_BEGIN
 
 template<> void _Math<MATH_AVX>::sum(
         uint32_t           size,
@@ -483,3 +487,5 @@ template<> void _Math<MATH_AVX>::matvec_mul(
                         result[i] += matrix[i * width + j] * vector[j];
         }
 }
+
+NN_END

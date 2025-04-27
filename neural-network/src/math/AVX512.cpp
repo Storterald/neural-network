@@ -4,6 +4,10 @@
 
 #include <cstdint>
 
+#include <neural-network/Base.h>
+
+NN_BEGIN
+
 template<> void _Math<MATH_AVX512>::sum(
         uint32_t           size,
         const float        first[],
@@ -446,3 +450,5 @@ template<> void _Math<MATH_AVX512>::matvec_mul(
                         result[i] += matrix[i * width + j] * vector[j];
         }
 }
+
+NN_END

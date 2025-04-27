@@ -2,6 +2,10 @@
 
 #include <cstdint>
 
+#include <neural-network/Base.h>
+
+NN_BEGIN
+
 enum MathType : uint32_t {
         MATH_NORMAL =  0,
         MATH_SSE3   =  4,
@@ -10,7 +14,8 @@ enum MathType : uint32_t {
 #ifdef BUILD_CUDA_SUPPORT
         , MATH_CUDA = (uint32_t)-1
 #endif // BUILD_CUDA_SUPPORT
-};
+
+}; // enum MathType
 
 template<MathType T>
 class _Math {
@@ -137,3 +142,5 @@ public:
                 float              result[]);
 
 }; // class _Math
+
+NN_END

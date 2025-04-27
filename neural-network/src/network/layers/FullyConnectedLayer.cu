@@ -34,6 +34,8 @@ namespace Kernels {
 
 } // namespace Kernels
 
+NN_BEGIN
+
 void FullyConnectedLayer::_d_backward(
         const float        input[],
         float              dw[],
@@ -48,3 +50,5 @@ void FullyConnectedLayer::_d_backward(
         CUDA_CHECK_ERROR(cudaGetLastError(), "backward kernel launch failed.");
         CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in FullyConnectedLayer::_d_backward.");
 }
+
+NN_END

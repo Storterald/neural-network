@@ -7,6 +7,9 @@
 #include <neural-network/network/layers/FullyConnectedLayer.h>
 #include <neural-network/network/ILayer.h>
 #include <neural-network/utils/Logger.h>
+#include <neural-network/Base.h>
+
+NN_BEGIN
 
 std::unique_ptr<ILayer> Layer::create(
         uint32_t                     previousLayerSize,
@@ -36,3 +39,5 @@ std::unique_ptr<ILayer> Layer::create(
                 throw LOGGER_EX("Layer type not recognized.");
         }
 }
+
+NN_END
