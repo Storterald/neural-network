@@ -47,11 +47,6 @@ public:
                 return m_size;
         }
 
-        [[nodiscard]] constexpr bool device() const noexcept
-        {
-                return m_device;
-        }
-
         [[nodiscard]] inline Span<float> as_span(DataLocation location = KEEP, bool updateOnDestruction = false) const
         {
                 const bool device = location == KEEP ? m_device : location == DEVICE;

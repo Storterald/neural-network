@@ -34,10 +34,6 @@ endif ()
 set(SRC_DIR "${CMAKE_CURRENT_LIST_DIR}/src")
 set(INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/include")
 
-file(REMOVE_RECURSE ${INCLUDE_DIR})
-file(COPY "${SRC_DIR}/" DESTINATION "${INCLUDE_DIR}/neural-network"
-        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.cuh")
-
 add_library(NeuralNetworkHeaders INTERFACE)
 target_include_directories(NeuralNetworkHeaders INTERFACE ${INCLUDE_DIR})
 add_library(NeuralNetwork::Headers ALIAS NeuralNetworkHeaders)
@@ -49,6 +45,17 @@ file(GLOB_RECURSE SOURCES
 add_library(NeuralNetworkLib STATIC ${SOURCES} ${CUDA_SOURCES})
 target_link_libraries(NeuralNetworkLib PRIVATE NeuralNetwork::Headers)
 add_library(NeuralNetwork::Lib ALIAS NeuralNetworkLib)
+
+file(GLOB_RECURSE HEADERS
+        "${SRC_DIR}/*.h"
+        "${SRC_DIR}/*.hpp"
+        "${SRC_DIR}/*.cuh")
+
+add_custom_target(NeuralNetworkInstall ALL
+        COMMAND ${CMAKE_COMMAND} -D INCLUDE_DIR=${INCLUDE_DIR} -D SRC_DIR=${SRC_DIR}
+                -P "${CMAKE_CURRENT_LIST_DIR}/cmake/install_headers.cmake"
+        COMMENT "Copied headers to '${INCLUDE_DIR}/neural-network'.")
+add_dependencies(NeuralNetworkLib NeuralNetworkInstall)
 
 if (BUILD_CUDA_SUPPORT)
         enable_language(CUDA)

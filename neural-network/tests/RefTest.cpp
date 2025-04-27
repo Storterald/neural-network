@@ -1,10 +1,11 @@
 #include <gtest/gtest.h>
 
 #include <neural-network/types/Memory.h>
-#include <neural-network/Base.h>
 
 #ifdef BUILD_CUDA_SUPPORT
-#include "CudaTestHelper.h"
+#include <cuda_runtime.h>
+
+#include <neural-network/CudaBase.h>
 #endif // BUILD_CUDA_SUPPORT
 
 TEST(RefTest, ConstructorThrowsWithNullptrOnHost) {
@@ -75,6 +76,7 @@ TEST(RefTest, AssignmentOperatorCorrectlySetsValueInTheHost) {
         EXPECT_EQ(&r, &v);
 }
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(RefTest, AssignmentOperatorCorrectlySetsValueInTheDevice) {
         float *d_v;
         CUDA_CHECK_ERROR(cudaMalloc(&d_v, sizeof(float)),
@@ -93,6 +95,7 @@ TEST(RefTest, AssignmentOperatorCorrectlySetsValueInTheDevice) {
 
         CUDA_CHECK_ERROR(cudaFree(d_v), "Failed to free GPU memory.");
 }
+#endif // BUILD_CUDA_SUPPORT
 
 TEST(RefTest, ComparisonOperatorReturnsTrueWhenBothReferTheSameValue) {
         float v1 = 13;

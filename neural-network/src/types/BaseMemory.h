@@ -36,7 +36,7 @@ public:
 
         inline Ptr() noexcept : m_pointer(nullptr) {}
 
-        Ptr(T *ptr, bool, void *) noexcept : m_pointer(ptr) {}
+        Ptr(T *ptr, bool, void * = 0) noexcept : m_pointer(ptr) {}
 
         [[nodiscard]] constexpr bool operator== (const Ptr &other) const noexcept
         {
@@ -86,6 +86,11 @@ public:
         [[nodiscard]] constexpr Ptr operator- (uint32_t offset) const noexcept
         {
                 return { m_pointer - offset, false };
+        }
+
+        [[nodiscard]] constexpr difference_type operator- (const Ptr &other) const noexcept
+        {
+                return m_pointer - other.m_pointer;
         }
 
         constexpr Ptr &operator+= (uint32_t offset) noexcept
@@ -160,7 +165,7 @@ class Ref {
 public:
         using value_type = T;
 
-        Ref(T *pValue, bool, void *) : m_ptr(pValue, false) {
+        Ref(T *pValue, bool, void * = 0) : m_ptr(pValue, false) {
                 if (!pValue)
                         throw LOGGER_EX("Cannot create null reference.");
         }

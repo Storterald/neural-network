@@ -1,15 +1,16 @@
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+
+#include <algorithm>
+#include <vector>
 
 #include <neural-network/types/Matrix.h> // used for easier test of the matvec_mul function
 #include <neural-network/types/Vector.h> // used as a device memory container
 #include <neural-network/math/_Math.h>
-#include <algorithm>
-#include <vector>
 
-#define EXPECT_EQ_FLOAT_VEC(expected, actual, thresh)           \
-do {                                                            \
-        for (uint32_t idx = 0; idx < expected.size(); ++idx)    \
-            EXPECT_NEAR(expected[idx], actual[idx], thresh);    \
+#define EXPECT_EQ_FLOAT_VEC(expected, actual, thresh)                   \
+do {                                                                    \
+        for (uint32_t idx = 0; idx < expected.size(); ++idx)            \
+                EXPECT_NEAR(expected[idx], actual[idx], thresh);        \
 } while (false)
 
 TEST(MathTest, Sum) {

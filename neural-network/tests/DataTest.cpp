@@ -14,12 +14,14 @@ TEST(DataTest, DataIsCorrectlyAllocatedOnCPU) {
 
         EXPECT_NE(data.data(), nullptr);
         EXPECT_EQ(data.size(), 10);
-        EXPECT_NO_FATAL_FAILURE(float value = data.data()[9]);
+
+        Span s = data.as_span();
+        EXPECT_NO_FATAL_FAILURE(float value = s[9]);
 }
 
 TEST(DataTest, CopyConstructorCorrectlyCopiesData) {
         Data data1(10);
-        Span<float> s1(data1.as_span());
+        Span s1 = data1.as_span();
         for (uint32_t i = 0; i < 10; ++i)
                 s1[i] = 1;
         s1.update();
@@ -29,14 +31,14 @@ TEST(DataTest, CopyConstructorCorrectlyCopiesData) {
         EXPECT_NE(data1.data(), data2.data());
         EXPECT_EQ(data2.size(), 10);
 
-        Span<float> s2(data2.as_span());
+        Span s2 = data2.as_span();
         for (uint32_t i = 0; i < 10; ++i)
                 EXPECT_EQ(s1[i], s2[i]);
 }
 
 TEST(DataTest, CopyAssignmentInitializationCorrectlyCopiesData) {
         Data data1(10);
-        Span<float> s1(data1.as_span());
+        Span s1 = data1.as_span();
         for (uint32_t i = 0; i < 10; ++i)
                 s1[i] = 1;
         s1.update();
@@ -46,7 +48,7 @@ TEST(DataTest, CopyAssignmentInitializationCorrectlyCopiesData) {
         EXPECT_NE(data1.data(), data2.data());
         EXPECT_EQ(data1.size(), data2.size());
 
-        Span<float> s2(data2.as_span());
+        Span s2 = data2.as_span();
         for (uint32_t i = 0; i < 10; ++i)
                 EXPECT_EQ(s1[i], s2[i]);
 }
@@ -54,7 +56,7 @@ TEST(DataTest, CopyAssignmentInitializationCorrectlyCopiesData) {
 
 TEST(DataTest, CopyAssignmentCorrectlyCopiesData) {
         Data data1(10);
-        Span<float> s1(data1.as_span());
+        Span s1 = data1.as_span();
         for (uint32_t i = 0; i < 10; ++i)
                 s1[i] = 1;
         s1.update();
@@ -66,7 +68,7 @@ TEST(DataTest, CopyAssignmentCorrectlyCopiesData) {
         EXPECT_NE(data1.data(), data2.data());
         EXPECT_EQ(data1.size(), data2.size());
 
-        Span<float> s2(data2.as_span());
+        Span s2 = data2.as_span();
         for (uint32_t i = 0; i < 10; ++i)
                 EXPECT_EQ(s1[i], s2[i]);
 }

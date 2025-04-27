@@ -3,6 +3,10 @@
 #include <neural-network/types/Memory.h>
 
 #ifdef BUILD_CUDA_SUPPORT
+#include <cuda_runtime.h>
+
+#include <neural-network/CudaBase.h>
+
 #include "CudaTestHelper.h"
 #endif // BUILD_CUDA_SUPPORT
 

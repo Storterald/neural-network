@@ -130,6 +130,11 @@ public:
                 return { m_pointer - offset, m_device, m_stream };
         }
 
+        [[nodiscard]] constexpr difference_type operator- (const Ptr &other) const noexcept
+        {
+                return m_pointer - other.m_pointer;
+        }
+
         constexpr Ptr &operator+= (uint32_t offset) noexcept
         {
                 m_pointer += offset;

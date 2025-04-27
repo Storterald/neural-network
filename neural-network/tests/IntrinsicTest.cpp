@@ -1,7 +1,8 @@
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+
+#include <intrin.h>
 
 #include <neural-network/intrinsic/Intrinsic.h>
-#include <intrin.h>
 
 TEST(IntrinsicTest, CpuSIMDSupportIsCorrectlyDetected) {
         constexpr int EAX = 0;

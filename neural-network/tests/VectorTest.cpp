@@ -1,4 +1,6 @@
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+
+#include <initializer_list>
 
 #include <neural-network/types/Vector.h>
 #include <neural-network/utils/Logger.h>
