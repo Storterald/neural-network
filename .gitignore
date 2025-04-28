@@ -9,7 +9,6 @@ build/
 # other
 libs/
 neural-network/mock/logs
-neural-network/include
 
 # files
 **/*.csv

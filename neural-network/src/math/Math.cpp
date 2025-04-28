@@ -7,8 +7,8 @@
 #include <neural-network/intrinsic/Intrinsic.h>
 #include <neural-network/utils/Macros.h>
 #include <neural-network/types/Data.h>
-#include <neural-network/math/_Math.h>
 #include <neural-network/Base.h>
+#include "_Math.h"
 
 template<typename T>
 static constexpr auto _get(T &&v, NN Data::DataLocation location)

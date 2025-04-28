@@ -5,8 +5,8 @@
 
 #include <neural-network/types/Matrix.h> // used for easier test of the matvec_mul function
 #include <neural-network/types/Vector.h> // used as a device memory container
-#include <neural-network/math/_Math.h>
 #include <neural-network/Base.h>
+#include "../src/math/_Math.h"
 
 #define EXPECT_EQ_FLOAT_VEC(expected, actual, thresh)                   \
 do {                                                                    \

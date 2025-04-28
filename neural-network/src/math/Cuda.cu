@@ -1,4 +1,4 @@
-#include <neural-network/math/_Math.h>
+#include "_Math.h"
 
 #include <cuda_runtime.h>
 #include <cuda/std/__algorithm/clamp.h>

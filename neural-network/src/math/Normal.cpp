@@ -1,4 +1,4 @@
-#include <neural-network/math/_Math.h>
+#include "_Math.h"
 
 #include <algorithm>
 #include <cstdint>
