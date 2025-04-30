@@ -1,13 +1,13 @@
-#include <neural-network/network/layers/FullyConnectedLayer.h>
+#include <neural-network/network/layers/fully_connected_layer.h>
 
 #include <cuda_runtime.h>
 
 #include <cstdint>
 
-#include <neural-network/types/Data.h>
-#include <neural-network/CudaBase.h>
+#include <neural-network/types/buf.h>
+#include <neural-network/cuda_base.h>
 
-namespace Kernels {
+namespace kernels {
 
         __global__ void backward(
                 uint32_t           width,
@@ -32,23 +32,23 @@ namespace Kernels {
                 result[k] = dCe;
         }
 
-} // namespace Kernels
+} // namespace kernels
 
-NN_BEGIN
+namespace nn {
 
-void FullyConnectedLayer::_d_backward(
+void fully_connected_layer::_d_backward(
         const float        input[],
         float              dw[],
         const float        db[],
         float              result[]) const {
 
         const uint32_t BLOCKS_COUNT = (m_w.width() + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT;
-        Kernels::backward<<<BLOCKS_COUNT, BLOCK_SIZE>>>(
+        kernels::backward<<<BLOCKS_COUNT, BLOCK_SIZE>>>(
                 m_w.width(), m_w.height(), input,
-                m_w.as_span(Data::DEVICE), dw, db, result);
+                m_w.as_span(nn::buf::DEVICE), dw, db, result);
 
         CUDA_CHECK_ERROR(cudaGetLastError(), "backward kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in FullyConnectedLayer::_d_backward.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in fully_connected_layer::_d_backward.");
 }
 
-NN_END
+} // namespace nn

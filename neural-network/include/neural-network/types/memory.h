@@ -11,7 +11,7 @@
  */
 
 #ifdef BUILD_CUDA_SUPPORT
-#include "CudaMemory.h"
+#include "_memory_cuda.h"
 #else // BUILD_CUDA_SUPPORT
-#include "BaseMemory.h"
+#include "_memory_cpu.h"
 #endif // BUILD_CUDA_SUPPORT

@@ -1,18 +1,17 @@
-#include "_Math.h"
+#include "_math.h"
 
-#include <cuda_runtime.h>
 #include <cuda/std/__algorithm/clamp.h>
 #include <cuda/std/__algorithm/max.h>
 #include <cuda/std/__algorithm/min.h>
 #include <cuda/std/cmath>
+#include <cuda_runtime.h>
 
 #include <cstdint>
 
-#include <neural-network/utils/Macros.h>
-#include <neural-network/types/Memory.h>
-#include <neural-network/Base.h>
+#include <neural-network/utils/macros.h>
+#include <neural-network/types/memory.h>
 
-namespace Utils {
+namespace utils {
 
         __device__ inline float tanh(float x)
         {
@@ -32,13 +31,13 @@ namespace Utils {
                 if (cuda::std::fabsf(x) > 4.9f)
                         return 0.0f;
 
-                const float tanh = Utils::tanh(x);
+                const float tanh = utils::tanh(x);
                 return 1.0f - tanh * tanh;
         }
 
-} // namespace Utils
+} // namespace utils
 
-namespace Kernels {
+namespace kernels {
 
         __global__ void sum(
                 uint32_t           size,
@@ -144,7 +143,7 @@ namespace Kernels {
                 const uint32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
                 
                 if (idx < size)
-                        result[idx] = Utils::tanh(data[idx]);
+                        result[idx] = utils::tanh(data[idx]);
         }
 
         __global__ void tanh_derivative(
@@ -155,7 +154,7 @@ namespace Kernels {
                 const uint32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
                 
                 if (idx < size)
-                        result[idx] = Utils::tanh_derivative(data[idx]);
+                        result[idx] = utils::tanh_derivative(data[idx]);
         }
 
         __global__ void ReLU(
@@ -284,18 +283,18 @@ namespace Kernels {
                 result[row] = sum;
         }
 
-} // namespace Kernels
+} // namespace kernels
 
 #define DECLARE_CUDA_FUNCTION(__name__, __size__, ...)                                                          \
-template<> void _Math<MATH_CUDA>:: __name__ (GET_ARGS(__VA_ARGS__))                                             \
+template<> void _math<MATH_CUDA>:: __name__ (GET_ARGS(__VA_ARGS__))                                             \
 {                                                                                                               \
         const uint32_t BLOCKS_COUNT = ((__size__) + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT;                          \
-        Kernels:: __name__ <<<BLOCKS_COUNT, BLOCK_SIZE>>>(GET_ARGS_NAMES(__VA_ARGS__));                         \
-        CUDA_CHECK_ERROR(cudaGetLastError(), "Kernels::" #__name__ " launch failed.");                          \
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in _Math<MATH_CUDA>::" #__name__);       \
+        kernels:: __name__ <<<BLOCKS_COUNT, BLOCK_SIZE>>>(GET_ARGS_NAMES(__VA_ARGS__));                         \
+        CUDA_CHECK_ERROR(cudaGetLastError(), "kernels::" #__name__ " launch failed.");                          \
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in _math<MATH_CUDA>::" #__name__);       \
 }
 
-NN_BEGIN
+namespace nn {
 
 DECLARE_CUDA_FUNCTION(sum, size,
         uint32_t,             size,
@@ -403,17 +402,17 @@ DECLARE_CUDA_FUNCTION(clamp, size,
         float,                max,
         float *,              result)
 
-template<> void _Math<MATH_CUDA>::compare(
+template<> void _math<MATH_CUDA>::compare(
         uint32_t           size,
         const float        first[],
         const float        second[],
         bool               *result) {
 
         *result = true;
-        Span<bool> s(1, true, result, false, true);
+        span s(1, true, result, false, true);
 
         const uint32_t BLOCKS_COUNT = (size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT;
-        Kernels::compare<<<BLOCKS_COUNT, BLOCK_SIZE>>>(size, first, second, s);
+        kernels::compare<<<BLOCKS_COUNT, BLOCK_SIZE>>>(size, first, second, s);
         CUDA_CHECK_ERROR(cudaGetLastError(), "Kernels::compare launch failed.");
         CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in _Math<MATH_CUDA>::compare");
 }
@@ -425,4 +424,4 @@ DECLARE_CUDA_FUNCTION(matvec_mul, width,
         const float *,        vector,
         float *,              result)
 
-NN_END
+} // namespace nn

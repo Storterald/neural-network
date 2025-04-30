@@ -1,4 +1,4 @@
-#include <neural-network/network/Network.h>
+#include <neural-network/network/network.h>
 
 #include <unordered_map>
 #include <filesystem>
@@ -7,18 +7,18 @@
 #include <vector>
 #include <future>
 
-#include <neural-network/network/PPO/IEnvironment.h>
-#include <neural-network/network/Layer.h>
-#include <neural-network/types/Vector.h>
-#include <neural-network/utils/Logger.h>
-#include <neural-network/Base.h>
+#include <neural-network/network/PPO/environment.h>
+#include <neural-network/network/layer.h>
+#include <neural-network/types/vector.h>
+#include <neural-network/utils/logger.h>
+#include <neural-network/base.h>
 
-NN_BEGIN
+namespace nn {
 
-Network::Network(
+network::network(
         uint32_t                           inputSize,
         uint32_t                           layerCount,
-        const LayerCreateInfo              layerInfos[],
+        const layer_create_info            layerInfos[],
         const std::filesystem::path        &path) :
 
         m_layerCount(layerCount + 1),
@@ -27,15 +27,15 @@ Network::Network(
         m_L(_create_layers(layerCount, layerInfos, path.string().c_str())),
         m_n(_get_sizes(layerCount, layerInfos)) {}
 
-Network::~Network()
+network::~network()
 {
         delete[] m_L;
         delete[] m_n;
 }
 
-Vector Network::forward(Vector aL) const
+vector network::forward(vector aL) const
 {
-        // Not passing as const ref to avoid creating an extra Vector to store
+        // Not passing as const ref to avoid creating an extra vector to store
         // the current activation values.
 
         for (uint32_t L = 0; L < m_layerCount - 1; ++L)
@@ -44,9 +44,9 @@ Vector Network::forward(Vector aL) const
         return aL;
 }
 
-void Network::backward(const Vector &input, const Vector &dC)
+void network::backward(const vector &input, const vector &dC)
 {
-        auto a = new Vector[m_layerCount];
+        auto a = new vector[m_layerCount];
         a[0]   = input;
 
         for (uint32_t L = 1; L < m_layerCount; ++L)
@@ -58,13 +58,13 @@ void Network::backward(const Vector &input, const Vector &dC)
 }
 
 
-void Network::backward(Vector dC, const Vector a[])
+void network::backward(vector dC, const vector a[])
 {
         for (int32_t L = (int32_t)m_layerCount - 2; L >= 0; --L)
                 dC = m_L[L]->backward(dC, a[L]);
 }
 
-void Network::train_supervised(
+void network::train_supervised(
         uint32_t           sampleCount,
         const float        inputs[],
         const float        outputs[]) {
@@ -96,7 +96,7 @@ void Network::train_supervised(
                 f.get();
 }
 
-void Network::encode(const std::filesystem::path &path) const
+void network::encode(const std::filesystem::path &path) const
 {
         std::ofstream file(path, std::ios::binary);
         if (!file)
@@ -108,27 +108,27 @@ void Network::encode(const std::filesystem::path &path) const
         file.close();
 }
 
-std::unique_ptr<ILayer> *Network::_create_layers(
-        uint32_t                     layerCount,
-        const LayerCreateInfo        *layerInfos) const {
+std::unique_ptr<layer> *network::_create_layers(
+        uint32_t                       layerCount,
+        const layer_create_info        *layerInfos) const {
 
         if (layerCount == 0)
                 throw LOGGER_EX("Cannot initialize Network with no layers. The "
                                 "minimum required amount is 1, the output layer.");
 
-        auto layers = new std::unique_ptr<ILayer>[layerCount];
-        layers[0]   = Layer::create(m_inputSize, layerInfos[0]);
+        auto layers = new std::unique_ptr<layer>[layerCount];
+        layers[0]   = layer::create(m_inputSize, layerInfos[0]);
 
         for (uint32_t L = 1; L < layerCount; ++L)
-                layers[L] = Layer::create(layerInfos[L - 1].neuronCount, layerInfos[L]);
+                layers[L] = layer::create(layerInfos[L - 1].neuronCount, layerInfos[L]);
 
         return layers;
 }
 
-std::unique_ptr<ILayer> *Network::_create_layers(
-        uint32_t                     layerCount,
-        const LayerCreateInfo        *layerInfos,
-        const std::string_view       &path) const {
+std::unique_ptr<layer> *network::_create_layers(
+        uint32_t                       layerCount,
+        const layer_create_info        *layerInfos,
+        const std::string_view         &path) const {
 
         namespace fs = std::filesystem;
 
@@ -143,19 +143,19 @@ std::unique_ptr<ILayer> *Network::_create_layers(
                 throw LOGGER_EX("File given to Network() does not exist.");
 
         std::ifstream file(fs::path(path), std::ios::binary);
-        auto layers = new std::unique_ptr<ILayer>[layerCount];
-        layers[0]   = Layer::create(m_inputSize, layerInfos[0], file);
+        auto layers = new std::unique_ptr<layer>[layerCount];
+        layers[0]   = layer::create(m_inputSize, layerInfos[0], file);
 
         for (uint32_t L = 1; L < layerCount; ++L)
-                layers[L] = Layer::create(layerInfos[L - 1].neuronCount, layerInfos[L], file);
+                layers[L] = layer::create(layerInfos[L - 1].neuronCount, layerInfos[L], file);
 
         file.close();
         return layers;
 }
 
-uint32_t *Network::_get_sizes(
-        uint32_t                     layerCount,
-        const LayerCreateInfo        *layerInfos) const {
+uint32_t *network::_get_sizes(
+        uint32_t                       layerCount,
+        const layer_create_info        *layerInfos) const {
 
         auto sizes = new uint32_t[layerCount];
         sizes[0]   = m_inputSize;
@@ -166,7 +166,7 @@ uint32_t *Network::_get_sizes(
         return sizes;
 }
 
-std::future<void> Network::_get_supervised_future(
+std::future<void> network::_get_supervised_future(
         uint32_t           start,
         uint32_t           end,
         const float        inputs[],
@@ -174,14 +174,14 @@ std::future<void> Network::_get_supervised_future(
 
         return std::async(std::launch::async, [&]() -> void {
                 for (uint32_t i = start; i < end; ++i) {
-                        const auto a = new Vector[m_layerCount];
-                        a[0]         = Vector(m_inputSize, inputs);
+                        const auto a = new vector[m_layerCount];
+                        a[0]         = vector(m_inputSize, inputs);
 
                         for (uint32_t L = 1; L < m_layerCount; ++L)
                                 a[L] = m_L[L - 1]->forward(a[L - 1]);
 
-                        const Vector y(m_outputSize, outputs + (uintptr_t)i * m_outputSize);
-                        const Vector dC = 2.0f * (a[m_layerCount - 1] - y);
+                        const vector y(m_outputSize, outputs + (uintptr_t)i * m_outputSize);
+                        const vector dC = 2.0f * (a[m_layerCount - 1] - y);
 
                         this->backward(dC, a);
                         delete [] a;
@@ -189,36 +189,37 @@ std::future<void> Network::_get_supervised_future(
         });
 }
 
-void Network::_train_ppo(
-        Network             &valueNetwork,
-        IEnvironment        &environment,
-        uint32_t            epochs,
-        uint32_t            maxSteps) {
+void network::_train_ppo(
+        network            &valueNetwork,
+        environment        &environment,
+        uint32_t           epochs,
+        uint32_t           maxSteps) {
 
-        struct IterationData {
+        struct iteration_data {
                 uint64_t        stateHash;
                 float           reward;
                 float           predictedReward;
-                Vector          policy;
-                Vector          *policyActivations;
-                Vector          *valueActivations;
+                vector          policy;
+                vector          *policyActivations;
+                vector          *valueActivations;
+
         };
 
         const uint32_t valueLayerCount = valueNetwork.m_layerCount;
 
         // The policies are saved between epochs for better training.
-        std::unordered_map<uint64_t, Vector> oldPolicies;
+        std::unordered_map<uint64_t, vector> oldPolicies;
 
         for (uint32_t i = 0; i < epochs; ++i) {
-                std::vector<IterationData> iterationData;
+                std::vector<iteration_data> iterationData;
                 for (uint32_t s = 0, done = false; !done && s < maxSteps; ++s) {
                         iterationData.emplace_back();
                         auto &[stateHash, reward, predictedReward, policy, pa, va] = iterationData.back();
 
-                        const Vector state = environment.getState();
-                        stateHash = std::hash<Data>{}(state);
+                        const vector state = environment.getState();
+                        stateHash = std::hash<buf>{}(state);
 
-                        pa    = new Vector[m_layerCount];
+                        pa    = new vector[m_layerCount];
                         pa[0] = state;
 
                         for (uint32_t L = 1; L < m_layerCount; ++L)
@@ -226,7 +227,7 @@ void Network::_train_ppo(
 
                         policy = pa[m_layerCount - 1];
 
-                        va    = new Vector[valueLayerCount];
+                        va    = new vector[valueLayerCount];
                         va[0] = state;
 
                         for (uint32_t L = 1; L < valueLayerCount; ++L)
@@ -240,7 +241,7 @@ void Network::_train_ppo(
                 }
 
 #ifdef DEBUG_MODE_ENABLED
-                Logger::Log() << LOGGER_PREF(DEBUG) << "Execution [" << i << "] done.\n";
+                logger::log() << LOGGER_PREF(DEBUG) << "Execution [" << i << "] done.\n";
 #endif // DEBUG_MODE_ENABLED
 
                 const auto STATE_COUNT = (uint32_t)iterationData.size();
@@ -262,7 +263,7 @@ void Network::_train_ppo(
 
                         const float advantage = advantages[s];
                         policy                = policy.max(EPSILON); // prevent division by 0.
-                        const Vector vdC      = { (predictedReward - reward) * 2.0f };
+                        const vector vdC      = { (predictedReward - reward) * 2.0f };
 
                         valueNetwork.backward(vdC, va);
                         delete [] va;
@@ -272,9 +273,9 @@ void Network::_train_ppo(
                         //               ⌈      π𝜃ɴᴇᴡ(aₜ|sₜ)                           ⌉
                         // Lᴘᴏʟɪᴄʏ(𝜃) = 𝔼| min( ⎯⎯⎯⎯⎯⎯⎯⎯ Aₜ, clip(p, 1 - ε, 1 + ε)Aₜ) |
                         //               ⌊      π𝜃ᴏʟᴅ(aₜ|sₜ)                           ⌋
-                        const Vector ratio         = policy / oldPolicies.at(stateHash);
-                        const Vector clippedRatio  = ratio.clamp(1.0f - CLIP_EPSILON, 1.0f + CLIP_EPSILON);
-                        const Vector surrogateLoss = (ratio * advantage).min(clippedRatio * advantage);
+                        const vector ratio         = policy / oldPolicies.at(stateHash);
+                        const vector clippedRatio  = ratio.clamp(1.0f - CLIP_EPSILON, 1.0f + CLIP_EPSILON);
+                        const vector surrogateLoss = (ratio * advantage).min(clippedRatio * advantage);
 
                         oldPolicies[stateHash] = policy;
 
@@ -286,9 +287,9 @@ void Network::_train_ppo(
                 environment.reset();
 
 #ifdef DEBUG_MODE_ENABLED
-                Logger::Log() << LOGGER_PREF(DEBUG) << "Training [" << i << "] completed.\n";
+                logger::log() << LOGGER_PREF(DEBUG) << "Training [" << i << "] completed.\n";
 #endif // DEBUG_MODE_ENABLED
         }
 }
 
-NN_END
+} // namespace nn

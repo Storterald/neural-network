@@ -1,21 +1,28 @@
 #include <gtest/gtest.h>
 
-#include <neural-network/types/Memory.h>
-#include <neural-network/Base.h>
+#include <concepts>
+
+#include <neural-network/types/memory.h>
+#include <neural-network/base.h>
 
 #ifdef BUILD_CUDA_SUPPORT
 #include <cuda_runtime.h>
 
-#include <neural-network/CudaBase.h>
+#include <neural-network/cuda_base.h>
 
 #include "CudaTestHelper.h"
 #endif // BUILD_CUDA_SUPPORT
 
-USE_NN
+TEST(SpanTest, TypeAliasesAreCorrectlyInitialized) {
+        using span = nn::span<float>;
+
+        EXPECT_TRUE((std::same_as<span::value_type, float>));
+        EXPECT_TRUE((std::same_as<span::const_value_type, const float>));
+}
 
 TEST(SpanTest, SpanConstructorDoesNotAllocateMemoryIfLocationsAreHost) {
         float arr[10]{};
-        Span s(10, false, arr, false);
+        const nn::span s(10, false, arr, false);
 
         EXPECT_FALSE(s.is_owning());
 }
@@ -26,7 +33,7 @@ TEST(SpanTest, SpanConstructorDoesNotAllocateMemoryIfLocationsAreDevice) {
         CUDA_CHECK_ERROR(cudaMalloc(&d_arr, 10 * sizeof(float)),
                 "Failed to allocate memory on the GPU.");
 
-        Span s(10, true, d_arr, true);
+        const nn::span s(10, true, d_arr, true);
 
         EXPECT_FALSE(s.is_owning());
         CUDA_CHECK_ERROR(cudaFree(d_arr), "Failed to free GPU memory.");
@@ -36,10 +43,10 @@ TEST(SpanTest, SpanConstructorDoesNotAllocateMemoryIfLocationsAreDevice) {
 #ifdef BUILD_CUDA_SUPPORT
 TEST(SpanTest, SpanConstructorAllocatesMemoryIfSourceIsOnHostAndSpanOnDevice) {
         float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-        Span s(10, true, arr, false);
+        nn::span s(10, true, arr, false);
 
-        EXPECT_NO_FATAL_FAILURE(Helper::access_values(s.size(), s));
-        EXPECT_TRUE(Helper::check_values(s.size(), s, 1));
+        EXPECT_NO_FATAL_FAILURE(helper::access_values(s.size(), s));
+        EXPECT_TRUE(helper::check_values(s.size(), s, 1));
 
         EXPECT_TRUE(s.is_owning());
 }
@@ -54,9 +61,9 @@ TEST(SpanTest, SpanConstructorAllocatesMemoryIfSourceIsOnDeviceAndSpanOnHost) {
         CUDA_CHECK_ERROR(cudaMemcpy(d_arr, arr, 10 * sizeof(float),
                 cudaMemcpyHostToDevice), "Failed to copy data to the GPU.");
 
-        Span s(10, false, d_arr, true);
+        nn::span s(10, false, d_arr, true);
 
-        EXPECT_NO_FATAL_FAILURE(Ref<float> v = s[9]);
+        EXPECT_NO_FATAL_FAILURE(nn::ref<float> v = s[9]);
         for (uint32_t i = 0; i < 10; ++i)
                 EXPECT_EQ(s[i], 1);
 
@@ -73,11 +80,11 @@ TEST(SpanTest, DestructorUpdatesTheDataIfExplicitedInTheConstructor) {
         CUDA_CHECK_ERROR(cudaMemset(d_arr, 0, 10 * sizeof(float)),
                 "Failed to set memory in the GPU.");
 
-        Span s(10, false, d_arr, true, true);
+        nn::span s(10, false, d_arr, true, true);
 
         s[3] = 3.0f;
 
-        s.~Span();
+        s.~span();
 
         float v;
         CUDA_CHECK_ERROR(cudaMemcpy(&v, &d_arr[3], sizeof(float),
@@ -95,7 +102,7 @@ TEST(SpanTest, ImplicitTypePointerCastReturnsPointerToCorrectLocationWhenCreated
         CUDA_CHECK_ERROR(cudaMalloc(&d_arr, 10 * sizeof(float)),
                 "Failed to allocate memory on the GPU.");
 
-        Span s(10, false, d_arr, true);
+        nn::span s(10, false, d_arr, true);
 
         float *p = s;
         EXPECT_NO_FATAL_FAILURE(float value = *p);
@@ -109,10 +116,10 @@ TEST(SpanTest, ImplicitTypePointerCastReturnsPointerToCorrectLocationWhenCreated
 #ifdef BUILD_CUDA_SUPPORT
 TEST(SpanTest, ImplicitTypePointerCastReturnsPointerToCorrectLocationWhenCreatedOnDevice) {
         float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-        Span s(10, true, arr, false);
+        nn::span s(10, true, arr, false);
 
         float *p = s;
-        EXPECT_NO_FATAL_FAILURE(Helper::access_values(1, p));
+        EXPECT_NO_FATAL_FAILURE(helper::access_values(1, p));
         // While this expectation should be correct, it is not guaranteed to work.
         // EXPECT_DEATH(float value = *p, "");
 }
@@ -120,7 +127,7 @@ TEST(SpanTest, ImplicitTypePointerCastReturnsPointerToCorrectLocationWhenCreated
 
 TEST(SpanTest, IndexerReturnsValidReference) {
         float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-        Span s(10, true, arr, false);
+        nn::span s(10, true, arr, false);
 
         s[3] = 3.0f;
         s.update();
@@ -128,16 +135,24 @@ TEST(SpanTest, IndexerReturnsValidReference) {
         EXPECT_EQ(arr[3], 3.0f);
 }
 
+TEST(SpanTest, IndexerOnConstSpanReturnsReferenceToConst) {
+        float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+        const nn::span s(10, true, arr, false);
+        const nn::ref r = s[3];
+
+        EXPECT_TRUE((std::same_as<decltype(s)::const_value_type, decltype(r)::value_type>));
+}
+
 TEST(SpanTest, SizeReturnsCorrectValue) {
         float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-        Span s(10, true, arr, false);
+        const nn::span s(10, true, arr, false);
 
         EXPECT_EQ(s.size(), 10);
 }
 
 TEST(SpanTest, IsOwningReturnsFalseValueWhenOnSourceAndSpanOnHost) {
         float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-        Span s(10, false, arr, false);
+        const nn::span s(10, false, arr, false);
 
         EXPECT_FALSE(s.is_owning());
 }
@@ -148,7 +163,7 @@ TEST(SpanTest, IsOwningReturnsFalseValueWhenOnSourceAndSpanOnDevice) {
         CUDA_CHECK_ERROR(cudaMalloc(&d_arr, 10 * sizeof(float)),
                 "Failed to allocate memory on the GPU.");
 
-        Span s(10, true, d_arr, true);
+        const nn::span s(10, true, d_arr, true);
 
         EXPECT_FALSE(s.is_owning());
         CUDA_CHECK_ERROR(cudaFree(d_arr), "Failed to free GPU memory.");
@@ -158,7 +173,7 @@ TEST(SpanTest, IsOwningReturnsFalseValueWhenOnSourceAndSpanOnDevice) {
 #ifdef BUILD_CUDA_SUPPORT
 TEST(SpanTest, IsOwningReturnsFalseValueWhenOnSourceIsOnHostAndSpanOnDevice) {
         float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-        Span s(10, true, arr, false);
+        const nn::span s(10, true, arr, false);
 
         EXPECT_TRUE(s.is_owning());
 }
@@ -170,7 +185,7 @@ TEST(SpanTest, IsOwningReturnsFalseValueWhenOnSourceIsOnDeviceAndSpanOnHost) {
         CUDA_CHECK_ERROR(cudaMalloc(&d_arr, 10 * sizeof(float)),
                 "Failed to allocate memory on the GPU.");
 
-        Span s(10, false, d_arr, true);
+        const nn::span s(10, false, d_arr, true);
 
         EXPECT_TRUE(s.is_owning());
         CUDA_CHECK_ERROR(cudaFree(d_arr), "Failed to free GPU memory.");
@@ -179,7 +194,7 @@ TEST(SpanTest, IsOwningReturnsFalseValueWhenOnSourceIsOnDeviceAndSpanOnHost) {
 
 TEST(SpanTest, UpdateUpdatesSourceCorrectlyWhenSourceOnHostAndSpanOnDevice) {
         float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-        Span s(10, true, arr, false);
+        nn::span s(10, true, arr, false);
 
         EXPECT_NE(arr[3], 3.0f);
         s[3] = 3.0f;
@@ -195,7 +210,7 @@ TEST(SpanTest, UpdateUpdatesSourceCorrectlyWhenSourceOnDeviceAndSpanOnHost) {
         CUDA_CHECK_ERROR(cudaMemset(d_arr, 0, 10 * sizeof(float)),
                 "Failed to set memory in the GPU.");
 
-        Span s(10, true, d_arr, false);
+        nn::span s(10, true, d_arr, false);
 
         float v;
         CUDA_CHECK_ERROR(cudaMemcpy(&v, &d_arr[3], sizeof(float),
@@ -211,3 +226,13 @@ TEST(SpanTest, UpdateUpdatesSourceCorrectlyWhenSourceOnDeviceAndSpanOnHost) {
         EXPECT_EQ(v, 3.0f);
 }
 #endif // BUILD_CUDA_SUPPORT
+
+TEST(SpanTest, UpdateDoesNothingOnSpanOfConstType) {
+        float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+        nn::span<const float> s(10, true, arr, false);
+
+        EXPECT_NE(arr[3], 3.0f);
+        helper::set_values(1, (float *)(&s[3]).get(), 3.0f);
+        s.update();
+        EXPECT_NE(arr[3], 3.0f);
+}

@@ -2,21 +2,18 @@
 
 #include <initializer_list>
 
-#include <neural-network/types/Vector.h>
-#include <neural-network/utils/Logger.h>
-#include <neural-network/Base.h>
-
-USE_NN
+#include <neural-network/types/vector.h>
+#include <neural-network/utils/logger.h>
 
 TEST(VectorTest, DefaultConstructorInitializesEmptyData) {
-        Vector v{};
+        const nn::vector v{};
 
         EXPECT_EQ(v.data(), nullptr);
         EXPECT_EQ(v.size(), 0);
 }
 
 TEST(VectorTest, SizeConstructorAllocatesData) {
-        Vector v(10);
+        const nn::vector v(10);
 
         EXPECT_NE(v.data(), nullptr);
         EXPECT_EQ(v.size(), 10);
@@ -25,7 +22,7 @@ TEST(VectorTest, SizeConstructorAllocatesData) {
 
 TEST(VectorTest, ConstructorWithFloatArrayWorks) {
         float values[] = { 1.0f, 2.0f, 3.0f };
-        Vector v(3, values);
+        const nn::vector v(3, values);
 
         EXPECT_NE(v.data(), nullptr);
         EXPECT_EQ(v.size(), 3);
@@ -35,7 +32,7 @@ TEST(VectorTest, ConstructorWithFloatArrayWorks) {
 
 TEST(VectorTest, ConstructorWithInitializerListWorks) {
         auto values = { 1.0f, 2.0f, 3.0f };
-        Vector v(values);
+        const nn::vector v(values);
 
         EXPECT_NE(v.data(), nullptr);
         EXPECT_EQ(v.size(), values.size());
@@ -49,263 +46,263 @@ TEST(VectorTest, ConstructorWithInitializerListWorks) {
 }
 
 TEST(VectorTest, AccessOperator) {
-        Vector v = { 1.0f, 2.0f, 3.0f };
+        const nn::vector v = { 1.0f, 2.0f, 3.0f };
 
         EXPECT_EQ(v[2], 3.0f);
 }
 
 TEST(VectorTestDebug, AccessOperatorThrowsIfIndexOutOfBounds) {
-        Vector v(10);
-        EXPECT_THROW(float value = v[10], Logger::fatal_error);
+        const nn::vector v(10);
+        EXPECT_THROW(float value = v[10], nn::logger::fatal_error);
 }
 
 TEST(VectorTest, AtFunction) {
-        Vector v = { 1.0f, 2.0f, 3.0f };
+        const nn::vector v = { 1.0f, 2.0f, 3.0f };
 
         EXPECT_EQ(v.at(2), 3.0f);
 }
 
 TEST(VectorTestDebug, AtFunctionThrowsIfIndexOutOfBounds) {
-        Vector v(10);
-        EXPECT_THROW(float value = v.at(10), Logger::fatal_error);
+        const nn::vector v(10);
+        EXPECT_THROW(float value = v.at(10), nn::logger::fatal_error);
 }
 
 TEST(VectorTest, AdditionOperator) {
-        Vector v1     = { 1, 2, 3 };
-        Vector v2     = { 4, 5, 6 };
-        Vector result = v1 + v2;
-        EXPECT_EQ(result, Vector({ 5, 7, 9 }));
+        const nn::vector v1     = { 1, 2, 3 };
+        const nn::vector v2     = { 4, 5, 6 };
+        const nn::vector result = v1 + v2;
+        EXPECT_EQ(result, nn::vector({ 5, 7, 9 }));
 }
 
 TEST(VectorTestDebug, AdditionOperatorThrowsIfSizeDoesNotMatch) {
-        Vector v1 = { 1, 2, 3 };
-        Vector v2 = { 4, 5, 6, 7 };
-        EXPECT_THROW(Vector value = v1 + v2, Logger::fatal_error);
+        const nn::vector v1 = { 1, 2, 3 };
+        const nn::vector v2 = { 4, 5, 6, 7 };
+        EXPECT_THROW(nn::vector value = v1 + v2, nn::logger::fatal_error);
 }
 
 TEST(VectorTest, AdditionAssignmentOperator) {
-        Vector v1 = { 1, 2, 3 };
-        Vector v2 = { 4, 5, 6 };
+        nn::vector v1       = { 1, 2, 3 };
+        const nn::vector v2 = { 4, 5, 6 };
         v1       += v2;
-        EXPECT_EQ(v1, Vector({ 5, 7, 9 }));
+        EXPECT_EQ(v1, nn::vector({ 5, 7, 9 }));
 }
 
 TEST(VectorTestDebug, AdditionAssignmentOperatorThrowsIfSizeDoesNotMatch) {
-        Vector v1 = { 1, 2, 3 };
-        Vector v2 = { 4, 5, 6, 7 };
-        EXPECT_THROW(v1 += v2, Logger::fatal_error);
+        nn::vector v1       = { 1, 2, 3 };
+        const nn::vector v2 = { 4, 5, 6, 7 };
+        EXPECT_THROW(v1 += v2, nn::logger::fatal_error);
 }
 
 TEST(VectorTest, ScalarAdditionOperator) {
-        Vector v      = { 1, 2, 3 };
-        Vector result = v + 5;
-        EXPECT_EQ(result, Vector({ 6, 7, 8 }));
+        const nn::vector v      = { 1, 2, 3 };
+        const nn::vector result = v + 5;
+        EXPECT_EQ(result, nn::vector({ 6, 7, 8 }));
 }
 
 TEST(VectorTest, ScalarAdditionAssignmentOperator) {
-        Vector v = { 1, 2, 3 };
-        v       += 5;
-        EXPECT_EQ(v, Vector({ 6, 7, 8 }));
+        nn::vector v = { 1, 2, 3 };
+        v           += 5;
+        EXPECT_EQ(v, nn::vector({ 6, 7, 8 }));
 }
 
 TEST(VectorTest, SubtractionOperator) {
-        Vector v1     = { 4, 5, 6 };
-        Vector v2     = { 1, 2, 3 };
-        Vector result = v1 - v2;
-        EXPECT_EQ(result, Vector({ 3, 3, 3 }));
+        const nn::vector v1     = { 4, 5, 6 };
+        const nn::vector v2     = { 1, 2, 3 };
+        const nn::vector result = v1 - v2;
+        EXPECT_EQ(result, nn::vector({ 3, 3, 3 }));
 }
 
 TEST(VectorTestDebug, SubtractionOperatorThrowsIfSizeDoesNotMatch) {
-        Vector v1 = { 1, 2, 3 };
-        Vector v2 = { 4, 5, 6, 7 };
-        EXPECT_THROW(Vector value = v1 - v2, Logger::fatal_error);
+        const nn::vector v1 = { 1, 2, 3 };
+        const nn::vector v2 = { 4, 5, 6, 7 };
+        EXPECT_THROW(nn::vector value = v1 - v2, nn::logger::fatal_error);
 }
 
 TEST(VectorTest, SubtractionAssignmentOperator) {
-        Vector v1 = { 4, 5, 6 };
-        Vector v2 = { 1, 2, 3 };
-        v1       -= v2;
-        EXPECT_EQ(v1, Vector({ 3, 3, 3 }));
+        nn::vector v1       = { 4, 5, 6 };
+        const nn::vector v2 = { 1, 2, 3 };
+        v1                 -= v2;
+        EXPECT_EQ(v1, nn::vector({ 3, 3, 3 }));
 }
 
 TEST(VectorTestDebug, SubtractionAssignmentOperatorThrowsIfSizeDoesNotMatch) {
-        Vector v1 = { 1, 2, 3 };
-        Vector v2 = { 4, 5, 6, 7 };
-        EXPECT_THROW(v1 -= v2, Logger::fatal_error);
+        nn::vector v1       = { 1, 2, 3 };
+        const nn::vector v2 = { 4, 5, 6, 7 };
+        EXPECT_THROW(v1 -= v2, nn::logger::fatal_error);
 }
 
 TEST(VectorTest, ScalarSubtractionOperator) {
-        Vector v      = { 4, 5, 6 };
-        Vector result = v - 2;
-        EXPECT_EQ(result, Vector({ 2, 3, 4 }));
+        const nn::vector v      = { 4, 5, 6 };
+        const nn::vector result = v - 2;
+        EXPECT_EQ(result, nn::vector({ 2, 3, 4 }));
 }
 
 TEST(VectorTest, ScalarSubtractionAssignmentOperator) {
-        Vector v = { 4, 5, 6 };
-        v       -= 2;
-        EXPECT_EQ(v, Vector({2, 3, 4}));
+        nn::vector v = { 4, 5, 6 };
+        v           -= 2;
+        EXPECT_EQ(v, nn::vector({2, 3, 4}));
 }
 
 TEST(VectorTest, MultiplicationOperator) {
-        Vector v1     = { 1, 2, 3 };
-        Vector v2     = { 2, 3, 4 };
-        Vector result = v1 * v2;
-        EXPECT_EQ(result, Vector({2, 6, 12}));
+        const nn::vector v1     = { 1, 2, 3 };
+        const nn::vector v2     = { 2, 3, 4 };
+        const nn::vector result = v1 * v2;
+        EXPECT_EQ(result, nn::vector({2, 6, 12}));
 }
 
 TEST(VectorTestDebug, MultiplicationOperatorThrowsIfSizeDoesNotMatch) {
-        Vector v1 = { 1, 2, 3 };
-        Vector v2 = { 4, 5, 6, 7 };
-        EXPECT_THROW(Vector value = v1 * v2, Logger::fatal_error);
+        const nn::vector v1 = { 1, 2, 3 };
+        const nn::vector v2 = { 4, 5, 6, 7 };
+        EXPECT_THROW(nn::vector value = v1 * v2, nn::logger::fatal_error);
 }
 
 TEST(VectorTest, MultiplicationAssignmentOperator) {
-        Vector v1 = { 1, 2, 3 };
-        Vector v2 = { 2, 3, 4 };
-        v1       *= v2;
-        EXPECT_EQ(v1, Vector({ 2, 6, 12 }));
+        nn::vector v1       = { 1, 2, 3 };
+        const nn::vector v2 = { 2, 3, 4 };
+        v1                 *= v2;
+        EXPECT_EQ(v1, nn::vector({ 2, 6, 12 }));
 }
 
 TEST(VectorTestDebug, MultiplicationAssignmentOperatorThrowsIfSizeDoesNotMatch) {
-        Vector v1 = { 1, 2, 3 };
-        Vector v2 = { 4, 5, 6, 7 };
-        EXPECT_THROW(v1 *= v2, Logger::fatal_error);
+        nn::vector v1       = { 1, 2, 3 };
+        const nn::vector v2 = { 4, 5, 6, 7 };
+        EXPECT_THROW(v1 *= v2, nn::logger::fatal_error);
 }
 
 TEST(VectorTest, ScalarMultiplicationOperator) {
-        Vector v      = { 1, 2, 3 };
-        Vector result = v * 3;
-        EXPECT_EQ(result, Vector({ 3, 6, 9 }));
+        const nn::vector v      = { 1, 2, 3 };
+        const nn::vector result = v * 3;
+        EXPECT_EQ(result, nn::vector({ 3, 6, 9 }));
 }
 
 TEST(VectorTest, ScalarMultiplicationAssignmentOperator) {
-        Vector v = { 1, 2, 3 };
-        v       *= 3;
-        EXPECT_EQ(v, Vector({ 3, 6, 9 }));
+        nn::vector v = { 1, 2, 3 };
+        v           *= 3;
+        EXPECT_EQ(v, nn::vector({ 3, 6, 9 }));
 }
 
 TEST(VectorTest, DivisionOperator) {
-        Vector v1     = { 4, 9, 16 };
-        Vector v2     = { 2, 3, 4 };
-        Vector result = v1 / v2;
-        EXPECT_EQ(result, Vector({ 2, 3, 4 }));
+        const nn::vector v1     = { 4, 9, 16 };
+        const nn::vector v2     = { 2, 3, 4 };
+        const nn::vector result = v1 / v2;
+        EXPECT_EQ(result, nn::vector({ 2, 3, 4 }));
 }
 
 TEST(VectorTestDebug, DivisionOperatorThrowsIfAnyOfTheOtherValuesIs0) {
-        Vector v1 = { 1, 2, 3 };
-        Vector v2 = { 4, 5, 0 };
-        EXPECT_THROW(Vector value = v1 / v2, Logger::fatal_error);
+        const nn::vector v1 = { 1, 2, 3 };
+        const nn::vector v2 = { 4, 5, 0 };
+        EXPECT_THROW(nn::vector value = v1 / v2, nn::logger::fatal_error);
 }
 
 TEST(VectorTestDebug, DivisionOperatorThrowsIfSizeDoesNotMatch) {
-        Vector v1 = { 1, 2, 3 };
-        Vector v2 = { 4, 5, 6, 7 };
-        EXPECT_THROW(Vector value = v1 / v2, Logger::fatal_error);
+        const nn::vector v1 = { 1, 2, 3 };
+        const nn::vector v2 = { 4, 5, 6, 7 };
+        EXPECT_THROW(nn::vector value = v1 / v2, nn::logger::fatal_error);
 }
 
 TEST(VectorTest, DivisionAssignmentOperator) {
-        Vector v1 = { 4, 9, 16 };
-        Vector v2 = { 2, 3, 4 };
-        v1       /= v2;
-        EXPECT_EQ(v1, Vector({ 2, 3, 4 }));
+        nn::vector v1       = { 4, 9, 16 };
+        const nn::vector v2 = { 2, 3, 4 };
+        v1                 /= v2;
+        EXPECT_EQ(v1, nn::vector({ 2, 3, 4 }));
 }
 
 TEST(VectorTestDebug, DivisionAssignmentOperatorThrowsIfAnyOfTheOtherValuesIs0) {
-        Vector v1 = { 1, 2, 3 };
-        Vector v2 = { 4, 5, 0 };
-        EXPECT_THROW(v1 /= v2, Logger::fatal_error);
+        nn::vector v1       = { 1, 2, 3 };
+        const nn::vector v2 = { 4, 5, 0 };
+        EXPECT_THROW(v1 /= v2, nn::logger::fatal_error);
 }
 
 TEST(VectorTestDebug, DivisionAssignmentOperatorThrowsIfSizeDoesNotMatch) {
-        Vector v1 = { 1, 2, 3 };
-        Vector v2 = { 4, 5, 6, 7 };
-        EXPECT_THROW(v1 /= v2, Logger::fatal_error);
+        nn::vector v1       = { 1, 2, 3 };
+        const nn::vector v2 = { 4, 5, 6, 7 };
+        EXPECT_THROW(v1 /= v2, nn::logger::fatal_error);
 }
 
 TEST(VectorTest, ScalarDivisionOperator) {
-        Vector v      = { 4, 9, 16 };
-        Vector result = v / 2;
-        EXPECT_EQ(result, Vector({ 2, 4.5, 8 }));
+        const nn::vector v      = { 4, 9, 16 };
+        const nn::vector result = v / 2;
+        EXPECT_EQ(result, nn::vector({ 2, 4.5, 8 }));
 }
 
 TEST(VectorTestDebug, ScalarDivisionOperatorThrowsIfValueIs0) {
-        Vector v1 = { 1, 2, 3 };
-        EXPECT_THROW(Vector value = v1 / 0, Logger::fatal_error);
+        const nn::vector v1 = { 1, 2, 3 };
+        EXPECT_THROW(nn::vector value = v1 / 0, nn::logger::fatal_error);
 }
 
 TEST(VectorTest, ScalarDivisionAssignmentOperator) {
-        Vector v = { 4, 9, 16 };
-        v       /= 2;
-        EXPECT_EQ(v, Vector({ 2, 4.5, 8 }));
+        nn::vector v = { 4, 9, 16 };
+        v           /= 2;
+        EXPECT_EQ(v, nn::vector({ 2, 4.5, 8 }));
 }
 
 TEST(VectorTestDebug, ScalarDivisionAssignmentOperatorThrowsIfValueIs0) {
-        Vector v1 = { 1, 2, 3 };
-        EXPECT_THROW(v1 /= 0, Logger::fatal_error);
+        nn::vector v1 = { 1, 2, 3 };
+        EXPECT_THROW(v1 /= 0, nn::logger::fatal_error);
 }
 
 TEST(VectorTest, Min) {
-        Vector v1     = { 5, 10, 15 };
-        Vector v2     = { 7, 8, 12 };
-        Vector result = v1.min(v2);
-        EXPECT_EQ(result, Vector({ 5, 8, 12 }));
+        const nn::vector v1     = { 5, 10, 15 };
+        const nn::vector v2     = { 7, 8, 12 };
+        const nn::vector result = v1.min(v2);
+        EXPECT_EQ(result, nn::vector({ 5, 8, 12 }));
 }
 
 TEST(VectorTestDebug, MinThrowsIfSizeDoesNotMatch) {
-        Vector v1 = { 1, 2, 3 };
-        Vector v2 = { 4, 5, 6, 7 };
-        EXPECT_THROW(Vector value = v1.min(v2), Logger::fatal_error);
+        const nn::vector v1 = { 1, 2, 3 };
+        const nn::vector v2 = { 4, 5, 6, 7 };
+        EXPECT_THROW(nn::vector value = v1.min(v2), nn::logger::fatal_error);
 }
 
 TEST(VectorTest, ScalarMin) {
-        Vector v      = { 5, 10, 15 };
-        Vector result = v.min(12);
-        EXPECT_EQ(result, Vector({ 5, 10, 12 }));
+        const nn::vector v      = { 5, 10, 15 };
+        const nn::vector result = v.min(12);
+        EXPECT_EQ(result, nn::vector({ 5, 10, 12 }));
 }
 
 TEST(VectorTest, Max) {
-        Vector v1     = { 5, 10, 15 };
-        Vector v2     = { 7, 8, 12 };
-        Vector result = v1.max(v2);
-        EXPECT_EQ(result, Vector({7, 10, 15}));
+        const nn::vector v1     = { 5, 10, 15 };
+        const nn::vector v2     = { 7, 8, 12 };
+        const nn::vector result = v1.max(v2);
+        EXPECT_EQ(result, nn::vector({7, 10, 15}));
 }
 
 TEST(VectorTestDebug, MaxThrowsIfSizeDoesNotMatch) {
-        Vector v1 = { 1, 2, 3 };
-        Vector v2 = { 4, 5, 6, 7 };
-        EXPECT_THROW(Vector value = v1.max(v2), Logger::fatal_error);
+        const nn::vector v1 = { 1, 2, 3 };
+        const nn::vector v2 = { 4, 5, 6, 7 };
+        EXPECT_THROW(nn::vector value = v1.max(v2), nn::logger::fatal_error);
 }
 
 TEST(VectorTest, ScalarMax) {
-        Vector v      = { 5, 10, 15 };
-        Vector result = v.max(12);
-        EXPECT_EQ(result, Vector({ 12, 12, 15 }));
+        const nn::vector v      = { 5, 10, 15 };
+        const nn::vector result = v.max(12);
+        EXPECT_EQ(result, nn::vector({ 12, 12, 15 }));
 }
 
 TEST(VectorTest, Clamp) {
-        Vector v      = { 5, 10, 15 };
-        Vector vMin   = { 6, 8, 12 };
-        Vector vMax   = { 7, 12, 14 };
-        Vector result = v.clamp(vMin, vMax);
-        EXPECT_EQ(result, Vector({6, 10, 14}));
+        const nn::vector v      = { 5, 10, 15 };
+        const nn::vector vMin   = { 6, 8, 12 };
+        const nn::vector vMax   = { 7, 12, 14 };
+        const nn::vector result = v.clamp(vMin, vMax);
+        EXPECT_EQ(result, nn::vector({6, 10, 14}));
 }
 
 TEST(VectorTestDebug, ClampThrowsIfMinSizeDoesNotMatch) {
-        Vector v    = { 5, 10, 15 };
-        Vector vMin = { 6, 8, 12, 11 };
-        Vector vMax = { 7, 12, 14 };
-        EXPECT_THROW(Vector value = v.clamp(vMin, vMax), Logger::fatal_error);
+        const nn::vector v    = { 5, 10, 15 };
+        const nn::vector vMin = { 6, 8, 12, 11 };
+        const nn::vector vMax = { 7, 12, 14 };
+        EXPECT_THROW(nn::vector value = v.clamp(vMin, vMax), nn::logger::fatal_error);
 }
 
 TEST(VectorTestDebug, ClampThrowsIfMaxSizeDoesNotMatch) {
-        Vector v    = { 5, 10, 15 };
-        Vector vMin = { 6, 8, 12 };
-        Vector vMax = { 7, 12, 14, 11 };
-        EXPECT_THROW(Vector value = v.clamp(vMin, vMax), Logger::fatal_error);
+        const nn::vector v    = { 5, 10, 15 };
+        const nn::vector vMin = { 6, 8, 12 };
+        const nn::vector vMax = { 7, 12, 14, 11 };
+        EXPECT_THROW(nn::vector value = v.clamp(vMin, vMax), nn::logger::fatal_error);
 }
 
 TEST(VectorTest, ScalarClamp) {
-        Vector v      = { 5, 10, 15 };
-        Vector result = v.clamp(8, 12);
-        EXPECT_EQ(result, Vector({8, 10, 12}));
+        const nn::vector v      = { 5, 10, 15 };
+        const nn::vector result = v.clamp(8, 12);
+        EXPECT_EQ(result, nn::vector({8, 10, 12}));
 }

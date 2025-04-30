@@ -1,26 +1,26 @@
-#include <neural-network/network/layers/FullyConnectedLayer.h>
+#include <neural-network/network/layers/fully_connected_layer.h>
 
 #include <cstdint>
 #include <random>
 #include <mutex>
 
-#include <neural-network/network/ILayer.h>
-#include <neural-network/types/Vector.h>
-#include <neural-network/types/Matrix.h>
-#include <neural-network/types/Data.h>
-#include <neural-network/math/Math.h>
+#include <neural-network/network/layer.h>
+#include <neural-network/types/vector.h>
+#include <neural-network/types/matrix.h>
+#include <neural-network/types/buf.h>
+#include <neural-network/math/math.h>
 
-static NN Vector _activation(
-        NN FunctionType        functionType,
-        const NN Vector        &input) {
+static nn::vector _activation(
+        nn::function_type        functionType,
+        const nn::vector         &input) {
 
-        NN Vector result(input.size());
+        nn::vector result(input.size());
         switch (functionType) {
-        case NN TANH:
-                NN Math::tanh(input.size(), input, result);
+        case nn::TANH:
+                nn::math::tanh(input.size(), input, result);
                 break;
-        case NN RELU:
-                NN Math::ReLU(input.size(), input, result);
+        case nn::RELU:
+                nn::math::ReLU(input.size(), input, result);
                 break;
         default:
                 throw LOGGER_EX("Activation function not implemented.");
@@ -29,17 +29,17 @@ static NN Vector _activation(
         return result;
 }
 
-static NN Vector _activation_derivative(
-        NN FunctionType        functionType,
-        const NN Vector        &input) {
+static nn::vector _activation_derivative(
+        nn::function_type        functionType,
+        const nn::vector         &input) {
 
-        NN Vector result(input.size());
+        nn::vector result(input.size());
         switch (functionType) {
-        case NN TANH:
-                NN Math::tanh_derivative(input.size(), input, result);
+        case nn::TANH:
+                nn::math::tanh_derivative(input.size(), input, result);
                 break;
-        case NN RELU:
-                NN Math::ReLU_derivative(input.size(), input, result);
+        case nn::RELU:
+                nn::math::ReLU_derivative(input.size(), input, result);
                 break;
         default:
                 throw LOGGER_EX("Activation function not implemented.");
@@ -48,12 +48,12 @@ static NN Vector _activation_derivative(
         return result;
 }
 
-NN_BEGIN
+namespace nn {
 
-FullyConnectedLayer::FullyConnectedLayer(
-        uint32_t            previousLayerSize,
-        uint32_t            layerSize,
-        FunctionType        functionType) :
+fully_connected_layer::fully_connected_layer(
+        uint32_t             previousLayerSize,
+        uint32_t             layerSize,
+        function_type        functionType) :
 
         m_w(previousLayerSize, layerSize),
         m_b(layerSize),
@@ -68,11 +68,11 @@ FullyConnectedLayer::FullyConnectedLayer(
                         m_w[{i, j}] = dis(gen);
 }
 
-FullyConnectedLayer::FullyConnectedLayer(
+fully_connected_layer::fully_connected_layer(
         uint32_t             previousLayerSize,
         uint32_t             layerSize,
-        FunctionType         functionType,
-        std::ifstream        &encodedData) :
+        function_type        functionType,
+        std::istream         &encodedData) :
 
         m_w(previousLayerSize, layerSize),
         m_b(layerSize),
@@ -88,14 +88,14 @@ FullyConnectedLayer::FullyConnectedLayer(
                 throw LOGGER_EX("Encoded sizes and constructor sizes parameters do not match.");
 
         encodedData.read(
-                (char *)(float *)m_w.as_span(Data::HOST),
+                (char *)(float *)m_w.as_span(buf::HOST),
                 std::streamsize(m_w.size() * sizeof(float)));
         encodedData.read(
-                (char *)(float *)m_b.as_span(Data::HOST),
+                (char *)(float *)m_b.as_span(buf::HOST),
                 std::streamsize(m_b.size() * sizeof(float)));
 }
 
-Vector FullyConnectedLayer::forward(const Vector &input) const
+vector fully_connected_layer::forward(const vector &input) const
 {
         //            k=N(L-1)
         // ajL = AFoo(   Σ ak(L-1) * wjkL + bjL)
@@ -103,22 +103,22 @@ Vector FullyConnectedLayer::forward(const Vector &input) const
         return _activation(m_functionType, m_w * input + m_b);
 }
 
-Vector FullyConnectedLayer::backward(const Vector &cost, const Vector &input)
+vector fully_connected_layer::backward(const vector &cost, const vector &input)
 {
         //  ∂Ce      ∂zjL   ∂ajL   ∂Ce
         // ⎯⎯⎯⎯⎯ = ⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯ = 1 * AFoo'(z) * Lcost
         //  ∂bL      ∂bL    ∂zjL   ∂ajL
-        const Vector db = _activation_derivative(m_functionType, m_w * input + m_b) * cost;
+        const vector db = _activation_derivative(m_functionType, m_w * input + m_b) * cost;
 
         //  ∂Ce      ∂zjL    ∂ajL   ∂Ce
         // ⎯⎯⎯⎯⎯ = ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯ = input * AFoo'(z) * Lcost
         //  ∂wjkL    ∂wjkL   ∂zjL   ∂ajL
-        Matrix dw(m_w.width(), m_w.height());
+        matrix dw(m_w.width(), m_w.height());
 
         //   ∂Ce     nL - 1    ∂zjL    ∂ajL    ∂Ce   nL - 1
         // ⎯⎯⎯⎯⎯⎯⎯ =   Σ    ⎯⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯ =   Σ    wjkL * AFoo'(z) * Lcost
         // ∂ak(L-1)    j=0   ∂ak(L-1)  ∂zjL   ∂ajL     j=0
-        Vector prev(m_w.width());
+        vector prev(m_w.width());
 
 #ifdef BUILD_CUDA_SUPPORT
         if (m_w.size() < CUDA_MINIMUM) {
@@ -138,8 +138,8 @@ Vector FullyConnectedLayer::backward(const Vector &cost, const Vector &input)
 #ifdef BUILD_CUDA_SUPPORT
         } else {
                 _d_backward(
-                        input.as_span(Data::DEVICE, true), dw.as_span(Data::DEVICE, true),
-                        db.as_span(Data::DEVICE, true), prev.as_span(Data::DEVICE, true));
+                        input.as_span(buf::DEVICE, true), dw.as_span(buf::DEVICE, true),
+                        db.as_span(buf::DEVICE, true), prev.as_span(buf::DEVICE, true));
         }
 #endif // BUILD_CUDA_SUPPORT
 
@@ -153,7 +153,7 @@ Vector FullyConnectedLayer::backward(const Vector &cost, const Vector &input)
         return prev;
 }
 
-void FullyConnectedLayer::encode(std::ostream &out) const
+void fully_connected_layer::encode(std::ostream &out) const
 {
         const uint32_t infos[4] = {
                 FULLY_CONNECTED,
@@ -165,11 +165,11 @@ void FullyConnectedLayer::encode(std::ostream &out) const
         out.write((char *)infos, 4 * sizeof(uint32_t));
 
         out.write(
-                (char *)(float *)m_w.as_span(Data::HOST),
+                (char *)(const float *)m_w.as_span(buf::HOST),
                 std::streamsize(m_w.size() * sizeof(float)));
         out.write(
-                (char *)(float *)m_b.as_span(Data::HOST),
+                (char *)(const float *)m_b.as_span(buf::HOST),
                 std::streamsize(m_b.size() * sizeof(float)));
 }
 
-NN_END
+} // namespace nn

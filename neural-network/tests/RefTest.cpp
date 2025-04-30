@@ -1,29 +1,35 @@
 #include <gtest/gtest.h>
 
-#include <neural-network/types/Memory.h>
-#include <neural-network/Base.h>
+#include <concepts>
+
+#include <neural-network/types/memory.h>
 
 #ifdef BUILD_CUDA_SUPPORT
 #include <cuda_runtime.h>
 
-#include <neural-network/CudaBase.h>
+#include <neural-network/cuda_base.h>
 #endif // BUILD_CUDA_SUPPORT
 
-USE_NN
+TEST(RefTest, TypeAliasesAreCorrectlyInitialized) {
+        using ref = nn::ref<float>;
+
+        EXPECT_TRUE((std::same_as<ref::value_type, float>));
+        EXPECT_TRUE((std::same_as<ref::const_value_type, const float>));
+}
 
 TEST(RefTest, ConstructorThrowsWithNullptrOnHost) {
-        EXPECT_THROW(Ref<float> r(nullptr, false), Logger::fatal_error);
+        EXPECT_THROW(nn::ref<float> r(nullptr, false), nn::logger::fatal_error);
 }
 
 TEST(RefTest, ConstructorThrowsWithNullptrOnDevice) {
-        EXPECT_THROW(Ref<float> r(nullptr, true), Logger::fatal_error);
+        EXPECT_THROW(nn::ref<float> r(nullptr, true), nn::logger::fatal_error);
 }
 
 TEST(RefTest, ConstructorDoesNotThrowWithValidPointerOnHost) {
         float v;
-        EXPECT_NO_THROW(Ref r(&v, false));
+        EXPECT_NO_THROW(nn::ref r(&v, false));
 
-        Ref r(&v, false);
+        nn::ref r(&v, false);
         EXPECT_EQ(&r, &v);
 }
 
@@ -33,9 +39,9 @@ TEST(RefTest, ConstructorDoesNotThrowWithValidPointerOnDevice) {
         CUDA_CHECK_ERROR(cudaMalloc(&d_v, sizeof(float)),
                 "Failed to allocate memory on the GPU.");
 
-        EXPECT_NO_THROW(Ref r(d_v, true));
+        EXPECT_NO_THROW(nn::ref r(d_v, true));
 
-        Ref r(d_v, true);
+        nn::ref r(d_v, true);
         EXPECT_EQ(&r, d_v);
 
         CUDA_CHECK_ERROR(cudaFree(d_v), "Failed to free GPU memory.");
@@ -44,10 +50,10 @@ TEST(RefTest, ConstructorDoesNotThrowWithValidPointerOnDevice) {
 
 TEST(RefTest, CopyAssignmentOperatorOnlyChangesValue) {
         float v1 = 13;
-        Ref r1(&v1, false);
+        nn::ref r1(&v1, false);
 
         float v2 = 12;
-        Ref r2(&v2, false);
+        nn::ref r2(&v2, false);
 
         EXPECT_NO_THROW(r1 = r2);
         EXPECT_EQ(r1, 12);
@@ -58,11 +64,11 @@ TEST(RefTest, CopyAssignmentOperatorOnlyChangesValue) {
 
 TEST(RefTest, MoveAssignmentOperatorOnlyChangesValue) {
         float v1 = 13;
-        Ref r(&v1, false);
+        nn::ref r(&v1, false);
 
         float v2 = 12;
 
-        EXPECT_NO_THROW(r = Ref(&v2, false));
+        EXPECT_NO_THROW(r = nn::ref(&v2, false));
         EXPECT_EQ(r, 12);
         EXPECT_EQ(v1, 12);
         EXPECT_EQ(&r, &v1);
@@ -71,7 +77,7 @@ TEST(RefTest, MoveAssignmentOperatorOnlyChangesValue) {
 
 TEST(RefTest, AssignmentOperatorCorrectlySetsValueInTheHost) {
         float v = 13;
-        Ref r(&v, false);
+        nn::ref r(&v, false);
 
         EXPECT_NO_THROW(r = 12);
         EXPECT_EQ(r, 12);
@@ -84,7 +90,7 @@ TEST(RefTest, AssignmentOperatorCorrectlySetsValueInTheDevice) {
         float *d_v;
         CUDA_CHECK_ERROR(cudaMalloc(&d_v, sizeof(float)),
                 "Failed to allocate memory on the GPU.");
-        Ref r(d_v, true);
+        nn::ref r(d_v, true);
 
         EXPECT_NO_THROW(r = 12);
         EXPECT_EQ(r, 12);
@@ -102,8 +108,8 @@ TEST(RefTest, AssignmentOperatorCorrectlySetsValueInTheDevice) {
 
 TEST(RefTest, ComparisonOperatorReturnsTrueWhenBothReferTheSameValue) {
         float v1 = 13;
-        Ref r1(&v1, false);
-        Ref r2(&v1, false);
+        nn::ref r1(&v1, false);
+        nn::ref r2(&v1, false);
 
         EXPECT_TRUE(r1 == r2);
         EXPECT_FALSE(r1 != r2);
@@ -111,10 +117,10 @@ TEST(RefTest, ComparisonOperatorReturnsTrueWhenBothReferTheSameValue) {
 
 TEST(RefTest, ComparisonOperatorReturnsTrueWhenReferredValuesAreEqual) {
         float v1 = 13;
-        Ref r1(&v1, false);
+        nn::ref r1(&v1, false);
 
         float v2 = 13;
-        Ref r2(&v2, false);
+        nn::ref r2(&v2, false);
 
         EXPECT_TRUE(r1 == r2);
         EXPECT_FALSE(r1 != r2);
@@ -122,10 +128,10 @@ TEST(RefTest, ComparisonOperatorReturnsTrueWhenReferredValuesAreEqual) {
 
 TEST(RefTest, ComparisonOperatorReturnsFalseWhenReferredValuesAreNotEqual) {
         float v1 = 13;
-        Ref r1(&v1, false);
+        nn::ref r1(&v1, false);
 
         float v2 = 12;
-        Ref r2(&v2, false);
+        nn::ref r2(&v2, false);
 
         EXPECT_FALSE(r1 == r2);
         EXPECT_TRUE(r1 != r2);
@@ -133,14 +139,30 @@ TEST(RefTest, ComparisonOperatorReturnsFalseWhenReferredValuesAreNotEqual) {
 
 TEST(RefTest, AddressOperatorReturnsPtrWrapperToTheReferredValue) {
         float v = 13;
-        Ref r(&v, false);
+        const nn::ref r(&v, false);
+        const nn::ptr p = &r;
 
-        EXPECT_EQ(&r, &v);
+        EXPECT_EQ(p, &v);
+}
+
+TEST(RefTest, AddressOperatorReturnsPtrWrapperWithSameTypeAsRef) {
+        float v = 13;
+        nn::ref r(&v, false);
+        const nn::ptr p = &r;
+
+        EXPECT_TRUE((std::same_as<decltype(p)::value_type, float>));
+}
+
+TEST(RefTest, AddressOperatorOnConstRefReturnsPtrWithConstType) {
+        float v = 13;
+        const nn::ref r(&v, false);
+        const nn::ptr p = &r;
+
+        EXPECT_TRUE((std::same_as<decltype(p)::value_type, const float>));
 }
 
 TEST(RefTest, ImplicitTypeCastOperatorReturnsReferredValue) {
         float v = 13;
-        Ref r(&v, false);
-
+        const nn::ref r(&v, false);
         EXPECT_EQ(r, v);
 }

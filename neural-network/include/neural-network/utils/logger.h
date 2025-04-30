@@ -6,31 +6,29 @@
 #include <fstream>
 #include <string>
 
-#include <neural-network/Base.h>
+namespace nn {
 
-NN_BEGIN
-
-enum LogType {
+enum log_type {
         LOG_INFO,
         LOG_DEBUG,
         LOG_ERROR,
         LOG_FATAL
 
-}; // enum LogType
+}; // enum log_type
 
-class Logger {
+class logger {
 public:
         static constexpr uint32_t MAX_FILE_SIZE = (uint32_t)1e9;
 
-        static Logger &Log()
+        static logger &log()
         {
-                static Logger log{};
+                static logger log{};
                 return log;
         }
 
         void set_directory(const std::filesystem::path &path);
 
-        static std::string pref(LogType type, std::string_view file, int line);
+        static std::string pref(log_type type, std::string_view file, int line);
 
         struct fatal_error final : std::exception {
                 explicit fatal_error(const std::string &message);
@@ -44,20 +42,20 @@ public:
                 return m_file;
         }
 
-        ~Logger();
+        ~logger();
 
 private:
         std::filesystem::path        m_dir;
         uint32_t                     m_fileCount;
         std::ofstream                m_file;
 
-        Logger();
+        logger();
 
         void _update_file();
 
-}; // class Logger
+}; // class logger
 
-NN_END
+} // namespace nn
 
-#define LOGGER_PREF(type) NN Logger::pref(NN LOG_##type, __FILE__, __LINE__)
-#define LOGGER_EX(msg) NN Logger::fatal_error(LOGGER_PREF(FATAL) + msg)
+#define LOGGER_PREF(type) ::nn::logger::pref(::nn::LOG_##type, __FILE__, __LINE__)
+#define LOGGER_EX(msg) ::nn::logger::fatal_error(LOGGER_PREF(FATAL) + msg)

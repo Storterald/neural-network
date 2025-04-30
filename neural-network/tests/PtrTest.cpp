@@ -1,42 +1,52 @@
 #include <gtest/gtest.h>
 
-#include <neural-network/types/Memory.h>
-#include <neural-network/Base.h>
+#include <concepts>
+
+#include <neural-network/types/memory.h>
 
 #ifdef BUILD_CUDA_SUPPORT
 #include <cuda_runtime.h>
 
-#include <neural-network/CudaBase.h>
+#include <neural-network/cuda_base.h>
 #endif // BUILD_CUDA_SUPPORT
 
-USE_NN
+TEST(PtrTest, TypeAliasesAreCorrectlyInitialized) {
+        using ptr = nn::ptr<float>;
+
+        EXPECT_TRUE((std::same_as<ptr::value_type, float>));
+        EXPECT_TRUE((std::same_as<ptr::const_value_type, const float>));
+        EXPECT_TRUE((std::same_as<ptr::difference_type, ptrdiff_t>));
+}
 
 TEST(PtrTest, ConstructorWorksWithNullptrOnHost) {
-        EXPECT_NO_THROW(Ptr<float> p(nullptr, false));
+        EXPECT_NO_THROW(nn::ptr<float> p(nullptr, false));
 
-        Ptr<float> p(nullptr, false);
+        const nn::ptr<float> p(nullptr, false);
         EXPECT_EQ(p, nullptr);
         EXPECT_FALSE(p.is_device());
+        EXPECT_TRUE((std::same_as<decltype(p)::value_type, float>));
 }
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, ConstructorWorksWithNullptrOnDevice) {
-        EXPECT_NO_THROW(Ptr<float> p(nullptr, true));
+        EXPECT_NO_THROW(nn::ptr<float> p(nullptr, true));
 
-        Ptr<float> p(nullptr, true);
+        const nn::ptr<float> p(nullptr, true);
         EXPECT_EQ(p, nullptr);
         EXPECT_TRUE(p.is_device());
+        EXPECT_TRUE((std::same_as<decltype(p)::value_type, float>));
 }
 #endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, ConstructorWorksWithValidPointerOnHost) {
         float v = 13;
 
-        EXPECT_NO_THROW(Ptr p(&v, false));
+        EXPECT_NO_THROW(nn::ptr p(&v, false));
 
-        Ptr p(&v, false);
+        const nn::ptr p(&v, false);
         EXPECT_EQ(p, &v);
         EXPECT_FALSE(p.is_device());
+        EXPECT_TRUE((std::same_as<decltype(p)::value_type, float>));
 }
 
 #ifdef BUILD_CUDA_SUPPORT
@@ -45,11 +55,12 @@ TEST(PtrTest, ConstructorWorksWithValidPointerOnDevice) {
         CUDA_CHECK_ERROR(cudaMalloc(&d_v, sizeof(float)),
                 "Failed to allocate memory on the GPU.");
 
-        EXPECT_NO_THROW(Ptr p(d_v, true));
+        EXPECT_NO_THROW(nn::ptr p(d_v, true));
 
-        Ptr p(d_v, true);
+        const nn::ptr p(d_v, true);
         EXPECT_EQ(p, d_v);
         EXPECT_TRUE(p.is_device());
+        EXPECT_TRUE((std::same_as<decltype(p)::value_type, float>));
 
         CUDA_CHECK_ERROR(cudaFree(d_v), "Failed to free GPU memory.");
 }
@@ -57,7 +68,7 @@ TEST(PtrTest, ConstructorWorksWithValidPointerOnDevice) {
 
 TEST(PtrTest, ConstructorSavesValueOnHostWithPointerOnHost) {
         float v = 13;
-        Ptr p(&v, false);
+        const nn::ptr p(&v, false);
         EXPECT_EQ(*p, v);
 }
 
@@ -70,30 +81,36 @@ TEST(PtrTest, ConstructorSavesValueOnHostWithPointerOnDevice) {
         CUDA_CHECK_ERROR(cudaMemcpy(d_v, &v, sizeof(float),
                 cudaMemcpyHostToDevice), "Failed to copy data to the GPU.");
 
-        Ptr p(d_v, true);
+        const nn::ptr p(d_v, true);
         EXPECT_EQ(*p, v);
 
         CUDA_CHECK_ERROR(cudaFree(d_v), "Failed to free GPU memory.");
 }
 #endif // BUILD_CUDA_SUPPORT
 
+TEST(PtrTest, ConstPtrRetainsOriginalType) {
+        float v = 13;
+        const nn::ptr p(&v, false);
+        EXPECT_TRUE((std::same_as<decltype(p)::value_type, float>));
+}
+
 TEST(PtrTest, CopyConstructorWorksWithNullptrOnHost) {
-        Ptr<float> p(nullptr, false);
+        const nn::ptr<float> p(nullptr, false);
 
-        EXPECT_NO_THROW(Ptr copy(p));
+        EXPECT_NO_THROW(nn::ptr copy(p));
 
-        Ptr copy(p);
+        const nn::ptr copy(p);
         EXPECT_EQ(copy, nullptr);
         EXPECT_FALSE(copy.is_device());
 }
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, CopyConstructorWorksWithNullptrOnDevice) {
-        Ptr<float> p(nullptr, true);
+        const nn::ptr<float> p(nullptr, true);
 
-        EXPECT_NO_THROW(Ptr copy(p));
+        EXPECT_NO_THROW(nn::ptr copy(p));
 
-        Ptr copy(p);
+        const nn::ptr copy(p);
         EXPECT_EQ(copy, nullptr);
         EXPECT_TRUE(copy.is_device());
 }
@@ -101,11 +118,11 @@ TEST(PtrTest, CopyConstructorWorksWithNullptrOnDevice) {
 
 TEST(PtrTest, CopyConstructorWorksWithValidPointerOnHost) {
         float v = 13;
-        Ptr p(&v, false);
+        const nn::ptr p(&v, false);
 
-        EXPECT_NO_THROW(Ptr copy(p));
+        EXPECT_NO_THROW(nn::ptr copy(p));
 
-        Ptr copy(p);
+        const nn::ptr copy(p);
         EXPECT_EQ(copy, &v);
         EXPECT_FALSE(copy.is_device());
         EXPECT_EQ(*copy, v);
@@ -120,11 +137,11 @@ TEST(PtrTest, CopyConstructorWorksWithValidPointerOnDevice) {
         CUDA_CHECK_ERROR(cudaMemcpy(d_v, &v, sizeof(float),
                 cudaMemcpyHostToDevice), "Failed to copy data to the GPU.");
 
-        Ptr p(d_v, true);
+        const nn::ptr p(d_v, true);
 
-        EXPECT_NO_THROW(Ptr copy(p));
+        EXPECT_NO_THROW(nn::ptr copy(p));
 
-        Ptr copy(p);
+        const nn::ptr copy(p);
         EXPECT_EQ(copy, d_v);
         EXPECT_TRUE(copy.is_device());
         EXPECT_EQ(*copy, v);
@@ -134,18 +151,18 @@ TEST(PtrTest, CopyConstructorWorksWithValidPointerOnDevice) {
 #endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, MoveConstructorWorksWithNullptrOnHost) {
-        EXPECT_NO_THROW(Ptr p(Ptr<float>(nullptr, false)));
+        EXPECT_NO_THROW(nn::ptr p(nn::ptr<float>(nullptr, false)));
 
-        Ptr p(Ptr<float>(nullptr, false));
+        const nn::ptr p(nn::ptr<float>(nullptr, false));
         EXPECT_EQ(p, nullptr);
         EXPECT_FALSE(p.is_device());
 }
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, MoveConstructorWorksWithNullptrOnDevice) {
-        EXPECT_NO_THROW(Ptr p(Ptr<float>(nullptr, true)));
+        EXPECT_NO_THROW(nn::ptr p(nn::ptr<float>(nullptr, true)));
 
-        Ptr p(Ptr<float>(nullptr, true));
+        const nn::ptr p(nn::ptr<float>(nullptr, true));
         EXPECT_EQ(p, nullptr);
         EXPECT_TRUE(p.is_device());
 }
@@ -153,9 +170,9 @@ TEST(PtrTest, MoveConstructorWorksWithNullptrOnDevice) {
 
 TEST(PtrTest, MoveConstructorWorksWithValidPointerOnHost) {
         float v = 13;
-        EXPECT_NO_THROW(Ptr p(Ptr(&v, false)));
+        EXPECT_NO_THROW(nn::ptr p(nn::ptr(&v, false)));
 
-        Ptr p(Ptr(&v, false));
+        const nn::ptr p(nn::ptr(&v, false));
         EXPECT_EQ(p, &v);
         EXPECT_FALSE(p.is_device());
         EXPECT_EQ(*p, v);
@@ -170,9 +187,9 @@ TEST(PtrTest, MoveConstructorWorksWithValidPointerOnDevice) {
         CUDA_CHECK_ERROR(cudaMemcpy(d_v, &v, sizeof(float),
                 cudaMemcpyHostToDevice), "Failed to copy data to the GPU.");
 
-        EXPECT_NO_THROW(Ptr p(Ptr(d_v, true)));
+        EXPECT_NO_THROW(nn::ptr p(nn::ptr(d_v, true)));
 
-        Ptr p(Ptr(d_v, true));
+        const nn::ptr p(nn::ptr(d_v, true));
         EXPECT_EQ(p, d_v);
         EXPECT_TRUE(p.is_device());
         EXPECT_EQ(*p, v);
@@ -182,8 +199,8 @@ TEST(PtrTest, MoveConstructorWorksWithValidPointerOnDevice) {
 #endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, CopyAssignmentOperatorWorksWithNullptrOnHost) {
-        Ptr<float> p(nullptr, false);
-        Ptr<float> copy(nullptr, false);
+        const nn::ptr<float> p(nullptr, false);
+        nn::ptr<float> copy(nullptr, false);
         EXPECT_NO_THROW(copy = p);
 
         EXPECT_EQ(copy, nullptr);
@@ -192,8 +209,8 @@ TEST(PtrTest, CopyAssignmentOperatorWorksWithNullptrOnHost) {
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, CopyAssignmentOperatorWorksWithNullptrOnDevice) {
-        Ptr<float> p(nullptr, true);
-        Ptr<float> copy(nullptr, true);
+        const nn::ptr<float> p(nullptr, true);
+        nn::ptr<float> copy(nullptr, true);
         EXPECT_NO_THROW(copy = p);
 
         EXPECT_EQ(copy, nullptr);
@@ -204,8 +221,8 @@ TEST(PtrTest, CopyAssignmentOperatorWorksWithNullptrOnDevice) {
 TEST(PtrTest, CopyAssignmentOperatorWorksWithValidPointerOnHost) {
         float v = 13;
 
-        Ptr p(&v, false);
-        Ptr<float> copy(nullptr, false);
+        const nn::ptr p(&v, false);
+        nn::ptr<float> copy(nullptr, false);
         EXPECT_NO_THROW(copy = p);
 
         EXPECT_EQ(copy, &v);
@@ -222,8 +239,8 @@ TEST(PtrTest, CopyAssignmentOperatorWorksWithValidPointerOnDevice) {
         CUDA_CHECK_ERROR(cudaMemcpy(d_v, &v, sizeof(float),
                 cudaMemcpyHostToDevice), "Failed to copy data to the GPU.");
 
-        Ptr p(d_v, true);
-        Ptr<float> copy(nullptr, true);
+        const nn::ptr p(d_v, true);
+        nn::ptr<float> copy(nullptr, true);
         EXPECT_NO_THROW(copy = p);
 
         EXPECT_EQ(copy, d_v);
@@ -235,8 +252,8 @@ TEST(PtrTest, CopyAssignmentOperatorWorksWithValidPointerOnDevice) {
 #endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, MoveAssignmentOperatorWorksWithNullptrOnHost) {
-        Ptr<float> p(nullptr, false);
-        EXPECT_NO_THROW(p = Ptr<float>(nullptr, false));
+        nn::ptr<float> p(nullptr, false);
+        EXPECT_NO_THROW(p = nn::ptr<float>(nullptr, false));
 
         EXPECT_EQ(p, nullptr);
         EXPECT_FALSE(p.is_device());
@@ -244,8 +261,8 @@ TEST(PtrTest, MoveAssignmentOperatorWorksWithNullptrOnHost) {
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, MoveAssignmentOperatorWorksWithNullptrOnDevice) {
-        Ptr<float> p(nullptr, true);
-        EXPECT_NO_THROW(p = Ptr<float>(nullptr, true));
+        nn::ptr<float> p(nullptr, true);
+        EXPECT_NO_THROW(p = nn::ptr<float>(nullptr, true));
 
         EXPECT_EQ(p, nullptr);
         EXPECT_TRUE(p.is_device());
@@ -254,8 +271,8 @@ TEST(PtrTest, MoveAssignmentOperatorWorksWithNullptrOnDevice) {
 
 TEST(PtrTest, MoveAssignmentOperatorWorksWithValidPointerOnHost) {
         float v = 13;
-        Ptr<float> p(nullptr, false);
-        EXPECT_NO_THROW(p = Ptr(&v, false));
+        nn::ptr<float> p(nullptr, false);
+        EXPECT_NO_THROW(p = nn::ptr(&v, false));
 
         EXPECT_EQ(p, &v);
         EXPECT_FALSE(p.is_device());
@@ -271,8 +288,8 @@ TEST(PtrTest, MoveAssignmentOperatorWorksWithValidPointerOnDevice) {
         CUDA_CHECK_ERROR(cudaMemcpy(d_v, &v, sizeof(float),
                 cudaMemcpyHostToDevice), "Failed to copy data to the GPU.");
 
-        Ptr<float> p(nullptr, true);
-        EXPECT_NO_THROW(p = Ptr(d_v, true));
+        nn::ptr<float> p(nullptr, true);
+        EXPECT_NO_THROW(p = nn::ptr(d_v, true));
 
         EXPECT_EQ(p, d_v);
         EXPECT_TRUE(p.is_device());
@@ -284,8 +301,8 @@ TEST(PtrTest, MoveAssignmentOperatorWorksWithValidPointerOnDevice) {
 
 TEST(PtrTest, ComparisonOperatorsWorksWithEqualPointersBothOnHost) {
         float v;
-        Ptr a(&v, false);
-        Ptr b(&v, false);
+        const nn::ptr a(&v, false);
+        const nn::ptr b(&v, false);
 
         EXPECT_TRUE(a == b);
         EXPECT_FALSE(a != b);
@@ -297,8 +314,8 @@ TEST(PtrTest, ComparisonOperatorsWorksWithEqualPointersBothOnDevice) {
         CUDA_CHECK_ERROR(cudaMalloc(&d_v, sizeof(float)),
                 "Failed to allocate memory on the GPU.");
 
-        Ptr a(d_v, true);
-        Ptr b(d_v, true);
+        const nn::ptr a(d_v, true);
+        const nn::ptr b(d_v, true);
 
         EXPECT_TRUE(a == b);
         EXPECT_FALSE(a != b);
@@ -310,8 +327,8 @@ TEST(PtrTest, ComparisonOperatorsWorksWithEqualPointersBothOnDevice) {
 TEST(PtrTest, ComparisonOperatorsWorksWithDifferentPointersBothOnHost) {
         float v1;
         float v2;
-        Ptr a(&v1, false);
-        Ptr b(&v2, false);
+        const nn::ptr a(&v1, false);
+        const nn::ptr b(&v2, false);
 
         EXPECT_FALSE(a == b);
         EXPECT_TRUE(a != b);
@@ -327,8 +344,8 @@ TEST(PtrTest, ComparisonOperatorsWorksWithDifferentPointersBothOnDevice) {
         CUDA_CHECK_ERROR(cudaMalloc(&d_v2, sizeof(float)),
                 "Failed to allocate memory on the GPU.");
 
-        Ptr a(d_v1, true);
-        Ptr b(d_v2, true);
+        const nn::ptr a(d_v1, true);
+        const nn::ptr b(d_v2, true);
 
         EXPECT_FALSE(a == b);
         EXPECT_TRUE(a != b);
@@ -345,8 +362,8 @@ TEST(PtrTest, ComparisonOperatorsWorksWithDifferentPointersOnHostAndOnDevice) {
         CUDA_CHECK_ERROR(cudaMalloc(&d_v, sizeof(float)),
                 "Failed to allocate memory on the GPU.");
 
-        Ptr a(&v, false);
-        Ptr b(d_v, true);
+        const nn::ptr a(&v, false);
+        const nn::ptr b(d_v, true);
 
         EXPECT_FALSE(a == b);
         EXPECT_TRUE(a != b);
@@ -357,7 +374,7 @@ TEST(PtrTest, ComparisonOperatorsWorksWithDifferentPointersOnHostAndOnDevice) {
 
 TEST(PtrTest, RawComparisonOperatorsWorksWithEqualPointersBothOnHost) {
         float v;
-        Ptr a(&v, false);
+        const nn::ptr a(&v, false);
 
         EXPECT_TRUE(a == &v);
         EXPECT_FALSE(a != &v);
@@ -369,7 +386,7 @@ TEST(PtrTest, RawComparisonOperatorsWorksWithEqualPointersBothOnDevice) {
         CUDA_CHECK_ERROR(cudaMalloc(&d_v, sizeof(float)),
                 "Failed to allocate memory on the GPU.");
 
-        Ptr a(d_v, true);
+        const nn::ptr a(d_v, true);
 
         EXPECT_TRUE(a == d_v);
         EXPECT_FALSE(a != d_v);
@@ -381,7 +398,7 @@ TEST(PtrTest, RawComparisonOperatorsWorksWithEqualPointersBothOnDevice) {
 TEST(PtrTest, RawComparisonOperatorsWorksWithDifferentPointersBothOnHost) {
         float v1;
         float v2;
-        Ptr a(&v1, false);
+        const nn::ptr a(&v1, false);
 
         EXPECT_FALSE(a == &v2);
         EXPECT_TRUE(a != &v2);
@@ -397,7 +414,7 @@ TEST(PtrTest, RawComparisonOperatorsWorksWithDifferentPointersBothOnDevice) {
         CUDA_CHECK_ERROR(cudaMalloc(&d_v2, sizeof(float)),
                 "Failed to allocate memory on the GPU.");
 
-        Ptr a(d_v1, true);
+        const nn::ptr a(d_v1, true);
 
         EXPECT_FALSE(a == d_v2);
         EXPECT_TRUE(a != d_v2);
@@ -414,7 +431,7 @@ TEST(PtrTest, RawComparisonOperatorsWorksWithDifferentPointersOnHostAndOnDevice)
         CUDA_CHECK_ERROR(cudaMalloc(&d_v, sizeof(float)),
                 "Failed to allocate memory on the GPU.");
 
-        Ptr a(&v, false);
+        const nn::ptr a(&v, false);
 
         EXPECT_FALSE(a == d_v);
         EXPECT_TRUE(a != d_v);
@@ -425,41 +442,57 @@ TEST(PtrTest, RawComparisonOperatorsWorksWithDifferentPointersOnHostAndOnDevice)
 
 TEST(PtrTest, DereferenceOperatorReturnsValidRefWithValidPointer) {
         float v;
-        Ptr ptr(&v, false);
+        const nn::ptr ptr(&v, false);
 
-        EXPECT_NO_THROW(Ref<float> r = *ptr);
+        EXPECT_NO_THROW(nn::ref r = *ptr);
 
-        Ref<float> r = *ptr;
+        nn::ref r = *ptr;
         EXPECT_EQ(ptr, &r);
 }
 
 TEST(PtrTest, DereferenceOperatorThrowsWithNullptr) {
-        Ptr<float> ptr(nullptr, false);
-        EXPECT_THROW(Ref<float> r = *ptr, Logger::fatal_error);
+        nn::ptr<float> ptr(nullptr, false);
+        EXPECT_THROW(nn::ref r = *ptr, nn::logger::fatal_error);
+}
+
+TEST(PtrTest, DereferenceOperatorReturnsRefWithTheSameValueTypeAsThePointer) {
+        float v = 0;
+        nn::ptr ptr(&v, false);
+        const nn::ref r = *ptr;
+
+        EXPECT_TRUE((std::same_as<decltype(r)::value_type, float>));
+}
+
+TEST(PtrTest, DereferenceOperatorOnConstPtrReturnsRefWithConstType) {
+        float v = 0;
+        const nn::ptr ptr(&v, false);
+        const nn::ref r = *ptr;
+
+        EXPECT_TRUE((std::same_as<decltype(r)::value_type, const float>));
 }
 
 TEST(PtrTest, IndexerOperatorReturnsValidRefWithValidPointer) {
         float v;
-        Ptr ptr(&v, false);
+        const nn::ptr ptr(&v, false);
 
-        EXPECT_NO_THROW(Ref<float> r = ptr[0]);
+        EXPECT_NO_THROW(nn::ref r = ptr[0]);
 
-        Ref<float> r = ptr[0];
+        nn::ref r = ptr[0];
         EXPECT_EQ(ptr, &r);
 }
 
 TEST(PtrTest, IndexerOperatorThrowsWithNullptr) {
-        Ptr<float> ptr(nullptr, false);
-        EXPECT_THROW(Ref<float> r = ptr[0], Logger::fatal_error);
+        const nn::ptr<float> ptr(nullptr, false);
+        EXPECT_THROW(nn::ref r = ptr[0], nn::logger::fatal_error);
 }
 
 TEST(PtrTest, SumOperatorReturnsNewValidPointer) {
         float v[3] = { 1, 2, 3 };
 
-        Ptr a(&v[0], false);
-        EXPECT_NO_THROW(Ptr<float> b = a + 2);
+        const nn::ptr a(&v[0], false);
+        EXPECT_NO_THROW(nn::ptr b = a + 2);
 
-        Ptr<float> b = a + 2;
+        nn::ptr b = a + 2;
         EXPECT_EQ(b, &v[0] + 2);
         EXPECT_EQ(b, &v[2]);
         EXPECT_EQ(*b, v[2]);
@@ -468,10 +501,10 @@ TEST(PtrTest, SumOperatorReturnsNewValidPointer) {
 TEST(PtrTest, SubOperatorReturnsNewValidPointer) {
         float v[3] = { 1, 2, 3 };
 
-        Ptr a(&v[2], false);
-        EXPECT_NO_THROW(Ptr<float> b = a - 2);
+        const nn::ptr a(&v[2], false);
+        EXPECT_NO_THROW(nn::ptr b = a - 2);
 
-        Ptr<float> b = a - 2;
+        nn::ptr b = a - 2;
         EXPECT_EQ(b, &v[2] - 2);
         EXPECT_EQ(b, &v[0]);
         EXPECT_EQ(*b, v[0]);
@@ -480,7 +513,7 @@ TEST(PtrTest, SubOperatorReturnsNewValidPointer) {
 TEST(PtrTest, SumEqualOperatorReturnsNewValidPointer) {
         float v[3] = { 1, 2, 3 };
 
-        Ptr a(&v[0], false);
+        nn::ptr a(&v[0], false);
         EXPECT_NO_THROW(a += 2);
 
         EXPECT_EQ(a, &v[0] + 2);
@@ -491,7 +524,7 @@ TEST(PtrTest, SumEqualOperatorReturnsNewValidPointer) {
 TEST(PtrTest, SubEqualOperatorReturnsNewValidPointer) {
         float v[3] = { 1, 2, 3 };
 
-        Ptr a(&v[2], false);
+        nn::ptr a(&v[2], false);
         EXPECT_NO_THROW(a -= 2);
 
         EXPECT_EQ(a, &v[2] - 2);
@@ -502,10 +535,10 @@ TEST(PtrTest, SubEqualOperatorReturnsNewValidPointer) {
 TEST(PtrTest, IncreaseOperatorReturnsNewValidPointer) {
         float v[3] = { 1, 2, 3 };
 
-        Ptr a(&v[0], false);
-        EXPECT_NO_THROW(Ptr<float> b = a++);
+        nn::ptr a(&v[0], false);
+        EXPECT_NO_THROW(nn::ptr b = a++);
 
-        Ptr<float> b = a++;
+        nn::ptr b = a;
         EXPECT_EQ(b, &v[0] + 1);
         EXPECT_EQ(b, &v[1]);
         EXPECT_EQ(*b, v[1]);
@@ -514,10 +547,10 @@ TEST(PtrTest, IncreaseOperatorReturnsNewValidPointer) {
 TEST(PtrTest, DecreaseOperatorReturnsNewValidPointer) {
         float v[3] = { 1, 2, 3 };
 
-        Ptr a(&v[2], false);
-        EXPECT_NO_THROW(Ptr<float> b = a--);
+        nn::ptr a(&v[2], false);
+        EXPECT_NO_THROW(nn::ptr b = a--);
 
-        Ptr<float> b = a--;
+        nn::ptr b = a;
         EXPECT_EQ(b, &v[2] - 1);
         EXPECT_EQ(b, &v[1]);
         EXPECT_EQ(*b, v[1]);
@@ -526,7 +559,7 @@ TEST(PtrTest, DecreaseOperatorReturnsNewValidPointer) {
 TEST(PtrTest, IncreaseSelfOperatorReturnsNewValidPointer) {
         float v[3] = { 1, 2, 3 };
 
-        Ptr a(&v[0], false);
+        nn::ptr a(&v[0], false);
         EXPECT_NO_THROW(++a);
 
         EXPECT_EQ(a, &v[0] + 1);
@@ -537,7 +570,7 @@ TEST(PtrTest, IncreaseSelfOperatorReturnsNewValidPointer) {
 TEST(PtrTest, DecreaseSelfOperatorReturnsNewValidPointer) {
         float v[3] = { 1, 2, 3 };
 
-        Ptr a(&v[2], false);
+        nn::ptr a(&v[2], false);
         EXPECT_NO_THROW(--a);
 
         EXPECT_EQ(a, &v[2] - 1);
@@ -547,24 +580,24 @@ TEST(PtrTest, DecreaseSelfOperatorReturnsNewValidPointer) {
 
 TEST(PtrTest, GetReturnsTheRawPointer) {
         float v;
-        Ptr p(&v, false);
+        const nn::ptr p(&v, false);
         EXPECT_EQ(p.get(), &v);
 }
 
 TEST(PtrTest, DeviceReturnsIfThePointerIsADeviceOneWhenOnHost) {
-        Ptr<float> p(nullptr, false);
+        const nn::ptr<float> p(nullptr, false);
         EXPECT_FALSE(p.is_device());
 }
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, DeviceReturnsIfThePointerIsADeviceOneWhenOnDevice) {
-        Ptr<float> p(nullptr, true);
+        const nn::ptr<float> p(nullptr, true);
         EXPECT_TRUE(p.is_device());
 }
 #endif // BUILD_CUDA_SUPPORT
 
-TEST(PtrTest, SpanReturnsValidSpan) {
+TEST(PtrTest, MakeSpanReturnsValidSpan) {
         float v;
-        Ptr p(&v, false);
-        EXPECT_NO_THROW(Span<float> s = p.span(1, false));
+        const nn::ptr p(&v, false);
+        EXPECT_NO_THROW(nn::span s = p.make_span(1, false));
 }

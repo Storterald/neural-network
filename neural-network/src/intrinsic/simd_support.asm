@@ -1,5 +1,5 @@
 .CODE
-PUBLIC get_SIMD_support
+PUBLIC _get_simd_support
 
 AVX512_F         EQU 00010000H
 ; this is not the AVX instruction set bit (10000000H), instead the FMA bit, which
@@ -13,14 +13,14 @@ AVX512_F         EQU 00010000H
 AVX              EQU 00001000H
 SSE3             EQU 00000001H
 
-; SIMD enum
+; simd enum
 SIMD_UNSUPPORTED EQU 0
 SIMD_SSE3        EQU 1
 SIMD_AVX         EQU 2
 SIMD_AVX512      EQU 3
 
-; SIMD get_SIMD_support()
-get_SIMD_support PROC
+; simd _get_simd_support()
+_get_simd_support PROC
         PUSH rbp
         MOV rbp, rsp
 
@@ -72,5 +72,5 @@ return:
         POP rbp
         RET
 
-get_SIMD_support ENDP
+_get_simd_support ENDP
 END

@@ -2,11 +2,9 @@
 
 #include <cstdint>
 
-#include <neural-network/Base.h>
+namespace nn {
 
-NN_BEGIN
-
-enum MathType : uint32_t {
+enum math_type : uint32_t {
         MATH_NORMAL =  0,
         MATH_SSE3   =  4,
         MATH_AVX    =  8,
@@ -15,10 +13,10 @@ enum MathType : uint32_t {
         , MATH_CUDA = (uint32_t)-1
 #endif // BUILD_CUDA_SUPPORT
 
-}; // enum MathType
+}; // enum math_type
 
-template<MathType T>
-class _Math {
+template<math_type T>
+class _math {
 public:
         static constexpr uint32_t SIMD_WIDTH = T;
 
@@ -141,6 +139,6 @@ public:
                 const float        vector[],
                 float              result[]);
 
-}; // class _Math
+}; // class _math
 
-NN_END
+} // namespace nn

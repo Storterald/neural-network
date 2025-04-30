@@ -1,4 +1,4 @@
-#include <neural-network/utils/Logger.h>
+#include <neural-network/utils/logger.h>
 
 #include <string_view>
 #include <filesystem>
@@ -8,7 +8,7 @@
 #include <string>
 #include <ctime>
 
-#include <neural-network/Base.h>
+#include <neural-network/base.h>
 
 static constexpr std::string_view CONVERTER[4] {
         "INFO ",
@@ -30,19 +30,19 @@ static std::string _time()
         return buffer;
 }
 
-NN_BEGIN
+namespace nn {
 
-Logger::Logger() :
+logger::logger() :
         m_dir(""),
         m_fileCount(0),
         m_file() {}
 
-Logger::~Logger()
+logger::~logger()
 {
         m_file.close();
 }
 
-void Logger::set_directory(const std::filesystem::path &path)
+void logger::set_directory(const std::filesystem::path &path)
 {
         m_file.close();
 
@@ -53,11 +53,11 @@ void Logger::set_directory(const std::filesystem::path &path)
                 throw std::runtime_error("Could not open log file.");
 }
 
-std::string Logger::pref(LogType type, std::string_view file, int line) {
+std::string logger::pref(log_type type, std::string_view file, int line) {
         return std::format("{} {} {}:{} ", _time(), CONVERTER[type], file, line);
 }
 
-void Logger::_update_file()
+void logger::_update_file()
 {
         if (!m_file || (uint32_t)m_file.tellp() >= MAX_FILE_SIZE) {
                 if (m_file)
@@ -69,10 +69,10 @@ void Logger::_update_file()
         }
 }
 
-Logger::fatal_error::fatal_error(const std::string &message)
+logger::fatal_error::fatal_error(const std::string &message)
 {
         std::cout << message << std::endl;
-        Logger::Log().m_file << message << std::endl;
+        logger::log().m_file << message << std::endl;
 }
 
-NN_END
+} // namespace nn

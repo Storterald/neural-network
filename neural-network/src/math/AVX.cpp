@@ -1,10 +1,8 @@
-#include "_Math.h"
+#include "_math.h"
 
 #include <immintrin.h>
 
 #include <cstdint>
-
-#include <neural-network/Base.h>
 
 #define _mm256_abs_ps(X) (_mm256_and_ps(X, _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF))))
 #define _mm256_cmp_ps_mask(a, b, cmp) ((__mmask8)_mm256_movemask_ps(_mm256_cmp_ps(a, b, cmp)))
@@ -43,9 +41,9 @@ static inline __m256 __mm256_mask_blend_ps(__mmask8 k, __m256 a, __m256 b)
 
 #define _mm256_mask_blend_ps __mm256_mask_blend_ps
 
-NN_BEGIN
+namespace nn {
 
-template<> void _Math<MATH_AVX>::sum(
+template<> void _math<MATH_AVX>::sum(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -61,10 +59,10 @@ template<> void _Math<MATH_AVX>::sum(
                 _mm256_storeu_ps(&result[i], sumResult);
         }
 
-        _Math<MATH_SSE3>::sum(size - end, first + end, second + end, result + end);
+        _math<MATH_SSE3>::sum(size - end, first + end, second + end, result + end);
 }
 
-template<> void _Math<MATH_AVX>::sub(
+template<> void _math<MATH_AVX>::sub(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -80,10 +78,10 @@ template<> void _Math<MATH_AVX>::sub(
                 _mm256_storeu_ps(&result[i], subResult);
         }
 
-        _Math<MATH_SSE3>::sub(size - end, first + end, second + end, result + end);
+        _math<MATH_SSE3>::sub(size - end, first + end, second + end, result + end);
 }
 
-template<> void _Math<MATH_AVX>::mul(
+template<> void _math<MATH_AVX>::mul(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -99,10 +97,10 @@ template<> void _Math<MATH_AVX>::mul(
                 _mm256_storeu_ps(&result[i], mulResult);
         }
 
-        _Math<MATH_SSE3>::mul(size - end, first + end, second + end, result + end);
+        _math<MATH_SSE3>::mul(size - end, first + end, second + end, result + end);
 }
 
-template<> void _Math<MATH_AVX>::div(
+template<> void _math<MATH_AVX>::div(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -118,10 +116,10 @@ template<> void _Math<MATH_AVX>::div(
                 _mm256_storeu_ps(&result[i], divResult);
         }
 
-        _Math<MATH_SSE3>::div(size - end, first + end, second + end, result + end);
+        _math<MATH_SSE3>::div(size - end, first + end, second + end, result + end);
 }
 
-template<> void _Math<MATH_AVX>::sum(
+template<> void _math<MATH_AVX>::sum(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -138,10 +136,10 @@ template<> void _Math<MATH_AVX>::sum(
                 _mm256_storeu_ps(&result[i], sumResult);
         }
 
-        _Math<MATH_SSE3>::sum(size - end, data + end, scalar, result + end);
+        _math<MATH_SSE3>::sum(size - end, data + end, scalar, result + end);
 }
 
-template<> void _Math<MATH_AVX>::sub(
+template<> void _math<MATH_AVX>::sub(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -158,10 +156,10 @@ template<> void _Math<MATH_AVX>::sub(
                 _mm256_storeu_ps(&result[i], subResult);
         }
 
-        _Math<MATH_SSE3>::sub(size - end, data + end, scalar, result + end);
+        _math<MATH_SSE3>::sub(size - end, data + end, scalar, result + end);
 }
 
-template<> void _Math<MATH_AVX>::mul(
+template<> void _math<MATH_AVX>::mul(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -178,10 +176,10 @@ template<> void _Math<MATH_AVX>::mul(
                 _mm256_storeu_ps(&result[i], mulResult);
         }
 
-        _Math<MATH_SSE3>::mul(size - end, data + end, scalar, result + end);
+        _math<MATH_SSE3>::mul(size - end, data + end, scalar, result + end);
 }
 
-template<> void _Math<MATH_AVX>::div(
+template<> void _math<MATH_AVX>::div(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -198,10 +196,10 @@ template<> void _Math<MATH_AVX>::div(
                 _mm256_storeu_ps(&result[i], divResult);
         }
 
-        _Math<MATH_SSE3>::div(size - end, data + end, scalar, result + end);
+        _math<MATH_SSE3>::div(size - end, data + end, scalar, result + end);
 }
 
-template<> void _Math<MATH_AVX>::tanh(
+template<> void _math<MATH_AVX>::tanh(
         uint32_t           size,
         const float        data[],
         float              result[]) {
@@ -243,17 +241,17 @@ template<> void _Math<MATH_AVX>::tanh(
                 _mm256_storeu_ps(&result[i], tanh);
         }
 
-        _Math<MATH_SSE3>::tanh(size - end, data + end, result + end);
+        _math<MATH_SSE3>::tanh(size - end, data + end, result + end);
 }
 
-template<> void _Math<MATH_AVX>::tanh_derivative(
+template<> void _math<MATH_AVX>::tanh_derivative(
         uint32_t           size,
         const float        data[],
         float              result[]) {
 
         const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
-        _Math<MATH_AVX>::tanh(size - end, data, result);
+        _math<MATH_AVX>::tanh(size - end, data, result);
 
         const __m256 threshold = _mm256_set1_ps(4.9f);
         const __m256 zero      = _mm256_setzero_ps();
@@ -272,10 +270,10 @@ template<> void _Math<MATH_AVX>::tanh_derivative(
                 _mm256_storeu_ps(&result[i], tanhDerivative);
         }
 
-        _Math<MATH_SSE3>::tanh_derivative(size - end, data + end, result + end);
+        _math<MATH_SSE3>::tanh_derivative(size - end, data + end, result + end);
 }
 
-template<> void _Math<MATH_AVX>::ReLU(
+template<> void _math<MATH_AVX>::ReLU(
         uint32_t           size,
         const float        data[],
         float              result[]) {
@@ -291,10 +289,10 @@ template<> void _Math<MATH_AVX>::ReLU(
                 _mm256_storeu_ps(&result[i], relu);
         }
 
-        _Math<MATH_SSE3>::ReLU(size - end, data + end, result + end);
+        _math<MATH_SSE3>::ReLU(size - end, data + end, result + end);
 }
 
-template<> void _Math<MATH_AVX>::ReLU_derivative(
+template<> void _math<MATH_AVX>::ReLU_derivative(
         uint32_t           size,
         const float        data[],
         float              result[]) {
@@ -312,10 +310,10 @@ template<> void _Math<MATH_AVX>::ReLU_derivative(
                 _mm256_storeu_ps(&result[i], reluDerivative);
         }
 
-        _Math<MATH_SSE3>::ReLU_derivative(size - end, data + end, result + end);
+        _math<MATH_SSE3>::ReLU_derivative(size - end, data + end, result + end);
 }
 
-template<> void _Math<MATH_AVX>::min(
+template<> void _math<MATH_AVX>::min(
         uint32_t           size,
         const float        data[],
         float              min,
@@ -332,11 +330,11 @@ template<> void _Math<MATH_AVX>::min(
                 _mm256_storeu_ps(&result[i], minResult);
         }
 
-        _Math<MATH_SSE3>::min(size - end, data + end, min, result + end);
+        _math<MATH_SSE3>::min(size - end, data + end, min, result + end);
 }
 
 
-template<> void _Math<MATH_AVX>::max(
+template<> void _math<MATH_AVX>::max(
         uint32_t           size,
         const float        data[],
         float              max,
@@ -353,10 +351,10 @@ template<> void _Math<MATH_AVX>::max(
                 _mm256_storeu_ps(&result[i], maxResult);
         }
 
-        _Math<MATH_SSE3>::max(size - end, data + end, max, result + end);
+        _math<MATH_SSE3>::max(size - end, data + end, max, result + end);
 }
 
-template<> void _Math<MATH_AVX>::clamp(
+template<> void _math<MATH_AVX>::clamp(
         uint32_t           size,
         const float        data[],
         float              min,
@@ -375,10 +373,10 @@ template<> void _Math<MATH_AVX>::clamp(
                 _mm256_storeu_ps(&result[i], clamp);
         }
 
-        _Math<MATH_SSE3>::clamp(size - end, data + end, min, max, result + end);
+        _math<MATH_SSE3>::clamp(size - end, data + end, min, max, result + end);
 }
 
-template<> void _Math<MATH_AVX>::min(
+template<> void _math<MATH_AVX>::min(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -394,10 +392,10 @@ template<> void _Math<MATH_AVX>::min(
                 _mm256_storeu_ps(&result[i], minValues);
         }
 
-        _Math<MATH_SSE3>::min(size - end, first + end, second + end, result + end);
+        _math<MATH_SSE3>::min(size - end, first + end, second + end, result + end);
 }
 
-template<> void _Math<MATH_AVX>::max(
+template<> void _math<MATH_AVX>::max(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -413,10 +411,10 @@ template<> void _Math<MATH_AVX>::max(
                 _mm256_storeu_ps(&result[i], maxValues);
         }
 
-        _Math<MATH_SSE3>::max(size - end, first + end, second + end, result + end);
+        _math<MATH_SSE3>::max(size - end, first + end, second + end, result + end);
 }
 
-template<> void _Math<MATH_AVX>::clamp(
+template<> void _math<MATH_AVX>::clamp(
         uint32_t           size,
         const float        data[],
         const float        min[],
@@ -434,10 +432,10 @@ template<> void _Math<MATH_AVX>::clamp(
                 _mm256_storeu_ps(&result[i], clamp);
         }
 
-        _Math<MATH_SSE3>::clamp(size - end, data + end, min + end, max + end, result + end);
+        _math<MATH_SSE3>::clamp(size - end, data + end, min + end, max + end, result + end);
 }
 
-template<> void _Math<MATH_AVX>::compare(
+template<> void _math<MATH_AVX>::compare(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -458,10 +456,10 @@ template<> void _Math<MATH_AVX>::compare(
                 }
         }
 
-        _Math<MATH_SSE3>::compare(size - end, first + end, second + end, result);
+        _math<MATH_SSE3>::compare(size - end, first + end, second + end, result);
 }
 
-template<> void _Math<MATH_AVX>::matvec_mul(
+template<> void _math<MATH_AVX>::matvec_mul(
         uint32_t           width,
         uint32_t           height,
         const float        matrix[],
@@ -488,4 +486,4 @@ template<> void _Math<MATH_AVX>::matvec_mul(
         }
 }
 
-NN_END
+} // namespace nn

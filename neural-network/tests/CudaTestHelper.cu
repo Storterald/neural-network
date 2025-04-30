@@ -1,6 +1,6 @@
 #include "CudaTestHelper.h"
 
-namespace Kernels {
+namespace kernels {
         
         __global__ void access_values(uint32_t size, const float *data)
         {
@@ -15,26 +15,32 @@ namespace Kernels {
                         *res &= (data[i] == v);
         }
 
-} // namespace Kernels
+        __global__ void set_values(uint32_t size, float *data, float v)
+        {
+                for (uint32_t i = 0; i < size; ++i)
+                        data[i] = v;
+        }
 
-void Helper::access_values(uint32_t size, const float *data)
+} // namespace kernels
+
+void helper::access_values(uint32_t size, const float *data)
 {
-        Kernels::access_values<<<1, 1>>>(size, data);
+        kernels::access_values<<<1, 1>>>(size, data);
 
         CUDA_CHECK_ERROR(cudaGetLastError(), "Kernels::access_values launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in Helper::access_values.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in helper::access_values.");
 }
 
-bool Helper::check_values(uint32_t size, const float *data, float v)
+bool helper::check_values(uint32_t size, const float *data, float v)
 {
         bool *d_res = nullptr;
         CUDA_CHECK_ERROR(cudaMalloc(&d_res, sizeof(bool)),
                 "Failed to allocate memory on GPU.");
 
-        Kernels::check_values<<<1, 1>>>(size, data, v, d_res);
+        kernels::check_values<<<1, 1>>>(size, data, v, d_res);
 
         CUDA_CHECK_ERROR(cudaGetLastError(), "Kernels::check_values launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in Helper::check_values.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in helper::check_values.");
 
         bool res = false;
         CUDA_CHECK_ERROR(cudaMemcpy(&res, d_res, sizeof(bool), cudaMemcpyDeviceToHost),
@@ -42,4 +48,12 @@ bool Helper::check_values(uint32_t size, const float *data, float v)
 
         CUDA_CHECK_ERROR(cudaFree(d_res), "Failed to free GPU memory.");
         return res;
+}
+
+void helper::set_values(uint32_t size, float *data, float v)
+{
+        kernels::set_values<<<1, 1>>>(size, data, v);
+
+        CUDA_CHECK_ERROR(cudaGetLastError(), "kernels::access_values launch failed.");
+        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in helper::access_values.");
 }

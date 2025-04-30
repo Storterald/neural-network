@@ -2,14 +2,14 @@
 
 #include <cstdint>
 
-#include <neural-network/Base.h>
+#include <neural-network/base.h>
 
 #ifdef DEBUG_MODE_ENABLED
 #include <cuda_runtime.h>
 
 #include <string>
 
-#include <neural-network/utils/Logger.h>
+#include <neural-network/utils/logger.h>
 #endif // DEBUG_MODE_ENABLED
 
 #ifndef BUILD_CUDA_SUPPORT
@@ -29,14 +29,10 @@
 #define CUDA_CHECK_ERROR(f, ...) f
 #endif // DEBUG_MODE_ENABLED
 
-NN_BEGIN
+namespace nn {
 
-// Math related constants.
 constexpr uint32_t BLOCK_BITSHIFT = 8;
-constexpr uint32_t BLOCK_SIZE = 1 << BLOCK_BITSHIFT;
+constexpr uint32_t BLOCK_SIZE     = 1 << BLOCK_BITSHIFT;
+constexpr uint32_t CUDA_MINIMUM   = 10000;
 
-// Since copying data to the GPU and back, and launching CUDA kernels
-// has a cost, for small amount of data it's not worth it to use CUDA.
-constexpr uint32_t CUDA_MINIMUM = 10000;
-
-NN_END
+} // namespace nn
