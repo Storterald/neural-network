@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.13)
-project(NeuralNetworkDist)
+project(NeuralNetwork)
 
-if (NOT MSVC)
-        message(FATAL_ERROR "MSVC is required for compilation.")
+if (WIN32 AND BUILD_CUDA_SUPPORT AND NOT MSVC)
+        message(FATAL_ERROR "MSVC is required for compilation when compiling "
+                            "with CUDA on windows.")
 endif ()
 
 option(BUILD_CUDA_SUPPORT  "Build with CUDA support" ON)
@@ -20,6 +21,10 @@ if (BUILD_CUDA_SUPPORT)
         else ()
                 message(STATUS "Found CUDA Toolkit: $ENV{CUDA_PATH}")
         endif()
+endif ()
+
+if (NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+        add_compile_definitions(NDEBUG)
 endif ()
 
 # ------------------------------------------------------------------------------

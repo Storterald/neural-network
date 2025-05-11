@@ -1,8 +1,10 @@
 .CODE
 PUBLIC _get_simd_support
 
-AVX512_F         EQU 00010000H
-; this is not the AVX instruction set bit (10000000H), instead the FMA bit, which
+; This is the AVX512DQ instruction set bit, included in all currently existing
+; CPUs with AVX512F.
+AVX512_DQ        EQU 00010000H
+; This is not the AVX instruction set bit (08000000H), instead the FMA bit, which
 ; means AVX support and fused multiply-add support. This will classify the listed
 ; CPU generations as SSE3 ones, as they only support the AVX instruction set:
 ;   - Pentium
@@ -10,7 +12,7 @@ AVX512_F         EQU 00010000H
 ;   - Sandy Bridge
 ;   - Ivy Bridge
 ;   - Bulldozer (without Piledriver cores)
-AVX              EQU 00001000H
+AVX              EQU 00000800H
 SSE3             EQU 00000001H
 
 ; simd enum
@@ -36,7 +38,7 @@ _get_simd_support PROC
         ; https://en.wikipedia.org/wiki/CPUID
         CPUID
 
-        TEST ebx, AVX512_F
+        TEST ebx, AVX512_DQ
         JNZ avx512_supported
 
         ; eax = 1, ecx = 0 : Processor Info and Feature Bits

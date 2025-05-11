@@ -43,6 +43,23 @@
       }
     },
     {
+      "name": "mingw",
+      "hidden": true,
+      "inherits": "common",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "BUILD_CUDA_SUPPORT": false
+      },
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "MinGW"
+        },
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "intelliSenseMode": "linux-gcc-x64"
+        }
+      }
+    },
+    {
       "name": "msvc-debug",
       "displayName": "MSVC Debug",
       "inherits": "msvc",
@@ -54,6 +71,22 @@
       "name": "msvc-release",
       "displayName": "MSVC Release",
       "inherits": "msvc",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "mingw-debug",
+      "displayName": "MINGW Debug",
+      "inherits": "mingw",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "mingw-release",
+      "displayName": "MINGW Release",
+      "inherits": "mingw",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
@@ -70,6 +103,18 @@
       "name": "msvc-release-build",
       "displayName": "MSVC Release Build",
       "configurePreset": "msvc-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "mingw-debug-build",
+      "displayName": "MINGW Debug Build",
+      "configurePreset": "mingw-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "mingw-release-build",
+      "displayName": "MINGW Release Build",
+      "configurePreset": "mingw-release",
       "configuration": "Release"
     }
   ]

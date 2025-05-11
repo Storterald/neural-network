@@ -17,15 +17,15 @@ TEST(IntrinsicTest, CpuSIMDSupportIsCorrectlyDetected) {
         const nn::simd support = []() -> nn::simd {
                 int regs[4]{};
                 __cpuid(regs, 7);
-                if (regs[EBX] & (1 << 16))
+                if (regs[EBX] & 0b1000000000000000)
                         return nn::SIMD_AVX512;
 
                 __cpuid(regs, 1);
 
-                if (regs[ECX] & (1 << 12))
+                if (regs[ECX] & 0b100000000000)
                         return nn::SIMD_AVX;
 
-                if (regs[ECX] & (1 << 0))
+                if (regs[ECX] & 0b1)
                         return nn::SIMD_SSE3;
 
                 return nn::SIMD_UNSUPPORTED;

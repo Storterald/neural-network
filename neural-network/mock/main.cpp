@@ -4,12 +4,44 @@
 #include <neural-network/utils/logger.h>
 
 #include <filesystem>
+#include <algorithm>
 #include <iostream>
 #include <chrono>
+#include <span>
 
 namespace fs = std::filesystem;
 namespace ch = std::chrono;
 
+#define MNIST_TRAINING
+
+#if defined(MNIST_TRAINING) && defined(PPO_TRAINING)
+#error "Only one training mode can be selected at a time."
+#endif // MNIST_TRAINING && PPO_TRAINING
+
+#ifdef MNIST_TRAINING
+static void _get_inputs(
+        std::string_view   path,
+        uint32_t           samplesCount,
+        std::vector<float> &inputs,
+        std::vector<float> &outputs) {
+
+        inputs.resize(samplesCount * 784, 0);
+        outputs.resize(samplesCount * 10, 0);
+
+        fs::path cwd = fs::path(__FILE__).parent_path();
+        fs::path filePath = cwd / ".." / ".." / "mnist" / path;
+        std::ifstream file(filePath, std::ios::binary);
+
+        int tmp;
+        for (uint32_t i = 0; i < samplesCount; ++i) {
+                file.read((char *)&tmp, sizeof(int));
+                outputs[i * 10 + tmp] = 1.0f;
+                file.read((char *)&inputs[i * 784], sizeof(float) * 784);
+        }
+}
+#endif // MNIST_TRAINING
+
+#ifdef PPO_TRAINING
 class SimpleCart final : public nn::environment {
         float              position;
         float              target;
@@ -61,6 +93,7 @@ public:
                 velocity = 0.0f;
         }
 };
+#endif // PPO_TRAINING
 
 int main()
 {
@@ -70,7 +103,60 @@ int main()
         nn::logger::log().set_directory(dir / "logs");
         nn::logger::log().set_print_on_fatal(true);
 
-        constexpr bool IN_TRAINING                             = true;
+        constexpr bool IN_TRAINING = true;
+
+#ifdef MNIST_TRAINING
+        constexpr uint32_t MAX_ITERATIONS                      = 1000;
+        constexpr uint32_t LAYER_COUNT                         = 3;
+        constexpr uint32_t SIZES[LAYER_COUNT]                  = { 784, 16, 10 };
+        constexpr nn::layer_create_info INFOS[LAYER_COUNT - 1] = {
+                { .type = nn::FULLY_CONNECTED, .functionType = nn::TANH, .neuronCount = SIZES[1] },
+                { .type = nn::FULLY_CONNECTED, .functionType = nn::RELU, .neuronCount = SIZES[2] }
+        };
+
+        std::vector<float> inputs;
+        std::vector<float> outputs;
+
+        if constexpr (IN_TRAINING) {
+                nn::network network(SIZES[0], LAYER_COUNT - 1, INFOS);
+
+                _get_inputs("mnist_train.nntv", 10000, inputs, outputs);
+                const auto start = ch::system_clock::now();
+
+                for (uint32_t i = 0; i < MAX_ITERATIONS; ++i) {
+                        network.train_supervised(10000, inputs.data(), outputs.data());
+                        nn::logger::log() << LOGGER_PREF(DEBUG) << "Iteration " << i << " completed.\n";
+                }
+
+                network.encode(dir / "Encoded.nnv");
+
+                const auto end = ch::system_clock::now();
+                std::cout << "Training completed in " << ch::duration_cast<ch::microseconds>(end - start) << ".\n";
+        } else {
+                nn::network network(SIZES[0], LAYER_COUNT - 1, INFOS, dir / "Encoded.nnv");
+
+                _get_inputs("mnist_test.nntv", 1000, inputs, outputs);
+                const auto start = ch::system_clock::now();
+
+                for (uint32_t i = 0; i < 1000; ++i) {
+                        std::span tmp(&outputs[i * 10], &outputs[i * 10 + 10]);
+                        nn::vector in(784, &inputs[i * 784]);
+                        nn::vector out = network.forward(in);
+
+                        int output = (int)std::distance(out.begin(), std::ranges::max_element(out));
+                        int expected = (int)std::distance(tmp.begin(), std::ranges::max_element(tmp));
+
+                        auto pref = output == expected ? LOGGER_PREF(INFO) : LOGGER_PREF(ERROR);
+                        nn::logger::log() << pref << "Expected: " << expected << ", got: " << output << ", with " << out[output] << " certainty.";
+                }
+
+                const auto end = ch::system_clock::now();
+                std::cout << "Test completed in " << ch::duration_cast<ch::microseconds>(end - start) << ".\n";
+        }
+
+        return EXIT_SUCCESS;
+#endif // MNIST_TRAINING
+#ifdef PPO_TRAINING
         constexpr uint32_t MAX_ITERATIONS                      = 1000;
         constexpr uint32_t LAYER_COUNT                         = 3;
         constexpr uint32_t SIZES[LAYER_COUNT]                  = { 2, 16, 1 };
@@ -102,4 +188,5 @@ int main()
         }
 
         return EXIT_SUCCESS;
+#endif // PPO_TRAINING
 }

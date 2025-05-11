@@ -5,10 +5,10 @@ and unsupervised training.<br>*No external libraries required*.
 
 # Requirements
 
- - CMake
- - Visual Studio 2022
- - git
- - Nvidia CUDA Toolkit *(optional)*
+ - **CMake**
+ - **Visual Studio 2022** *or* **Ninja**, **Mingw** and **NASM**
+ - **git**
+ - **Nvidia CUDA Toolkit** *(optional)*
 
 # How To Build
 

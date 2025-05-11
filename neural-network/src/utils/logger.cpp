@@ -33,8 +33,8 @@ namespace nn {
 
 logger::logger() :
         m_dir(""),
-        m_fileCount(0),
         m_file(),
+        m_fileCount(0),
         m_printOnFatal(false) {}
 
 logger::~logger()

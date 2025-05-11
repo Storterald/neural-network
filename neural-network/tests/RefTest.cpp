@@ -145,7 +145,7 @@ TEST(RefTest, AddressOperatorReturnsPtrWrapperToTheReferredValue) {
         EXPECT_EQ(p, &v);
 }
 
-TEST(RefTest, AddressOperatorReturnsPtrWrapperWithSameTypeAsRef) {
+TEST(RefTest, AddressOperatorReturnsPtrWrapperWithTheSameValueTypeAsTheRef) {
         float v = 13;
         nn::ref r(&v, false);
         const nn::ptr p = &r;
@@ -153,12 +153,12 @@ TEST(RefTest, AddressOperatorReturnsPtrWrapperWithSameTypeAsRef) {
         EXPECT_TRUE((std::same_as<decltype(p)::value_type, float>));
 }
 
-TEST(RefTest, AddressOperatorOnConstRefReturnsPtrWithConstType) {
+TEST(RefTest, AddressOperatorOnConstRefReturnsPtrWithTheSameValueTypeAsTheRef) {
         float v = 13;
         const nn::ref r(&v, false);
         const nn::ptr p = &r;
 
-        EXPECT_TRUE((std::same_as<decltype(p)::value_type, const float>));
+        EXPECT_TRUE((std::same_as<decltype(p)::value_type, float>));
 }
 
 TEST(RefTest, ImplicitTypeCastOperatorReturnsReferredValue) {

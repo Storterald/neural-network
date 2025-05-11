@@ -1,18 +1,35 @@
 cmake_minimum_required(VERSION 3.13)
-project(NeuralNetwork LANGUAGES CXX ASM_MASM)
+project(NeuralNetworkLib LANGUAGES CXX)
+
+if (MSVC)
+        enable_language(ASM_MASM)
+        set(ASM_EXT "asm")
+else ()
+        enable_language(ASM_NASM)
+        set(CMAKE_ASM_NASM_COMPILER "nasm")
+        set(ASM_EXT "nasm")
+endif ()
 
 # ------------------------------------------------------------------------------
 # FLAGS
 # ------------------------------------------------------------------------------
 
 # C++
-set(CMAKE_CXX_FLAGS             "/Zc:preprocessor /EHs /W4 /wd4711 /wd4514 /wd4577 /wd4710 /wd4625 /wd4626 /wd5045 /wd5026 /wd5027 /wd4820 /wd4866 /wd4297")
-set(CMAKE_CXX_FLAGS_DEBUG       "/MTd")
-set(CMAKE_CXX_FLAGS_RELEASE     "/O2 /MT")
+if (MSVC)
+        set(CMAKE_CXX_FLAGS             "/Zc:preprocessor /EHs /W4 /wd4711 /wd4514 /wd4577 /wd4710 /wd4625 /wd4626 /wd5045 /wd5026 /wd5027 /wd4820 /wd4866 /wd4297")
+        set(CMAKE_CXX_FLAGS_DEBUG       "/MTd")
+        set(CMAKE_CXX_FLAGS_RELEASE     "/O2 /MT")
+else ()
+        set(CMAKE_CXX_FLAGS             "-Wall -Wextra -msse -msse2 -msse3 -mavx -mfma -mavx512f -mavx512dq -fconcepts-diagnostics-depth=3")
+        set(CMAKE_CXX_FLAGS_DEBUG       "-gdwarf-4")
+        set(CMAKE_CXX_FLAGS_RELEASE     "-O3 -static")
+endif ()
 
 # ASM
 set(CMAKE_ASM_MASM_FLAGS_INIT  "/c /nologo")
 set(CMAKE_ASM_MASM_FLAGS_DEBUG "/Zi")
+set(CMAKE_ASM_NASM_FLAGS_INIT  "")
+set(CMAKE_ASM_NASM_FLAGS_DEBUG "-g")
 
 # Cuda
 if (BUILD_CUDA_SUPPORT)
@@ -40,7 +57,7 @@ add_library(NeuralNetwork::Headers ALIAS NeuralNetworkHeaders)
 
 file(GLOB_RECURSE SOURCES
         "${SRC_DIR}/*.cpp"
-        "${SRC_DIR}/*.asm")
+        "${SRC_DIR}/*.${ASM_EXT}")
 
 add_library(NeuralNetworkLib STATIC ${SOURCES} ${CUDA_SOURCES})
 target_link_libraries(NeuralNetworkLib PRIVATE NeuralNetwork::Headers)

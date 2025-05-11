@@ -463,12 +463,12 @@ TEST(PtrTest, DereferenceOperatorReturnsRefWithTheSameValueTypeAsThePointer) {
         EXPECT_TRUE((std::same_as<decltype(r)::value_type, float>));
 }
 
-TEST(PtrTest, DereferenceOperatorOnConstPtrReturnsRefWithConstType) {
+TEST(PtrTest, DereferenceOperatorOnConstPtrReturnsRefWithTheSameValueTypeAsThePointer) {
         float v = 0;
         const nn::ptr ptr(&v, false);
         const nn::ref r = *ptr;
 
-        EXPECT_TRUE((std::same_as<decltype(r)::value_type, const float>));
+        EXPECT_TRUE((std::same_as<decltype(r)::value_type, float>));
 }
 
 TEST(PtrTest, IndexerOperatorReturnsValidRefWithValidPointer) {

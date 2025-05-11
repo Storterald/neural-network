@@ -62,7 +62,7 @@ public:
                 return !this->operator==(other);
         }
 
-        [[nodiscard]] constexpr ref<value_type> operator* ()
+        [[nodiscard]] constexpr ref<value_type> operator* () const
         {
 #ifdef DEBUG_MODE_ENABLED
                 if (!m_pointer)
@@ -72,27 +72,7 @@ public:
                 return { m_pointer, false };
         }
 
-        [[nodiscard]] constexpr ref<const_value_type> operator* () const
-        {
-#ifdef DEBUG_MODE_ENABLED
-                if (!m_pointer)
-                        throw LOGGER_EX("Cannot dereference null pointer.");
-#endif // DEBUG_MODE_ENABLED
-
-                return { m_pointer, false };
-        }
-
-        [[nodiscard]] constexpr ref<value_type> operator[] (uint32_t i)
-        {
-#ifdef DEBUG_MODE_ENABLED
-                if (!m_pointer)
-                        throw LOGGER_EX("Cannot index null pointer.");
-#endif // DEBUG_MODE_ENABLED
-
-                return { m_pointer + i, false };
-        }
-
-        [[nodiscard]] constexpr ref<const_value_type> operator[] (uint32_t i) const
+        [[nodiscard]] constexpr ref<value_type> operator[] (uint32_t i) const
         {
 #ifdef DEBUG_MODE_ENABLED
                 if (!m_pointer)
@@ -236,14 +216,9 @@ public:
                 return !this->operator==(other);
         }
 
-        [[nodiscard]] constexpr ptr<value_type> operator& () noexcept
+        [[nodiscard]] constexpr ptr<value_type> operator& () const noexcept
         {
                 return m_ptr;
-        }
-
-        [[nodiscard]] constexpr ptr<const_value_type> operator& () const noexcept
-        {
-                return { m_ptr.m_pointer, false };
         }
 
         [[nodiscard]] constexpr operator value_type() const noexcept
