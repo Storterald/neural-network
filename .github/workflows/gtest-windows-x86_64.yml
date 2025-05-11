@@ -12,12 +12,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       
-    - name: Set up CUDA Toolkit
-      uses: Jimver/cuda-toolkit@v0.2.23
-      with:
-        cuda: '12.8.1'
-        use-github-cache: false
-      
     - name: Set up MSVC Developer Command Prompt
       uses: ilammy/msvc-dev-cmd@v1
       
