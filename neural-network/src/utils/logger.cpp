@@ -34,7 +34,8 @@ namespace nn {
 logger::logger() :
         m_dir(""),
         m_fileCount(0),
-        m_file() {}
+        m_file(),
+        m_printOnFatal(false) {}
 
 logger::~logger()
 {
@@ -50,6 +51,11 @@ void logger::set_directory(const std::filesystem::path &path)
         m_file = std::ofstream(m_dir / "latest-0.log");
         if (!m_file)
                 throw std::runtime_error("Could not open log file.");
+}
+
+void logger::set_print_on_fatal(bool value)
+{
+        m_printOnFatal = value;
 }
 
 std::string logger::pref(log_type type, std::string_view file, int line) {
@@ -70,7 +76,9 @@ void logger::_update_file()
 
 logger::fatal_error::fatal_error(const std::string &message)
 {
-        std::cout << message << std::endl;
+        if (logger::log().m_printOnFatal)
+                std::cout << message << std::endl;
+
         logger::log().m_file << message << std::endl;
 }
 

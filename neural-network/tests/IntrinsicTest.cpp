@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <neural-network/intrinsic/intrinsic.h>
+#include <neural-network/base.h>
 
 #ifdef IS_X86_64BIT
 #include <intrin.h>
@@ -19,7 +20,7 @@ TEST(IntrinsicTest, CpuSIMDSupportIsCorrectlyDetected) {
                 if (regs[EBX] & (1 << 16))
                         return nn::SIMD_AVX512;
 
-                __cpuid(regs, 0);
+                __cpuid(regs, 1);
 
                 if (regs[ECX] & (1 << 12))
                         return nn::SIMD_AVX;

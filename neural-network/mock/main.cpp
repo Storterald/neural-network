@@ -66,7 +66,9 @@ int main()
 {
         const fs::path dir = fs::path(__FILE__).parent_path();
         fs::create_directory(dir / "logs");
+
         nn::logger::log().set_directory(dir / "logs");
+        nn::logger::log().set_print_on_fatal(true);
 
         constexpr bool IN_TRAINING                             = true;
         constexpr uint32_t MAX_ITERATIONS                      = 1000;

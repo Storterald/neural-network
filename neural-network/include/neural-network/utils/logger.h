@@ -27,6 +27,7 @@ public:
         }
 
         void set_directory(const std::filesystem::path &path);
+        void set_print_on_fatal(bool value);
 
         static std::string pref(log_type type, std::string_view file, int line);
 
@@ -46,8 +47,9 @@ public:
 
 private:
         std::filesystem::path        m_dir;
-        uint32_t                     m_fileCount;
         std::ofstream                m_file;
+        uint32_t                     m_fileCount;
+        bool                         m_printOnFatal;
 
         logger();
 
