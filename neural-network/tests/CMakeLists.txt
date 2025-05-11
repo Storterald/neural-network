@@ -39,6 +39,10 @@ get_project(
                 gtest_force_shared_crt=ON
                 INSTALL_GTEST=OFF)
 
+if (NOT googletest_ADDED)
+        message(FATAL_ERROR "Could not get googletest.")
+endif ()
+
 target_include_directories(NeuralNetworkTest
         PRIVATE "${googletest_SOURCE}/googletest/include")
 target_link_libraries(NeuralNetworkTest
