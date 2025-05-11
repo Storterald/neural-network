@@ -1,4 +1,4 @@
-name: CMake GTest
+name: Run Tests Windows x86_64
 
 on:
   push:
@@ -8,20 +8,22 @@ on:
 jobs:
   build-and-test:
     runs-on: windows-latest
-
+      
     steps:
     - uses: actions/checkout@v4
-
+      
+    - name: Set up CUDA Toolkit
+      uses: Jimver/cuda-toolkit@v0.2.14
+      
     - name: Set up MSVC Developer Command Prompt
       uses: ilammy/msvc-dev-cmd@v1
-
-    - name: Configure with CMake
-      run: cmake --preset msvc-debug
-
-    - name: Build
-      run: cmake --build --preset msvc-debug-build --target NeuralNetworkTest
-
-    - name: Run GTest
+      
+    - name: Configure and Build
+      run: |
+        cmake --preset msvc-debug
+        cmake --build --preset msvc-debug-build --target NeuralNetworkTest
+      
+    - name: Run Tests
       shell: pwsh
       run: |
         build/msvc-debug/neural-network/tests/Debug/NeuralNetworkTest.exe
