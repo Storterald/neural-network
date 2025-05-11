@@ -1,10 +1,13 @@
 #include <gtest/gtest.h>
 
-#include <intrin.h>
-
 #include <neural-network/intrinsic/intrinsic.h>
 
+#ifdef IS_X86_64BIT
+#include <intrin.h>
+#endif // IS_X86_64BIT
+
 TEST(IntrinsicTest, CpuSIMDSupportIsCorrectlyDetected) {
+#ifdef IS_X86_64BIT
         constexpr int EAX = 0;
         constexpr int EBX = 1;
         constexpr int ECX = 2;
@@ -26,6 +29,8 @@ TEST(IntrinsicTest, CpuSIMDSupportIsCorrectlyDetected) {
 
                 return nn::SIMD_UNSUPPORTED;
         }();
-
-        EXPECT_EQ(nn::_get_simd_support(), support);
+#else // IS_X86_64BIT
+        constexpr nn::simd support = nn::SIMD_UNSUPPORTED;
+#endif // IS_X86_64BIT
+        EXPECT_EQ(nn::intrinsic::_get_simd_support(), support);
 }

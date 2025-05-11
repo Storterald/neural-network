@@ -7,7 +7,6 @@ and unsupervised training.<br>*No external libraries required*.
 
  - CMake
  - Visual Studio 2022
- - Ninja
  - git
  - Nvidia CUDA Toolkit *(optional)*
 
@@ -23,12 +22,12 @@ This means that the **first** configuration will be **slower** than the other on
 To **configure and build** the project run in a terminal:
 
 ```shell
-cmake . --preset msvc-release
-cmake --build . --preset msvc-release-build
+cmake --preset msvc-release
+cmake --build --preset msvc-release-build
 ```
 
-When configuring with `cmake . --preset`, the **configure** preset should be
-used, e.g.: **msvc-release**, when building with `cmake . --build --preset`, the
+When configuring with `cmake --preset`, the **configure** preset should be
+used, e.g.: **msvc-release**, when building with `cmake --build --preset`, the
 corresponding **build** preset should be used, e.g.: **msvc-release-build**.
 
 > A debug (`-debug`) version of the preset can also be used.

@@ -19,7 +19,7 @@
       "name": "msvc",
       "hidden": true,
       "inherits": "common",
-      "generator": "Ninja",
+      "generator": "Visual Studio 17 2022",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
