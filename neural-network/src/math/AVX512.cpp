@@ -1,5 +1,9 @@
 #include "_math.h"
 
+#include <neural-network/base.h>
+
+#ifdef IS_X86_64BIT
+
 #include <immintrin.h>
 
 #include <cstdint>
@@ -450,3 +454,5 @@ template<> void _math<MATH_AVX512>::matvec_mul(
 }
 
 } // namespace nn
+
+#endif // IS_X86_64BIT

@@ -20,6 +20,14 @@
       "hidden": true,
       "inherits": "common",
       "generator": "Visual Studio 17 2022",
+      "architecture": {
+        "value": "x64",
+        "strategy": "set"
+      },
+      "toolset": {
+        "value": "host=x64",
+        "strategy": "set"
+      },
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",

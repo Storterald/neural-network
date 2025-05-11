@@ -129,13 +129,13 @@ public:
                 return *this;
         }
 
-        [[nodiscard]] constexpr ptr operator++ (int) const noexcept
+        [[nodiscard]] constexpr ptr operator++ (int) noexcept
         {
                 ++m_pointer;
                 return { m_pointer + 1, false };
         }
 
-        [[nodiscard]] constexpr ptr operator-- (int) const noexcept
+        [[nodiscard]] constexpr ptr operator-- (int) noexcept
         {
                 --m_pointer;
                 return { m_pointer - 1, false };
@@ -220,7 +220,7 @@ public:
                 return *this;
         }
 
-        ref &operator= (arg_type value) noexcept requires !std::is_const_v<value_type>
+        ref &operator= (arg_type value) noexcept requires (!std::is_const_v<value_type>)
         {
                 *m_ptr.m_pointer = value;
                 return *this;

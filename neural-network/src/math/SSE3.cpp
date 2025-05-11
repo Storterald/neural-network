@@ -1,5 +1,9 @@
 #include "_math.h"
 
+#include <neural-network/base.h>
+
+#ifdef IS_X86_64BIT
+
 #include <xmmintrin.h> // SSE
 #include <emmintrin.h> // SSE2
 #include <pmmintrin.h> // SSE3
@@ -494,3 +498,5 @@ template<> void _math<MATH_SSE3>::matvec_mul(
 }
 
 } // namespace nn
+
+#endif // IS_X86_64BIT

@@ -3,7 +3,6 @@
 #include <concepts>
 
 #include <neural-network/types/memory.h>
-#include <neural-network/base.h>
 
 #ifdef BUILD_CUDA_SUPPORT
 #include <cuda_runtime.h>
@@ -227,6 +226,7 @@ TEST(SpanTest, UpdateUpdatesSourceCorrectlyWhenSourceOnDeviceAndSpanOnHost) {
 }
 #endif // BUILD_CUDA_SUPPORT
 
+#ifdef BUILD_CUDA_SUPPORT
 TEST(SpanTest, UpdateDoesNothingOnSpanOfConstType) {
         float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
         nn::span<const float> s(10, true, arr, false);
@@ -236,3 +236,4 @@ TEST(SpanTest, UpdateDoesNothingOnSpanOfConstType) {
         s.update();
         EXPECT_NE(arr[3], 3.0f);
 }
+#endif // BUILD_CUDA_SUPPORT

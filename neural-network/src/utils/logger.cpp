@@ -8,8 +8,6 @@
 #include <string>
 #include <ctime>
 
-#include <neural-network/base.h>
-
 static constexpr std::string_view CONVERTER[4] {
         "INFO ",
         "DEBUG",
@@ -24,8 +22,9 @@ static std::string _time()
 
         // Get time as formatted string
         std::time(&rawTime);
-        std::tm *tm = std::localtime(&rawTime);
-        std::strftime(buffer, sizeof(buffer), "%X", tm);
+        std::tm tm{};
+        localtime_s(&tm, &rawTime);
+        std::strftime(buffer, sizeof(buffer), "%X", &tm);
 
         return buffer;
 }
@@ -59,7 +58,7 @@ std::string logger::pref(log_type type, std::string_view file, int line) {
 
 void logger::_update_file()
 {
-        if (!m_file || (uint32_t)m_file.tellp() >= MAX_FILE_SIZE) {
+        if (!m_file || ((uint32_t)m_file.tellp()) >= MAX_FILE_SIZE) {
                 if (m_file)
                         m_file.close();
 
