@@ -4,7 +4,9 @@
 #include <filesystem>
 #include <fstream>
 #include <cstdint>
+#include <chrono>
 #include <vector>
+#include <thread>
 #include <future>
 
 #include <neural-network/network/PPO/environment.h>
@@ -72,7 +74,7 @@ void network::train_supervised(
 #ifdef DEBUG_MODE_ENABLED
         constexpr uint32_t threads = 1;
 #else
-        const uint32_t threads = std::min(std::thread::hardware_concurrency(), sampleCount);
+        const uint32_t threads = std::clamp(std::thread::hardware_concurrency(), 1u, sampleCount);
 #endif // DEBUG_MODE_ENABLED
 
         std::vector<std::future<void>> futures;
@@ -86,7 +88,7 @@ void network::train_supervised(
                 const uint32_t count = batchSize + (t < remainder ? 1 : 0);
                 const uint32_t start = offset;
                 const uint32_t end   = start + count;
-                offset              += count;
+                offset               = end;
 
                 futures.push_back(_get_supervised_future(
                         start, end, inputs, outputs));
@@ -172,7 +174,10 @@ std::future<void> network::_get_supervised_future(
         const float        inputs[],
         const float        outputs[]) {
 
+        namespace ch = std::chrono;
+
         return std::async(std::launch::async, [&]() -> void {
+                auto s = ch::high_resolution_clock::now();
                 for (uint32_t i = start; i < end; ++i) {
                         const auto a = new vector[m_layerCount];
                         a[0]         = vector(m_inputSize, inputs);
@@ -186,6 +191,9 @@ std::future<void> network::_get_supervised_future(
                         this->backward(dC, a);
                         delete [] a;
                 }
+                auto e = ch::high_resolution_clock::now();
+                logger::log() << "Thread [" << std::this_thread::get_id() << "] "
+                        "finished execution in " << ch::duration_cast<ch::milliseconds>(e - s) << "\n";
         });
 }
 
