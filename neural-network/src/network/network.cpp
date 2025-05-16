@@ -175,7 +175,7 @@ std::future<void> network::_get_supervised_future(
         return std::async(std::launch::async, [&]() -> void {
                 for (uint32_t i = start; i < end; ++i) {
                         const auto a = new vector[m_layerCount];
-                        a[0]         = vector(m_inputSize, inputs);
+                        a[0]         = vector(m_inputSize, inputs + (uintptr_t)i * m_inputSize);
 
                         for (uint32_t L = 1; L < m_layerCount; ++L)
                                 a[L] = m_L[L - 1]->forward(a[L - 1]);
