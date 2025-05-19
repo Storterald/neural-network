@@ -31,6 +31,5 @@ corresponding **build** preset should be used, e.g.: **msvc-release-build**.
 
 # Dependencies
 
- - [googletest](https://github.com/google/googletest)
  - [googletest](https://github.com/google/googletest) *optional*
  - [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h) *optional*
