@@ -1,5 +1,12 @@
 #include <neural-network/types/matrix.h>
 
+#ifdef BUILD_CUDA_SUPPORT
+#include <cuda_runtime.h>
+#include <driver_types.h> // cudaStream_t
+
+#include <neural-network/cuda_base.h>
+#endif // BUILD_CUDA_SUPPORT
+
 #include <initializer_list>
 #include <algorithm> // std::ranges::any_of
 #include <iterator>  // std::data
@@ -11,12 +18,6 @@
 #include <neural-network/types/buf.h>
 #include <neural-network/math/math.h>
 #include <neural-network/base.h>
-
-#ifdef BUILD_CUDA_SUPPORT
-#include <cuda_runtime.h>
-
-#include <neural-network/cuda_base.h>
-#endif // BUILD_CUDA_SUPPORT
 
 namespace nn {
 
@@ -46,13 +47,18 @@ matrix::matrix(std::initializer_list<std::initializer_list<value_type>> values, 
 
 #ifdef BUILD_CUDA_SUPPORT
         for (uint32_t i = 0; i < m_height; ++i)
-                CUDA_CHECK_ERROR(cudaMemcpy(
+                CUDA_CHECK_ERROR(cudaMemcpyAsync(
                         this->operator[](i).get(),
                         std::data(std::data(values)[i]),
-                        m_size * sizeof(value_type), cudaMemcpyHostToDevice),
+                        m_size * sizeof(value_type), cudaMemcpyHostToDevice, m_stream),
                         "Failed to copy data to the GPU.");
 #endif // BUILD_CUDA_SUPPORT
 }
+
+matrix::matrix(uint32_t width, uint32_t height, nn::stream stream) :
+        buf(width * height, stream),
+        m_width(width),
+        m_height(height) {}
 
 matrix::pointer matrix::operator[](uint32_t row)
 {
@@ -127,7 +133,7 @@ matrix matrix::operator+ (const matrix &other) const
                 throw LOGGER_EX("Matrix dimensions must match for addition.");
 #endif // DEBUG_MODE_ENABLED
 
-        matrix result(m_width, m_height);
+        matrix result(m_width, m_height, m_stream);
         math::sum(m_size, *this, other, result);
 
         return result;
@@ -140,7 +146,7 @@ matrix matrix::operator- (const matrix &other) const
                 throw LOGGER_EX("Matrix dimensions must match for subtraction.");
 #endif // DEBUG_MODE_ENABLED
 
-        matrix result(m_width, m_height);
+        matrix result(m_width, m_height, m_stream);
         math::sub(m_size, *this, other, result);
 
         return result;
@@ -168,7 +174,7 @@ void matrix::operator-= (const matrix &other)
 
 matrix matrix::operator+ (value_type scalar) const
 {
-        matrix result(m_width, m_height);
+        matrix result(m_width, m_height, m_stream);
         math::sum(m_size, *this, scalar, result);
 
         return result;
@@ -176,7 +182,7 @@ matrix matrix::operator+ (value_type scalar) const
 
 matrix matrix::operator- (value_type scalar) const
 {
-        matrix result(m_width, m_height);
+        matrix result(m_width, m_height, m_stream);
         math::sub(m_size, *this, scalar, result);
 
         return result;
@@ -184,7 +190,7 @@ matrix matrix::operator- (value_type scalar) const
 
 matrix matrix::operator* (value_type scalar) const
 {
-        matrix result(m_width, m_height);
+        matrix result(m_width, m_height, m_stream);
         math::mul(m_size, *this, scalar, result);
 
         return result;
@@ -197,7 +203,7 @@ matrix matrix::operator/ (value_type scalar) const
                 throw LOGGER_EX("Cannot divide by 0.");
 #endif // DEBUG_MODE_ENABLED
 
-        matrix result(m_width, m_height);
+        matrix result(m_width, m_height, m_stream);
         math::div(m_size, *this, scalar, result);
 
         return result;
@@ -235,7 +241,7 @@ vector matrix::operator* (const vector &vec) const
                 throw LOGGER_EX("Matrix width and vector size must match.");
 #endif // DEBUG_MODE_ENABLED
 
-        vector result(m_height);
+        vector result(m_height, m_stream);
         math::matvec_mul(m_width, m_height, *this, vec, result);
 
         return result;

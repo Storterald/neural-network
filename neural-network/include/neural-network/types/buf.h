@@ -1,10 +1,15 @@
 #pragma once
 
+#ifdef BUILD_CUDA_SUPPORT
+#include <driver_types.h> // cudaStream_t
+#endif // BUILD_CUDA_SUPPORT
+
 #include <functional> // std::hash<float>
 #include <cstdint>
 #include <cstddef>    // size_t
 
 #include <neural-network/types/memory.h>
+#include <neural-network/base.h>
 
 namespace nn {
 
@@ -28,6 +33,10 @@ public:
 
         buf() = default;
         explicit buf(uint32_t size, loc_type location = KEEP);
+        /**
+         * A default (0) stream will allocate the buffer depending on size.
+         */
+        buf(uint32_t size, nn::stream stream);
 
         buf(const buf &other);
         buf &operator= (const buf &other);
@@ -77,13 +86,13 @@ public:
         [[nodiscard]] inline span<value_type> as_span(loc_type location = KEEP, bool update = false)
         {
                 const bool device = location == KEEP ? m_device : location == DEVICE;
-                return { m_size, device, m_data, m_device, update };
+                return { m_size, device, m_data, m_device, update, m_stream };
         }
 
         [[nodiscard]] inline span<const_value_type> as_span(loc_type location = KEEP, bool update = false) const
         {
                 const bool device = location == KEEP ? m_device : location == DEVICE;
-                return { m_size, device, m_data, m_device, update };
+                return { m_size, device, m_data, m_device, update, m_stream };
         }
 
         [[nodiscard]] constexpr loc_type location() const noexcept
@@ -91,19 +100,26 @@ public:
                 return m_device ? DEVICE : HOST;
         }
 
+        [[nodiscard]] constexpr stream stream() const noexcept
+        {
+                return m_stream;
+        }
+
         void move(loc_type location);
 
 protected:
-        size_type             m_size   = 0;
-
 #ifdef BUILD_CUDA_SUPPORT
-        bool                  m_device = false;
+        nn::stream                         m_stream;
+        bool                               m_device;
 #else // BUILD_CUDA_SUPPORT
-        static constexpr bool m_device = false;
+        static constexpr nn::stream        m_stream = 0;
+        static constexpr bool              m_device = false;
 #endif // BUILD_CUDA_SUPPORT
 
+        size_type                          m_size;
+
 private:
-        float                 *m_data  = nullptr;
+        float                              *m_data;
 
 }; // class buf
 

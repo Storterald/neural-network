@@ -5,6 +5,7 @@
 #include <cuda/std/__algorithm/min.h>
 #include <cuda/std/cmath>
 #include <cuda_runtime.h>
+#include <driver_types.h> // cudaStream_t
 
 #include <cstdint>
 
@@ -285,13 +286,12 @@ namespace kernels {
 
 } // namespace kernels
 
-#define DECLARE_CUDA_FUNCTION(__name__, __size__, ...)                                                          \
-template<> void _math<MATH_CUDA>:: __name__ (GET_ARGS(__VA_ARGS__))                                             \
-{                                                                                                               \
-        const uint32_t blocks = (__size__ + CUDA_THREADS - 1) / CUDA_THREADS;                                   \
-        kernels:: __name__ <<<blocks, CUDA_THREADS>>>(GET_ARGS_NAMES(__VA_ARGS__));                             \
-        CUDA_CHECK_ERROR(cudaGetLastError(), "kernels::" #__name__ " launch failed.");                          \
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in _math<MATH_CUDA>::" #__name__);       \
+#define DECLARE_CUDA_FUNCTION(__name__, __size__, ...)                                          \
+void _math_cuda:: __name__ (GET_ARGS(__VA_ARGS__), cudaStream_t stream)                         \
+{                                                                                               \
+        const uint32_t blocks = (__size__ + CUDA_THREADS - 1) / CUDA_THREADS;                   \
+        kernels:: __name__ <<<blocks, CUDA_THREADS, 0, stream>>>(GET_ARGS_NAMES(__VA_ARGS__));  \
+        CUDA_CHECK_ERROR(cudaGetLastError(), "kernels::" #__name__ " launch failed.");          \
 }
 
 namespace nn {
@@ -402,19 +402,19 @@ DECLARE_CUDA_FUNCTION(clamp, size,
         float,                max,
         float *,              result)
 
-template<> void _math<MATH_CUDA>::compare(
+void _math_cuda::compare(
         uint32_t           size,
         const float        first[],
         const float        second[],
-        bool               *result) {
+        bool               *result,
+        cudaStream_t       stream) {
 
         *result = true;
         span s(1, true, result, false, true);
 
         const uint32_t BLOCKS_COUNT = (size + CUDA_THREADS - 1) / CUDA_THREADS;
-        kernels::compare<<<BLOCKS_COUNT, CUDA_THREADS>>>(size, first, second, s);
-        CUDA_CHECK_ERROR(cudaGetLastError(), "Kernels::compare launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in _Math<MATH_CUDA>::compare");
+        kernels::compare<<<BLOCKS_COUNT, CUDA_THREADS, 0, stream>>>(size, first, second, s);
+        CUDA_CHECK_LAST_ERROR("Kernels::compare launch failed.");
 }
 
 DECLARE_CUDA_FUNCTION(matvec_mul, width,

@@ -1,5 +1,9 @@
 #include <neural-network/network/layers/fully_connected_layer.h>
 
+#ifdef BUILD_CUDA_SUPPORT
+#include <driver_types.h> // cudaStream_t
+#endif // BUILD_CUDA_SUPPORT
+
 #include <cstdint>
 #include <random>
 #include <mutex>
@@ -57,7 +61,11 @@ fully_connected_layer::fully_connected_layer(
 
         m_w(previousLayerSize, layerSize, buf::HOST),
         m_b(layerSize),
-        m_functionType(functionType) {
+        m_functionType(functionType)
+#ifdef BUILD_CUDA_SUPPORT
+        , m_stream(0)
+#endif // BUILD_CUDA_SUPPORT
+{
 
         std::random_device rd;
         std::mt19937 gen(rd());
@@ -81,7 +89,11 @@ fully_connected_layer::fully_connected_layer(
 
         m_w(previousLayerSize, layerSize, buf::HOST),
         m_b(layerSize),
-        m_functionType(functionType) {
+        m_functionType(functionType)
+#ifdef BUILD_CUDA_SUPPORT
+        , m_stream(0)
+#endif // BUILD_CUDA_SUPPORT
+{
 
         uint32_t sizes[4]{};
         encodedData.read((char *)sizes, 4 * sizeof(uint32_t));
@@ -105,6 +117,60 @@ fully_connected_layer::fully_connected_layer(
         m_b.move(m_w.location());
 }
 
+#ifdef BUILD_CUDA_SUPPORT
+fully_connected_layer::fully_connected_layer(
+        uint32_t             previousLayerSize,
+        uint32_t             layerSize,
+        function_type        functionType,
+        cudaStream_t         stream) :
+
+        m_w(previousLayerSize, layerSize, stream),
+        m_b(layerSize, stream),
+        m_functionType(functionType),
+        m_stream(stream) {
+
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<float> dis(-0.5f, 0.5f);
+
+        // This is slow as m_w is allocated in the GPU, maybe a kernel could be
+        // created taking an array of random values.
+        // TODO
+        for (uint32_t i = 0; i < layerSize; i++)
+                for (uint32_t j = 0; j < previousLayerSize; j++)
+                        m_w[{i, j}] = dis(gen);
+}
+
+fully_connected_layer::fully_connected_layer(
+        uint32_t             previousLayerSize,
+        uint32_t             layerSize,
+        function_type        functionType,
+        std::istream         &encodedData,
+        cudaStream_t         stream) :
+
+        m_w(previousLayerSize, layerSize, stream),
+        m_b(layerSize, stream),
+        m_functionType(functionType),
+        m_stream(stream) {
+
+        uint32_t sizes[4]{};
+        encodedData.read((char *)sizes, 4 * sizeof(uint32_t));
+
+        if (sizes[0] != FULLY_CONNECTED || sizes[1] != functionType)
+                throw LOGGER_EX("Encoded layer infos does not match constructor info.");
+
+        if (previousLayerSize != sizes[2] || layerSize != sizes[3])
+                throw LOGGER_EX("Encoded sizes and constructor sizes parameters do not match.");
+
+        encodedData.read(
+                (char *)(float *)m_w.as_span(buf::HOST, true),
+                std::streamsize(m_w.size() * sizeof(float)));
+        encodedData.read(
+                (char *)(float *)m_b.as_span(buf::HOST, true),
+                std::streamsize(m_b.size() * sizeof(float)));
+}
+#endif // BUILD_CUDA_SUPPORT
+
 vector fully_connected_layer::forward(const vector &input) const
 {
         //            k=N(L-1)
@@ -119,17 +185,16 @@ vector fully_connected_layer::backward(const vector &cost, const vector &input)
         // ⎯⎯⎯⎯⎯ = ⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯ = 1 * AFoo'(z) * Lcost
         //  ∂bL      ∂bL    ∂zjL   ∂ajL
         vector db = _activation_derivative(m_functionType, m_w * input + m_b) * cost;
-        db.move(m_w.location());
 
         //  ∂Ce      ∂zjL    ∂ajL   ∂Ce
         // ⎯⎯⎯⎯⎯ = ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯ = input * AFoo'(z) * Lcost
         //  ∂wjkL    ∂wjkL   ∂zjL   ∂ajL
-        matrix dw(m_w.width(), m_w.height(), m_w.location());
+        matrix dw(m_w.width(), m_w.height(), m_stream);
 
         //   ∂Ce     nL - 1    ∂zjL    ∂ajL    ∂Ce   nL - 1
         // ⎯⎯⎯⎯⎯⎯⎯ =   Σ    ⎯⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯ =   Σ    wjkL * AFoo'(z) * Lcost
         // ∂ak(L-1)    j=0   ∂ak(L-1)  ∂zjL   ∂ajL     j=0
-        vector prev(m_w.width(), m_w.location());
+        vector prev(m_w.width(), m_stream);
 
 #ifdef BUILD_CUDA_SUPPORT
         if (m_w.location() == buf::HOST) {

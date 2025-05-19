@@ -2,62 +2,78 @@
 
 #ifdef BUILD_CUDA_SUPPORT
 #include <cuda_runtime.h>
+
+#include <neural-network/cuda_base.h>
 #endif // BUILD_CUDA_SUPPORT
 
 #include <cstdint>
 #include <cstring> // std::memcpy
 
 #include <neural-network/math/math.h>
-
-#ifdef BUILD_CUDA_SUPPORT
-#include <neural-network/cuda_base.h>
-#endif // BUILD_CUDA_SUPPORT
+#include <neural-network/base.h>
 
 namespace nn {
 
 buf::buf(uint32_t size, [[maybe_unused]] loc_type location) : m_size(size)
 #ifdef BUILD_CUDA_SUPPORT
-        , m_device(location == KEEP ? size >= CUDA_MINIMUM : location == DEVICE)
+        , m_stream(0), m_device(location == KEEP ? size >= CUDA_MINIMUM : location == DEVICE)
 #endif // BUILD_CUDA_SUPPORT
 {
-        // Pad the buffer to be multiple of 4 sized.
-        const uint32_t allocSize = (m_size + 3) & ~0x03;
-
         if (!m_device) {
-                m_data = new float[allocSize]();
+                m_data = new float[m_size]();
                 return;
         }
 
 #ifdef BUILD_CUDA_SUPPORT
-        CUDA_CHECK_ERROR(cudaMalloc(&m_data, allocSize * sizeof(float)),
+        CUDA_CHECK_ERROR(cudaMallocAsync(&m_data, m_size * sizeof(float), m_stream),
                 "Failed to allocate memory on the GPU.");
-        CUDA_CHECK_ERROR(cudaMemset(m_data, 0, m_size * sizeof(float)),
+        CUDA_CHECK_ERROR(cudaMemsetAsync(m_data, 0, m_size * sizeof(float), m_stream),
+                "Failed to set memory in the GPU.");
+#endif // BUILD_CUDA_SUPPORT
+}
+
+buf::buf(uint32_t size, [[maybe_unused]] nn::stream stream) : m_size(size)
+#ifdef BUILD_CUDA_SUPPORT
+        , m_stream(stream), m_device(stream != 0 || size >= CUDA_MINIMUM)
+#endif // BUILD_CUDA_SUPPORT
+{
+
+        if (!m_device) {
+                m_data = new float[m_size]();
+                return;
+        }
+
+#ifdef BUILD_CUDA_SUPPORT
+        CUDA_CHECK_ERROR(cudaMallocAsync(&m_data, m_size * sizeof(float), m_stream),
+                "Failed to allocate memory on the GPU.");
+        CUDA_CHECK_ERROR(cudaMemsetAsync(m_data, 0, m_size * sizeof(float), m_stream),
                 "Failed to set memory in the GPU.");
 #endif // BUILD_CUDA_SUPPORT
 }
 
 buf::buf(const buf &other) : m_size(other.m_size)
 #ifdef BUILD_CUDA_SUPPORT
-        , m_device(other.m_device)
+        , m_stream(other.m_stream), m_device(other.m_device)
 #endif // BUILD_CUDA_SUPPORT
 {
-        const uint32_t allocSize = (m_size + 3) & ~0x03;
-
         if (!m_device) {
-                m_data = new float[allocSize];
+                m_data = new float[m_size];
                 std::memcpy(m_data, other.m_data, m_size * sizeof(float));
                 return;
         }
 
 #ifdef BUILD_CUDA_SUPPORT
-        CUDA_CHECK_ERROR(cudaMalloc(&m_data, allocSize * sizeof(float)),
+        CUDA_CHECK_ERROR(cudaMallocAsync(&m_data, m_size * sizeof(float), m_stream),
                 "Failed to allocate memory on the GPU.");
-        CUDA_CHECK_ERROR(cudaMemcpy(m_data, other.m_data, m_size * sizeof(float),
-                cudaMemcpyDeviceToDevice), "Failed to copy data in the GPU.");
+        CUDA_CHECK_ERROR(cudaMemcpyAsync(m_data, other.m_data, m_size * sizeof(float),
+                cudaMemcpyDeviceToDevice, m_stream), "Failed to copy data in the GPU.");
 #endif // BUILD_CUDA_SUPPORT
 }
 
 buf::buf(buf &&other) noexcept : m_size(other.m_size), m_data(other.m_data)
+#ifdef BUILD_CUDA_SUPPORT
+        , m_stream(other.m_stream), m_device(other.m_device)
+#endif // BUILD_CUDA_SUPPORT
 {
         other.m_size = 0;
         other.m_data = nullptr;
@@ -72,7 +88,7 @@ buf::~buf()
                 delete [] m_data;
 #ifdef BUILD_CUDA_SUPPORT
         else
-                CUDA_CHECK_ERROR(cudaFree(m_data), "Failed to free GPU memory.");
+                CUDA_CHECK_ERROR(cudaFreeAsync(m_data, m_stream), "Failed to free GPU memory.");
 #endif // BUILD_CUDA_SUPPORT
 
         m_data = nullptr;
@@ -91,13 +107,11 @@ buf &buf::operator= (const buf &other)
                 this->~buf();
                 m_size = other.m_size;
 
-                const uint32_t allocSize = (m_size + 3) & ~0x03;
-
                 if (!m_device)
-                        m_data = new float[allocSize];
+                        m_data = new float[m_size];
 #ifdef BUILD_CUDA_SUPPORT
                 else
-                        CUDA_CHECK_ERROR(cudaMalloc(&m_data, allocSize * sizeof(float)),
+                        CUDA_CHECK_ERROR(cudaMallocAsync(&m_data, m_size * sizeof(float), m_stream),
                                  "Failed to allocate memory on the GPU.");
 #endif // BUILD_CUDA_SUPPORT
         }
@@ -106,8 +120,8 @@ buf &buf::operator= (const buf &other)
                 std::memcpy(m_data, other.m_data, m_size * sizeof(float));
 #ifdef BUILD_CUDA_SUPPORT
         else
-                CUDA_CHECK_ERROR(cudaMemcpy(m_data, other.m_data, m_size * sizeof(float),
-                        cudaMemcpyDeviceToDevice), "Failed to copy data in the GPU.");
+                CUDA_CHECK_ERROR(cudaMemcpyAsync(m_data, other.m_data, m_size * sizeof(float),
+                        cudaMemcpyDeviceToDevice, m_stream), "Failed to copy data in the GPU.");
 #endif // BUILD_CUDA_SUPPORT
 
         return *this;
@@ -146,19 +160,17 @@ void buf::move([[maybe_unused]] loc_type location)
         if (location == (m_device ? DEVICE : HOST))
                 return;
 
-        const uint32_t allocSize = (m_size + 3) & ~0x03;
-
         float *data;
         if (m_device) {
-                data = new float[allocSize];
-                CUDA_CHECK_ERROR(cudaMemcpy(data, m_data, m_size * sizeof(float),
-                        cudaMemcpyDeviceToHost), "Failed to copy data from the GPU.");
-                CUDA_CHECK_ERROR(cudaFree(m_data), "Failed to free GPU memory.");
+                data = new float[m_size];
+                CUDA_CHECK_ERROR(cudaMemcpyAsync(data, m_data, m_size * sizeof(float),
+                        cudaMemcpyDeviceToHost, m_stream), "Failed to copy data from the GPU.");
+                CUDA_CHECK_ERROR(cudaFreeAsync(m_data, m_stream), "Failed to free GPU memory.");
         } else {
-                CUDA_CHECK_ERROR(cudaMalloc(&data, allocSize * sizeof(float)),
+                CUDA_CHECK_ERROR(cudaMallocAsync(&data, m_size * sizeof(float), m_stream),
                         "Failed to allocate memory on the GPU.");
-                CUDA_CHECK_ERROR(cudaMemcpy(data, m_data, m_size * sizeof(float),
-                        cudaMemcpyHostToDevice), "Failed to copy data to the GPU.");
+                CUDA_CHECK_ERROR(cudaMemcpyAsync(data, m_data, m_size * sizeof(float),
+                        cudaMemcpyHostToDevice, m_stream), "Failed to copy data to the GPU.");
                 delete [] m_data;
         }
 

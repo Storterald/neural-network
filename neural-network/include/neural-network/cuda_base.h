@@ -18,15 +18,16 @@
 
 // No checks in release mode to increase speed.
 #ifdef DEBUG_MODE_ENABLED
-#define CUDA_CHECK_ERROR(__result__, __msg__)                                               \
-        do {                                                                                \
-                if (auto code = __result__; code != cudaSuccess)                            \
-                        throw LOGGER_EX(std::string(__msg__)                                \
-                                + " \"" + cudaGetErrorString(code) + "\"");                 \
-        }                                                                                   \
+#define CUDA_CHECK_ERROR(__result__, __msg__)                                                   \
+        do {                                                                                    \
+                if (auto code = __result__; code != cudaSuccess)                                \
+                        throw LOGGER_EX((__msg__) + " \"" + cudaGetErrorString(code) + "\"");   \
+        }                                                                                       \
         while(false)
+#define CUDA_CHECK_LAST_ERROR(...) CUDA_CHECK_ERROR(cudaGetLastError(), __VA_ARGS__)
 #else // DEBUG_MODE_ENABLED
 #define CUDA_CHECK_ERROR(f, ...) f
+#define CUDA_CHECK_LAST_ERROR(...)
 #endif // DEBUG_MODE_ENABLED
 
 namespace nn {

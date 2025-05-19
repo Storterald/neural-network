@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef BUILD_CUDA_SUPPORT
+#include <driver_types.h> // cudaStream_t
+#endif // BUILD_CUDA_SUPPORT
+
 #include <initializer_list>
 #include <cstdint>
 
@@ -19,6 +23,7 @@ public:
         explicit vector(uint32_t size, loc_type location = KEEP);
         vector(uint32_t size, const value_type values[], loc_type location = KEEP);
         vector(const std::initializer_list<value_type> &values, loc_type location = KEEP);
+        vector(uint32_t size, nn::stream stream);
 
         [[nodiscard]] reference operator[] (uint32_t i);
         [[nodiscard]] const_reference operator[] (uint32_t i) const;

@@ -6,7 +6,7 @@
 
 namespace nn {
 
-template<> void _math<MATH_NORMAL>::sum(
+template<> void _math_normal<MATH_NORMAL>::sum(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -16,7 +16,7 @@ template<> void _math<MATH_NORMAL>::sum(
                 result[i] = first[i] + second[i];
 }
 
-template<> void _math<MATH_NORMAL>::sub(
+template<> void _math_normal<MATH_NORMAL>::sub(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -26,7 +26,7 @@ template<> void _math<MATH_NORMAL>::sub(
                 result[i] = first[i] - second[i];
 }
 
-template<> void _math<MATH_NORMAL>::mul(
+template<> void _math_normal<MATH_NORMAL>::mul(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -36,7 +36,7 @@ template<> void _math<MATH_NORMAL>::mul(
                 result[i] = first[i] * second[i];
 }
 
-template<> void _math<MATH_NORMAL>::div(
+template<> void _math_normal<MATH_NORMAL>::div(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -46,7 +46,7 @@ template<> void _math<MATH_NORMAL>::div(
                 result[i] = first[i] / second[i];
 }
 
-template<> void _math<MATH_NORMAL>::sum(
+template<> void _math_normal<MATH_NORMAL>::sum(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -56,7 +56,7 @@ template<> void _math<MATH_NORMAL>::sum(
                 result[i] = data[i] + scalar;
 }
 
-template<> void _math<MATH_NORMAL>::sub(
+template<> void _math_normal<MATH_NORMAL>::sub(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -66,7 +66,7 @@ template<> void _math<MATH_NORMAL>::sub(
                 result[i] = data[i] - scalar;
 }
 
-template<> void _math<MATH_NORMAL>::mul(
+template<> void _math_normal<MATH_NORMAL>::mul(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -76,7 +76,7 @@ template<> void _math<MATH_NORMAL>::mul(
                 result[i] = data[i] * scalar;
 }
 
-template<> void _math<MATH_NORMAL>::div(
+template<> void _math_normal<MATH_NORMAL>::div(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -86,7 +86,7 @@ template<> void _math<MATH_NORMAL>::div(
                 result[i] = data[i] / scalar;
 }
 
-template<> void _math<MATH_NORMAL>::tanh(
+template<> void _math_normal<MATH_NORMAL>::tanh(
         uint32_t           size,
         const float        data[],
         float              result[]) {
@@ -111,14 +111,14 @@ template<> void _math<MATH_NORMAL>::tanh(
         }
 }
 
-template<> void _math<MATH_NORMAL>::tanh_derivative(
+template<> void _math_normal<MATH_NORMAL>::tanh_derivative(
         uint32_t           size,
         const float        data[],
         float              result[]) {
 
         // Uses the _math<>::tanh to calculate the derivative way faster than
         // with using std::tanh, also more accurate than tanhFast.
-        _math<MATH_NORMAL>::tanh(size, data, result);
+        _math_normal<MATH_NORMAL>::tanh(size, data, result);
         for (uint32_t i = 0; i < size; ++i) {
                 const float x = data[i];
 
@@ -143,7 +143,7 @@ template<> void _math<MATH_NORMAL>::tanh_derivative(
         }
 }
 
-template<> void _math<MATH_NORMAL>::ReLU(
+template<> void _math_normal<MATH_NORMAL>::ReLU(
         uint32_t           size,
         const float        data[],
         float              result[]) {
@@ -152,7 +152,7 @@ template<> void _math<MATH_NORMAL>::ReLU(
                 result[i] = std::max(data[i], 0.0f);
 }
 
-template<> void _math<MATH_NORMAL>::ReLU_derivative(
+template<> void _math_normal<MATH_NORMAL>::ReLU_derivative(
         uint32_t           size,
         const float        data[],
         float              result[]) {
@@ -161,7 +161,7 @@ template<> void _math<MATH_NORMAL>::ReLU_derivative(
                 result[i] = data[i] >= 0.0f ? 1.0f : 0.0f;
 }
 
-template<> void _math<MATH_NORMAL>::min(
+template<> void _math_normal<MATH_NORMAL>::min(
         uint32_t           size,
         const float        data[],
         float              min,
@@ -171,7 +171,7 @@ template<> void _math<MATH_NORMAL>::min(
                 result[i] = std::min(data[i], min);
 }
 
-template<> void _math<MATH_NORMAL>::max(
+template<> void _math_normal<MATH_NORMAL>::max(
         uint32_t           size,
         const float        data[],
         float              max,
@@ -181,7 +181,7 @@ template<> void _math<MATH_NORMAL>::max(
                 result[i] = std::max(data[i], max);
 }
 
-template<> void _math<MATH_NORMAL>::clamp(
+template<> void _math_normal<MATH_NORMAL>::clamp(
         uint32_t           size,
         const float        data[],
         float              min,
@@ -192,7 +192,7 @@ template<> void _math<MATH_NORMAL>::clamp(
                 result[i] = std::clamp(data[i], min, max);
 }
 
-template<> void _math<MATH_NORMAL>::min(
+template<> void _math_normal<MATH_NORMAL>::min(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -202,7 +202,7 @@ template<> void _math<MATH_NORMAL>::min(
                 result[i] = std::min(first[i], second[i]);
 }
 
-template<> void _math<MATH_NORMAL>::max(
+template<> void _math_normal<MATH_NORMAL>::max(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -212,7 +212,7 @@ template<> void _math<MATH_NORMAL>::max(
                 result[i] = std::max(first[i], second[i]);
 }
 
-template<> void _math<MATH_NORMAL>::clamp(
+template<> void _math_normal<MATH_NORMAL>::clamp(
         uint32_t           size,
         const float        data[],
         const float        min[],
@@ -223,7 +223,7 @@ template<> void _math<MATH_NORMAL>::clamp(
                 result[i] = std::clamp(data[i], min[i], max[i]);
 }
 
-template<> void _math<MATH_NORMAL>::compare(
+template<> void _math_normal<MATH_NORMAL>::compare(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -234,7 +234,7 @@ template<> void _math<MATH_NORMAL>::compare(
                 *result = first[i] == second[i];
 }
 
-template<> void _math<MATH_NORMAL>::matvec_mul(
+template<> void _math_normal<MATH_NORMAL>::matvec_mul(
         uint32_t           width,
         uint32_t           height,
         const float        matrix[],

@@ -51,7 +51,7 @@ static inline __m256 __mm256_mask_blend_ps(__mmask8 k, __m256 a, __m256 b)
 
 namespace nn {
 
-template<> void _math<MATH_AVX>::sum(
+template<> void _math_normal<MATH_AVX>::sum(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -70,7 +70,7 @@ template<> void _math<MATH_AVX>::sum(
         _math<MATH_NORMAL>::sum(size - end, first + end, second + end, result + end);
 }
 
-template<> void _math<MATH_AVX>::sub(
+template<> void _math_normal<MATH_AVX>::sub(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -89,7 +89,7 @@ template<> void _math<MATH_AVX>::sub(
         _math<MATH_NORMAL>::sub(size - end, first + end, second + end, result + end);
 }
 
-template<> void _math<MATH_AVX>::mul(
+template<> void _math_normal<MATH_AVX>::mul(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -108,7 +108,7 @@ template<> void _math<MATH_AVX>::mul(
         _math<MATH_NORMAL>::mul(size - end, first + end, second + end, result + end);
 }
 
-template<> void _math<MATH_AVX>::div(
+template<> void _math_normal<MATH_AVX>::div(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -127,7 +127,7 @@ template<> void _math<MATH_AVX>::div(
         _math<MATH_NORMAL>::div(size - end, first + end, second + end, result + end);
 }
 
-template<> void _math<MATH_AVX>::sum(
+template<> void _math_normal<MATH_AVX>::sum(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -147,7 +147,7 @@ template<> void _math<MATH_AVX>::sum(
         _math<MATH_NORMAL>::sum(size - end, data + end, scalar, result + end);
 }
 
-template<> void _math<MATH_AVX>::sub(
+template<> void _math_normal<MATH_AVX>::sub(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -167,7 +167,7 @@ template<> void _math<MATH_AVX>::sub(
         _math<MATH_NORMAL>::sub(size - end, data + end, scalar, result + end);
 }
 
-template<> void _math<MATH_AVX>::mul(
+template<> void _math_normal<MATH_AVX>::mul(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -187,7 +187,7 @@ template<> void _math<MATH_AVX>::mul(
         _math<MATH_NORMAL>::mul(size - end, data + end, scalar, result + end);
 }
 
-template<> void _math<MATH_AVX>::div(
+template<> void _math_normal<MATH_AVX>::div(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -207,7 +207,7 @@ template<> void _math<MATH_AVX>::div(
         _math<MATH_NORMAL>::div(size - end, data + end, scalar, result + end);
 }
 
-template<> void _math<MATH_AVX>::tanh(
+template<> void _math_normal<MATH_AVX>::tanh(
         uint32_t           size,
         const float        data[],
         float              result[]) {
@@ -252,14 +252,14 @@ template<> void _math<MATH_AVX>::tanh(
         _math<MATH_NORMAL>::tanh(size - end, data + end, result + end);
 }
 
-template<> void _math<MATH_AVX>::tanh_derivative(
+template<> void _math_normal<MATH_AVX>::tanh_derivative(
         uint32_t           size,
         const float        data[],
         float              result[]) {
 
         const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
-        _math<MATH_AVX>::tanh(size - end, data, result);
+        _math_normal<MATH_AVX>::tanh(size - end, data, result);
 
         const __m256 threshold = _mm256_set1_ps(4.9f);
         const __m256 zero      = _mm256_setzero_ps();
@@ -281,7 +281,7 @@ template<> void _math<MATH_AVX>::tanh_derivative(
         _math<MATH_NORMAL>::tanh_derivative(size - end, data + end, result + end);
 }
 
-template<> void _math<MATH_AVX>::ReLU(
+template<> void _math_normal<MATH_AVX>::ReLU(
         uint32_t           size,
         const float        data[],
         float              result[]) {
@@ -300,7 +300,7 @@ template<> void _math<MATH_AVX>::ReLU(
         _math<MATH_NORMAL>::ReLU(size - end, data + end, result + end);
 }
 
-template<> void _math<MATH_AVX>::ReLU_derivative(
+template<> void _math_normal<MATH_AVX>::ReLU_derivative(
         uint32_t           size,
         const float        data[],
         float              result[]) {
@@ -321,7 +321,7 @@ template<> void _math<MATH_AVX>::ReLU_derivative(
         _math<MATH_NORMAL>::ReLU_derivative(size - end, data + end, result + end);
 }
 
-template<> void _math<MATH_AVX>::min(
+template<> void _math_normal<MATH_AVX>::min(
         uint32_t           size,
         const float        data[],
         float              min,
@@ -342,7 +342,7 @@ template<> void _math<MATH_AVX>::min(
 }
 
 
-template<> void _math<MATH_AVX>::max(
+template<> void _math_normal<MATH_AVX>::max(
         uint32_t           size,
         const float        data[],
         float              max,
@@ -362,7 +362,7 @@ template<> void _math<MATH_AVX>::max(
         _math<MATH_NORMAL>::max(size - end, data + end, max, result + end);
 }
 
-template<> void _math<MATH_AVX>::clamp(
+template<> void _math_normal<MATH_AVX>::clamp(
         uint32_t           size,
         const float        data[],
         float              min,
@@ -384,7 +384,7 @@ template<> void _math<MATH_AVX>::clamp(
         _math<MATH_NORMAL>::clamp(size - end, data + end, min, max, result + end);
 }
 
-template<> void _math<MATH_AVX>::min(
+template<> void _math_normal<MATH_AVX>::min(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -403,7 +403,7 @@ template<> void _math<MATH_AVX>::min(
         _math<MATH_NORMAL>::min(size - end, first + end, second + end, result + end);
 }
 
-template<> void _math<MATH_AVX>::max(
+template<> void _math_normal<MATH_AVX>::max(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -422,7 +422,7 @@ template<> void _math<MATH_AVX>::max(
         _math<MATH_NORMAL>::max(size - end, first + end, second + end, result + end);
 }
 
-template<> void _math<MATH_AVX>::clamp(
+template<> void _math_normal<MATH_AVX>::clamp(
         uint32_t           size,
         const float        data[],
         const float        min[],
@@ -443,7 +443,7 @@ template<> void _math<MATH_AVX>::clamp(
         _math<MATH_NORMAL>::clamp(size - end, data + end, min + end, max + end, result + end);
 }
 
-template<> void _math<MATH_AVX>::compare(
+template<> void _math_normal<MATH_AVX>::compare(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -467,7 +467,7 @@ template<> void _math<MATH_AVX>::compare(
         _math<MATH_NORMAL>::compare(size - end, first + end, second + end, result);
 }
 
-template<> void _math<MATH_AVX>::matvec_mul(
+template<> void _math_normal<MATH_AVX>::matvec_mul(
         uint32_t           width,
         uint32_t           height,
         const float        matrix[],

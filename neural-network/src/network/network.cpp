@@ -1,7 +1,16 @@
 #include <neural-network/network/network.h>
 
+#ifdef BUILD_CUDA_SUPPORT
+#include <cuda_runtime.h>
+#include <driver_types.h> // cudaStream_t
+
+#include <neural-network/cuda_base.h>
+#endif // BUILD_CUDA_SUPPORT
+
 #include <unordered_map>
 #include <filesystem>
+#include <optional>
+#include <numeric> // std::accumulate
 #include <fstream>
 #include <cstdint>
 #include <chrono>
@@ -15,6 +24,19 @@
 #include <neural-network/utils/logger.h>
 #include <neural-network/base.h>
 
+template<typename ...Args>
+static void _create_layers(
+        std::unique_ptr<nn::layer>         *layers,
+        uint32_t                           inputSize,
+        uint32_t                           count,
+        const nn::layer_create_info        *infos,
+        Args                               &&...args) {
+
+        layers[0] = nn::layer::create(inputSize, infos[0], args...);
+        for (uint32_t L = 1; L < count; ++L)
+                layers[L] = nn::layer::create(infos[L - 1].neuronCount, infos[L], args...);
+}
+
 namespace nn {
 
 network::network(
@@ -23,11 +45,15 @@ network::network(
         const layer_create_info            *infosEnd,
         const std::filesystem::path        &path) :
 
+#ifdef BUILD_CUDA_SUPPORT
+        m_stream(_create_stream()),
+#endif // BUILD_CUDA_SUPPORT
         m_layerCount((uint32_t)std::distance(infosBegin, infosEnd) + 1),
         m_inputSize(inputSize),
         m_outputSize(infosBegin[m_layerCount - 2].neuronCount),
         m_L(_create_layers(infosBegin, path.string().c_str())),
-        m_n(_get_sizes(infosBegin)) {}
+        m_n(_get_sizes(infosBegin)) {
+}
 
 network::~network()
 {
@@ -43,6 +69,11 @@ vector network::forward(vector aL) const
         for (uint32_t L = 0; L < m_layerCount - 1; ++L)
                 aL = m_L[L]->forward(aL);
 
+#ifdef BUILD_CUDA_SUPPORT
+        CUDA_CHECK_ERROR(cudaStreamSynchronize(m_stream),
+                "Error synchronizing in network::backward.");
+#endif // BUILD_CUDA_SUPPORT
+
         return aL;
 }
 
@@ -55,43 +86,49 @@ void network::backward(const vector &input, const vector &dC)
                 a[L] = m_L[L - 1]->forward(a[L - 1]);
 
         this->backward(dC, a);
-
         delete [] a;
 }
-
 
 void network::backward(vector dC, const vector a[])
 {
         for (int32_t L = (int32_t)m_layerCount - 2; L >= 0; --L)
                 dC = m_L[L]->backward(dC, a[L]);
+
+#ifdef BUILD_CUDA_SUPPORT
+        CUDA_CHECK_ERROR(cudaStreamSynchronize(m_stream),
+                "Error synchronizing in network::backward.");
+#endif // BUILD_CUDA_SUPPORT
 }
 
 void network::train_supervised(
-        uint32_t           sampleCount,
-        const float        inputs[],
-        const float        outputs[]) {
+        uint32_t           samplesCount,
+        const float        _inputs[],
+        const float        _outputs[]) {
+
+        namespace ch = std::chrono;
 
 #ifdef DEBUG_MODE_ENABLED
-        constexpr uint32_t threads = 1;
+        constexpr uint32_t chunks = 1;
 #else
-        const uint32_t threads = std::clamp(std::thread::hardware_concurrency(), 1u, sampleCount);
+        const uint32_t threads = std::thread::hardware_concurrency();
+        const uint32_t chunks  = std::clamp(threads, 1u, samplesCount);
 #endif // DEBUG_MODE_ENABLED
 
         std::vector<std::future<void>> futures;
-        futures.reserve(threads);
+        futures.reserve(chunks);
 
-        const uint32_t batchSize = sampleCount / threads;
-        const uint32_t remainder = sampleCount % threads;
-        uint32_t offset          = 0;
+        std::span inputs(_inputs, (size_t)samplesCount * m_inputSize);
+        std::span outputs(_outputs, (size_t)samplesCount * m_outputSize);
 
-        for (uint32_t t = 0; t < threads; ++t) {
-                const uint32_t count = batchSize + (t < remainder ? 1 : 0);
-                const uint32_t start = offset;
-                const uint32_t end   = start + count;
-                offset               = end;
+        auto inputsChunks = inputs  | std::views::chunk(chunks);
+        auto outputsChunk = outputs | std::views::chunk(chunks);
 
-                futures.push_back(_get_supervised_future(
-                        start, end, inputs, outputs));
+        for (uint32_t t = 0; t < chunks; ++t) {
+                const size_t size     = inputsChunks[t].size();
+                const float *cInputs  = inputsChunks[t].data();
+                const float *cOutputs = outputsChunk[t].data();
+
+                futures.push_back(_get_supervised_future((uint32_t)size, cInputs, cOutputs));
         }
 
         for (std::future<void> &f : futures)
@@ -110,6 +147,25 @@ void network::encode(const std::filesystem::path &path) const
         file.close();
 }
 
+#ifdef BUILD_CUDA_SUPPORT
+cudaStream_t network::_create_stream() const
+{
+        static std::array<std::optional<cudaStream_t>, 16> streams{};
+        static uint32_t usedStreams = 0;
+
+        if (!streams[usedStreams].has_value()) {
+                cudaStream_t stream;
+                CUDA_CHECK_ERROR(cudaStreamCreate(&stream),
+                         "Could not create CUDA stream.");
+                streams[usedStreams] = stream;
+        }
+
+        const cudaStream_t stream = streams[usedStreams].value();
+        usedStreams               = (usedStreams + 1) % streams.size();
+        return stream;
+}
+#endif // BUILD_CUDA_SUPPORT
+
 std::unique_ptr<layer> *network::_create_layers(
         const layer_create_info        *infos) const {
 
@@ -117,13 +173,24 @@ std::unique_ptr<layer> *network::_create_layers(
                 throw LOGGER_EX("Cannot initialize Network with no layers. The "
                                 "minimum required amount is 1, the output layer.");
 
-        const size_t size = m_layerCount - 1;
+        const uint32_t size = m_layerCount - 1;
+        bool useCuda        = false;
+
+#ifdef BUILD_CUDA_SUPPORT
+        const auto pred = [](uint32_t count, const layer_create_info &value) {
+                return count + value.neuronCount;
+        };
+        const uint32_t neurons = std::accumulate(infos, infos + size, m_inputSize, pred);
+        useCuda                = neurons >= CUDA_MINIMUM;
+#endif // BUILD_CUDA_SUPPORT
 
         auto layers = new std::unique_ptr<layer>[size];
-        layers[0]   = layer::create(m_inputSize, infos[0]);
-
-        for (uint32_t L = 1; L < size; ++L)
-                layers[L] = layer::create(infos[L - 1].neuronCount, infos[L]);
+        if (!useCuda)
+                ::_create_layers(layers, m_inputSize, size, infos);
+#ifdef BUILD_CUDA_SUPPORT
+        else
+                ::_create_layers(layers, m_inputSize, size, infos, m_stream);
+#endif // BUILD_CUDA_SUPPORT
 
         return layers;
 }
@@ -141,17 +208,28 @@ std::unique_ptr<layer> *network::_create_layers(
                 throw LOGGER_EX("Cannot initialize Network with no layers. The "
                                 "minimum required amount is 1, the output layer.");
 
-        const size_t size = m_layerCount - 1;
-
         if (!fs::exists(path))
                 throw LOGGER_EX("File given to Network() does not exist.");
 
+        const uint32_t size = m_layerCount - 1;
+        bool useCuda        = false;
+
+#ifdef BUILD_CUDA_SUPPORT
+        const auto pred = [](uint32_t count, const layer_create_info &value) {
+                return count + value.neuronCount;
+        };
+        const uint32_t neurons = std::accumulate(infos, infos + size, m_inputSize, pred);
+        useCuda                = neurons >= CUDA_MINIMUM;
+#endif // BUILD_CUDA_SUPPORT
+
         std::ifstream file(fs::path(path), std::ios::binary);
         auto layers = new std::unique_ptr<layer>[size];
-        layers[0]   = layer::create(m_inputSize, infos[0], file);
-
-        for (uint32_t L = 1; L < size; ++L)
-                layers[L] = layer::create(infos[L - 1].neuronCount, infos[L], file);
+        if (!useCuda)
+                ::_create_layers(layers, m_inputSize, size, infos, file);
+#ifdef BUILD_CUDA_SUPPORT
+        else
+                ::_create_layers(layers, m_inputSize, size, infos, file, m_stream);
+#endif // BUILD_CUDA_SUPPORT
 
         file.close();
         return layers;
@@ -160,7 +238,7 @@ std::unique_ptr<layer> *network::_create_layers(
 uint32_t *network::_get_sizes(
         const layer_create_info        *infos) const {
 
-        const size_t size = m_layerCount - 1;
+        const uint32_t size = m_layerCount - 1;
 
         auto sizes = new uint32_t[size];
         sizes[0]   = m_inputSize;
@@ -172,8 +250,7 @@ uint32_t *network::_get_sizes(
 }
 
 std::future<void> network::_get_supervised_future(
-        uint32_t           start,
-        uint32_t           end,
+        uint32_t           sampleSize,
         const float        inputs[],
         const float        outputs[]) {
 
@@ -181,22 +258,28 @@ std::future<void> network::_get_supervised_future(
 
         return std::async(std::launch::async, [&]() -> void {
                 auto s = ch::high_resolution_clock::now();
-                for (uint32_t i = start; i < end; ++i) {
+
+                for (uint32_t i = 0; i < sampleSize; ++i) {
+                        const float *inValues  = inputs + (uintptr_t)i * m_inputSize;
+                        const float *outValues = outputs + (uintptr_t)i * m_outputSize;
+
                         const auto a = new vector[m_layerCount];
-                        a[0]         = vector(m_inputSize, inputs + (uintptr_t)i * m_inputSize);
+                        a[0]         = vector(m_inputSize, inValues);
 
                         for (uint32_t L = 1; L < m_layerCount; ++L)
                                 a[L] = m_L[L - 1]->forward(a[L - 1]);
 
-                        const vector y(m_outputSize, outputs + (uintptr_t)i * m_outputSize);
+                        const vector y(m_outputSize, outValues);
                         const vector dC = 2.0f * (a[m_layerCount - 1] - y);
 
                         this->backward(dC, a);
                         delete [] a;
                 }
+
                 auto e = ch::high_resolution_clock::now();
-                logger::log() << "Thread [" << std::this_thread::get_id() << "] "
-                        "finished execution in " << ch::duration_cast<ch::milliseconds>(e - s) << "\n";
+                auto time = ch::duration_cast<ch::milliseconds>(e - s);
+                logger::log() << "Thread [" << std::this_thread::get_id()
+                              << "] finished execution in " << time << "\n";
         });
 }
 

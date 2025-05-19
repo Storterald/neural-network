@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef BUILD_CUDA_SUPPORT
+#include <driver_types.h> // cudaStream_t
+#endif // BUILD_CUDA_SUPPORT
+
 #include <cstdint>
 #include <memory>
 
@@ -27,6 +31,8 @@ struct layer_create_info {
 
 class layer {
 public:
+        // TODO templates... maybe?
+
         static std::unique_ptr<layer> create(
                 uint32_t                       previousLayerSize,
                 const layer_create_info        &layerInfo);
@@ -35,6 +41,19 @@ public:
                 uint32_t                       previousLayerSize,
                 const layer_create_info        &layerInfo,
                 std::ifstream                  &inputFile);
+
+#ifdef BUILD_CUDA_SUPPORT
+                static std::unique_ptr<layer> create(
+                        uint32_t                       previousLayerSize,
+                        const layer_create_info        &layerInfo,
+                        cudaStream_t                   stream);
+
+                static std::unique_ptr<layer> create(
+                        uint32_t                       previousLayerSize,
+                        const layer_create_info        &layerInfo,
+                        std::ifstream                  &inputFile,
+                        cudaStream_t                   stream);
+#endif // BUILD_CUDA_SUPPORT
 
         [[nodiscard]] virtual vector forward(const vector &input) const = 0;
         virtual vector backward(const vector &cost, const vector &input) = 0;

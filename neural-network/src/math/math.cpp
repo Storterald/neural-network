@@ -26,9 +26,9 @@ _get(__name__, __dest__) __VA_OPT__(, __GET_ALL2 PARENS (__dest__, __VA_ARGS__))
 #define __GET_ALL2() __GET_ALL
 
 #ifdef BUILD_CUDA_SUPPORT
-#define CHECK_IF_CUDA_MINIMUM(__name__, __size__, ...)                          \
-if ((__size__) >= CUDA_MINIMUM)                                                 \
-        return _math<MATH_CUDA>:: __name__ (GET_ALL(buf::DEVICE, __VA_ARGS__))
+#define CHECK_IF_CUDA_MINIMUM(__name__, __size__, __stream__, ...)                              \
+if ((__size__) >= CUDA_MINIMUM)                                                                 \
+        return _math<MATH_CUDA>:: __name__ (GET_ALL(buf::DEVICE, __VA_ARGS__), __stream__)
 #else // BUILD_CUDA_SUPPORT
 #define CHECK_IF_CUDA_MINIMUM(...)
 #endif // BUILD_CUDA_SUPPORT
@@ -47,128 +47,128 @@ do {                                                                            
         }                                                                                       \
 } while (false)
 
-#define DECLARE_MATH_FUNCTION(__name__, __size__, ...)                          \
-void math:: __name__ (GET_ARGS(__VA_ARGS__))                                    \
-{                                                                               \
-        CHECK_IF_CUDA_MINIMUM(__name__, __size__, GET_ARGS_NAMES(__VA_ARGS__)); \
-        SIMD_SWITCH(__name__, GET_ARGS_NAMES(__VA_ARGS__));                     \
+#define DECLARE_MATH_FUNCTION(__name__, __size__, __stream__, ...)                              \
+void math:: __name__ (GET_ARGS(__VA_ARGS__))                                                    \
+{                                                                                               \
+        CHECK_IF_CUDA_MINIMUM(__name__, __size__, __stream__, GET_ARGS_NAMES(__VA_ARGS__));     \
+        SIMD_SWITCH(__name__, GET_ARGS_NAMES(__VA_ARGS__));                                     \
 }
 
 namespace nn {
 
-DECLARE_MATH_FUNCTION(sum, size,
+DECLARE_MATH_FUNCTION(sum, size, first.stream(),
         uint32_t,           size,
         const buf &,        first,
         const buf &,        second,
         buf &,              result)
 
-DECLARE_MATH_FUNCTION(sub, size,
+DECLARE_MATH_FUNCTION(sub, size, first.stream(),
         uint32_t,           size,
         const buf &,        first,
         const buf &,        second,
         buf &,              result)
 
-DECLARE_MATH_FUNCTION(mul, size,
+DECLARE_MATH_FUNCTION(mul, size, first.stream(),
         uint32_t,           size,
         const buf &,        first,
         const buf &,        second,
         buf &,              result)
 
-DECLARE_MATH_FUNCTION(div, size,
+DECLARE_MATH_FUNCTION(div, size, first.stream(),
         uint32_t,           size,
         const buf &,        first,
         const buf &,        second,
         buf &,              result)
 
-DECLARE_MATH_FUNCTION(sum, size,
+DECLARE_MATH_FUNCTION(sum, size, data.stream(),
         uint32_t,           size,
         const buf &,        data,
         float,              scalar,
         buf &,              result)
 
-DECLARE_MATH_FUNCTION(sub, size,
+DECLARE_MATH_FUNCTION(sub, size, data.stream(),
         uint32_t,           size,
         const buf &,        data,
         float,              scalar,
         buf &,              result)
 
-DECLARE_MATH_FUNCTION(mul, size,
+DECLARE_MATH_FUNCTION(mul, size, data.stream(),
         uint32_t,           size,
         const buf &,        data,
         float,              scalar,
         buf &,              result)
 
-DECLARE_MATH_FUNCTION(div, size,
+DECLARE_MATH_FUNCTION(div, size, data.stream(),
         uint32_t,           size,
         const buf &,        data,
         float,              scalar,
         buf &,              result)
 
-DECLARE_MATH_FUNCTION(tanh, size,
+DECLARE_MATH_FUNCTION(tanh, size, data.stream(),
         uint32_t,           size,
         const buf &,        data,
         buf &,              result)
 
-DECLARE_MATH_FUNCTION(tanh_derivative, size,
+DECLARE_MATH_FUNCTION(tanh_derivative, size, data.stream(),
         uint32_t,           size,
         const buf &,        data,
         buf &,              result)
 
-DECLARE_MATH_FUNCTION(ReLU, size,
+DECLARE_MATH_FUNCTION(ReLU, size, data.stream(),
         uint32_t,           size,
         const buf &,        data,
         buf &,              result)
 
-DECLARE_MATH_FUNCTION(ReLU_derivative, size,
+DECLARE_MATH_FUNCTION(ReLU_derivative, size, data.stream(),
         uint32_t,           size,
         const buf &,        data,
         buf &,              result)
 
-DECLARE_MATH_FUNCTION(min, size,
+DECLARE_MATH_FUNCTION(min, size, data.stream(),
         uint32_t,           size,
         const buf &,        data,
         float,              min,
         buf &,              result)
 
-DECLARE_MATH_FUNCTION(max, size,
+DECLARE_MATH_FUNCTION(max, size, data.stream(),
         uint32_t,           size,
         const buf &,        data,
         float,              max,
         buf &,              result)
 
-DECLARE_MATH_FUNCTION(clamp, size,
+DECLARE_MATH_FUNCTION(clamp, size, data.stream(),
         uint32_t,           size,
         const buf &,        data,
         float,              min,
         float,              max,
         buf &,              result)
 
-DECLARE_MATH_FUNCTION(min, size,
+DECLARE_MATH_FUNCTION(min, size, first.stream(),
         uint32_t,           size,
         const buf &,        first,
         const buf &,        second,
         buf &,              result)
 
-DECLARE_MATH_FUNCTION(max, size,
+DECLARE_MATH_FUNCTION(max, size, first.stream(),
         uint32_t,           size,
         const buf &,        first,
         const buf &,        second,
         buf &,              result)
 
-DECLARE_MATH_FUNCTION(clamp, size,
+DECLARE_MATH_FUNCTION(clamp, size, data.stream(),
         uint32_t,           size,
         const buf &,        data,
         const buf &,        min,
         const buf &,        max,
         buf &,              result)
 
-DECLARE_MATH_FUNCTION(compare, size,
+DECLARE_MATH_FUNCTION(compare, size, first.stream(),
         uint32_t,           size,
         const buf &,        first,
         const buf &,        second,
         bool *,             result)
 
-DECLARE_MATH_FUNCTION(matvec_mul, width * height,
+DECLARE_MATH_FUNCTION(matvec_mul, width * height, matrix.stream(),
         uint32_t,           width,
         uint32_t,           height,
         const buf &,        matrix,

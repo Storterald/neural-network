@@ -4,6 +4,7 @@
 #include <cstddef> // ptrdiff_t
 
 #include <neural-network/utils/logger.h>
+#include <neural-network/base.h>
 
 namespace nn {
 
@@ -297,6 +298,11 @@ public:
         [[nodiscard]] constexpr bool is_owning() const noexcept
         {
                 return false;
+        }
+
+        [[nodiscard]] stream stream() const noexcept
+        {
+                return 0;
         }
 
         constexpr void update() const noexcept {}

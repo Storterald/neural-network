@@ -463,6 +463,11 @@ public:
                 return m_owning;
         }
 
+        [[nodiscard]] stream stream() const noexcept
+        {
+                return m_stream;
+        }
+
         void update() requires (!std::is_const_v<value_type>)
         {
                 if (!m_owning)

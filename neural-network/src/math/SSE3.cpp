@@ -49,7 +49,7 @@ static inline __m128 _mm_mask_blend_ps(__mmask8 k, __m128 a, __m128 b)
 
 namespace nn {
 
-template<> void _math<MATH_SSE3>::sum(
+template<> void _math_normal<MATH_SSE3>::sum(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -68,7 +68,7 @@ template<> void _math<MATH_SSE3>::sum(
         _math<MATH_NORMAL>::sum(size - end, first + end, second + end, result + end);
 }
 
-template<> void _math<MATH_SSE3>::sub(
+template<> void _math_normal<MATH_SSE3>::sub(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -87,7 +87,7 @@ template<> void _math<MATH_SSE3>::sub(
         _math<MATH_NORMAL>::sub(size - end, first + end, second + end, result + end);
 }
 
-template<> void _math<MATH_SSE3>::mul(
+template<> void _math_normal<MATH_SSE3>::mul(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -106,7 +106,7 @@ template<> void _math<MATH_SSE3>::mul(
         _math<MATH_NORMAL>::mul(size - end, first + end, second + end, result + end);
 }
 
-template<> void _math<MATH_SSE3>::div(
+template<> void _math_normal<MATH_SSE3>::div(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -125,7 +125,7 @@ template<> void _math<MATH_SSE3>::div(
         _math<MATH_NORMAL>::div(size - end, first + end, second + end, result + end);
 }
 
-template<> void _math<MATH_SSE3>::sum(
+template<> void _math_normal<MATH_SSE3>::sum(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -145,7 +145,7 @@ template<> void _math<MATH_SSE3>::sum(
         _math<MATH_NORMAL>::sum(size - end, data + end, scalar, result + end);
 }
 
-template<> void _math<MATH_SSE3>::sub(
+template<> void _math_normal<MATH_SSE3>::sub(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -165,7 +165,7 @@ template<> void _math<MATH_SSE3>::sub(
         _math<MATH_NORMAL>::sub(size - end, data + end, scalar, result + end);
 }
 
-template<> void _math<MATH_SSE3>::mul(
+template<> void _math_normal<MATH_SSE3>::mul(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -185,7 +185,7 @@ template<> void _math<MATH_SSE3>::mul(
         _math<MATH_NORMAL>::mul(size - end, data + end, scalar, result + end);
 }
 
-template<> void _math<MATH_SSE3>::div(
+template<> void _math_normal<MATH_SSE3>::div(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -205,7 +205,7 @@ template<> void _math<MATH_SSE3>::div(
         _math<MATH_NORMAL>::div(size - end, data + end, scalar, result + end);
 }
 
-template<> void _math<MATH_SSE3>::tanh(
+template<> void _math_normal<MATH_SSE3>::tanh(
         uint32_t           size,
         const float        data[],
         float              result[]) {
@@ -255,7 +255,7 @@ template<> void _math<MATH_SSE3>::tanh(
         _math<MATH_NORMAL>::tanh(size - end, data + end, result + end);
 }
 
-template<> void _math<MATH_SSE3>::tanh_derivative(
+template<> void _math_normal<MATH_SSE3>::tanh_derivative(
         uint32_t           size,
         const float        data[],
         float              result[]) {
@@ -263,7 +263,7 @@ template<> void _math<MATH_SSE3>::tanh_derivative(
         const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
         // Tanh values are stored in the result array, then overwritten.
-        _math<MATH_SSE3>::tanh(size - end, data, result);
+        _math_normal<MATH_SSE3>::tanh(size - end, data, result);
 
         const __m128 threshold = _mm_set1_ps(4.9f);
         const __m128 zero      = _mm_setzero_ps();
@@ -285,7 +285,7 @@ template<> void _math<MATH_SSE3>::tanh_derivative(
         _math<MATH_NORMAL>::tanh_derivative(size - end, data + end, result + end);
 }
 
-template<> void _math<MATH_SSE3>::ReLU(
+template<> void _math_normal<MATH_SSE3>::ReLU(
         uint32_t           size,
         const float        data[],
         float              result[]) {
@@ -304,7 +304,7 @@ template<> void _math<MATH_SSE3>::ReLU(
         _math<MATH_NORMAL>::ReLU(size - end, data + end, result + end);
 }
 
-template<> void _math<MATH_SSE3>::ReLU_derivative(
+template<> void _math_normal<MATH_SSE3>::ReLU_derivative(
         uint32_t           size,
         const float        data[],
         float              result[]) {
@@ -325,7 +325,7 @@ template<> void _math<MATH_SSE3>::ReLU_derivative(
         _math<MATH_NORMAL>::ReLU_derivative(size - end, data + end, result + end);
 }
 
-template<> void _math<MATH_SSE3>::min(
+template<> void _math_normal<MATH_SSE3>::min(
         uint32_t           size,
         const float        data[],
         float              min,
@@ -345,7 +345,7 @@ template<> void _math<MATH_SSE3>::min(
         _math<MATH_NORMAL>::min(size - end, data + end, min, result + end);
 }
 
-template<> void _math<MATH_SSE3>::max(
+template<> void _math_normal<MATH_SSE3>::max(
         uint32_t           size,
         const float        data[],
         float              max,
@@ -365,7 +365,7 @@ template<> void _math<MATH_SSE3>::max(
         _math<MATH_NORMAL>::max(size - end, data + end, max, result + end);
 }
 
-template<> void _math<MATH_SSE3>::clamp(
+template<> void _math_normal<MATH_SSE3>::clamp(
         uint32_t           size,
         const float        data[],
         float              min,
@@ -387,7 +387,7 @@ template<> void _math<MATH_SSE3>::clamp(
         _math<MATH_NORMAL>::clamp(size - end, data + end, min, max, result + end);
 }
 
-template<> void _math<MATH_SSE3>::min(
+template<> void _math_normal<MATH_SSE3>::min(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -406,7 +406,7 @@ template<> void _math<MATH_SSE3>::min(
         _math<MATH_NORMAL>::min(size - end, first + end, second + end, result + end);
 }
 
-template<> void _math<MATH_SSE3>::max(
+template<> void _math_normal<MATH_SSE3>::max(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -425,7 +425,7 @@ template<> void _math<MATH_SSE3>::max(
         _math<MATH_NORMAL>::max(size - end, first + end, second + end, result + end);
 }
 
-template<> void _math<MATH_SSE3>::clamp(
+template<> void _math_normal<MATH_SSE3>::clamp(
         uint32_t           size,
         const float        data[],
         const float        min[],
@@ -446,7 +446,7 @@ template<> void _math<MATH_SSE3>::clamp(
         _math<MATH_NORMAL>::clamp(size - end, data + end, min + end, max + end, result + end);
 }
 
-template<> void _math<MATH_SSE3>::compare(
+template<> void _math_normal<MATH_SSE3>::compare(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -470,7 +470,7 @@ template<> void _math<MATH_SSE3>::compare(
         _math<MATH_NORMAL>::compare(size - end, first + end, second + end, result);
 }
 
-template<> void _math<MATH_SSE3>::matvec_mul(
+template<> void _math_normal<MATH_SSE3>::matvec_mul(
         uint32_t           width,
         uint32_t           height,
         const float        matrix[],

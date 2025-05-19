@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef BUILD_CUDA_SUPPORT
+#include <driver_types.h> // cudaStream_t
+#endif // BUILD_CUDA_SUPPORT
+
 #include <iostream>
 #include <cstdint>
 #include <mutex>
@@ -23,6 +27,21 @@ public:
                 function_type        functionType,
                 std::istream         &encodedData);
 
+#ifdef BUILD_CUDA_SUPPORT
+        fully_connected_layer(
+                uint32_t             previousLayerSize,
+                uint32_t             layerSize,
+                function_type        functionType,
+                cudaStream_t         stream);
+
+        fully_connected_layer(
+                uint32_t             previousLayerSize,
+                uint32_t             layerSize,
+                function_type        functionType,
+                std::istream         &encodedData,
+                cudaStream_t         stream);
+#endif // BUILD_CUDA_SUPPORT
+
         [[nodiscard]] vector forward(const vector &input) const override;
         [[nodiscard]] vector backward(const vector &cost, const vector &input) override;
 
@@ -34,10 +53,15 @@ public:
         }
 
 private:
-        matrix                     m_w;
-        vector                     m_b;
-        const function_type        m_functionType;
-        std::mutex                 m_mutex;
+#ifdef BUILD_CUDA_SUPPORT
+        stream                         m_stream;
+#else
+        static constexpr stream        m_stream = 0;
+#endif // BUILD_CUDA_SUPPORT
+        matrix                         m_w;
+        vector                         m_b;
+        const function_type            m_functionType;
+        std::mutex                     m_mutex;
 
         void _d_backward(
                 const float        input[],

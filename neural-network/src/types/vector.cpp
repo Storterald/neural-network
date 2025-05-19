@@ -1,5 +1,12 @@
 #include <neural-network/types/vector.h>
 
+#ifdef BUILD_CUDA_SUPPORT
+#include <cuda_runtime.h>
+#include <driver_types.h> // cudaStream_t
+
+#include <neural-network/cuda_base.h>
+#endif // BUILD_CUDA_SUPPORT
+
 #include <initializer_list>
 #include <algorithm> // std::ranges::any_of
 #include <iterator>  // std::data
@@ -10,12 +17,6 @@
 #include <neural-network/types/buf.h>
 #include <neural-network/math/math.h>
 #include <neural-network/base.h>
-
-#ifdef BUILD_CUDA_SUPPORT
-#include <cuda_runtime.h>
-
-#include <neural-network/cuda_base.h>
-#endif // BUILD_CUDA_SUPPORT
 
 namespace nn {
 
@@ -29,8 +30,8 @@ vector::vector(uint32_t size, const value_type values[], loc_type location) : bu
         }
 
 #if BUILD_CUDA_SUPPORT
-        CUDA_CHECK_ERROR(cudaMemcpy(this->data().get(), values, m_size * sizeof(value_type),
-                cudaMemcpyHostToDevice), "Failed to copy data to the GPU.");
+        CUDA_CHECK_ERROR(cudaMemcpyAsync(this->data().get(), values, m_size * sizeof(value_type),
+                cudaMemcpyHostToDevice, m_stream), "Failed to copy data to the GPU.");
 #endif // BUILD_CUDA_SUPPORT
 }
 
@@ -43,10 +44,12 @@ vector::vector(const std::initializer_list<value_type> &values, loc_type locatio
         }
 
 #if BUILD_CUDA_SUPPORT
-        CUDA_CHECK_ERROR(cudaMemcpy(this->data().get(), std::data(values), m_size * sizeof(value_type),
-                cudaMemcpyHostToDevice), "Failed to copy data to the GPU.");
+        CUDA_CHECK_ERROR(cudaMemcpyAsync(this->data().get(), std::data(values), m_size * sizeof(value_type),
+                cudaMemcpyHostToDevice, m_stream), "Failed to copy data to the GPU.");
 #endif // BUILD_CUDA_SUPPORT
 }
+
+vector::vector(uint32_t size, nn::stream stream) : buf(size, stream) {}
 
 vector::reference vector::operator[] (uint32_t i)
 {
@@ -85,7 +88,7 @@ vector vector::operator+ (const vector &other) const
                 throw LOGGER_EX("Vector sizes must match.");
 #endif // DEBUG_MODE_ENABLED
 
-        vector result(m_size);
+        vector result(m_size, m_stream);
         math::sum(m_size, *this, other, result);
 
         return result;
@@ -98,7 +101,7 @@ vector vector::operator- (const vector &other) const
                 throw LOGGER_EX("Vector sizes must match.");
 #endif // DEBUG_MODE_ENABLED
 
-        vector result(m_size);
+        vector result(m_size, m_stream);
         math::sub(m_size, *this, other, result);
 
         return result;
@@ -111,7 +114,7 @@ vector vector::operator* (const vector &other) const
                 throw LOGGER_EX("Vector sizes must match.");
 #endif // DEBUG_MODE_ENABLED
 
-        vector result(m_size);
+        vector result(m_size, m_stream);
         math::mul(m_size, *this, other, result);
 
         return result;
@@ -126,7 +129,7 @@ vector vector::operator/ (const vector &other) const
                 throw LOGGER_EX("Cannot divide by 0.");
 #endif // DEBUG_MODE_ENABLED
 
-        vector result(m_size);
+        vector result(m_size, m_stream);
         math::div(m_size, *this, other, result);
 
         return result;
@@ -176,7 +179,7 @@ void vector::operator/= (const vector &other)
 
 vector vector::operator+ (value_type scalar) const
 {
-        vector result(m_size);
+        vector result(m_size, m_stream);
         math::sum(m_size, *this, scalar, result);
 
         return result;
@@ -184,7 +187,7 @@ vector vector::operator+ (value_type scalar) const
 
 vector vector::operator- (value_type scalar) const
 {
-        vector result(m_size);
+        vector result(m_size, m_stream);
         math::sub(m_size, *this, scalar, result);
 
         return result;
@@ -192,7 +195,7 @@ vector vector::operator- (value_type scalar) const
 
 vector vector::operator* (value_type scalar) const
 {
-        vector result(m_size);
+        vector result(m_size, m_stream);
         math::mul(m_size, *this, scalar, result);
 
         return result;
@@ -205,7 +208,7 @@ vector vector::operator/ (value_type scalar) const
                 throw LOGGER_EX("Cannot divide by 0.");
 #endif // DEBUG_MODE_ENABLED
 
-        vector result(m_size);
+        vector result(m_size, m_stream);
         math::div(m_size, *this, scalar, result);
 
         return result;
@@ -238,7 +241,7 @@ void vector::operator/= (value_type scalar)
 
 vector vector::min(value_type min) const
 {
-        vector result(m_size);
+        vector result(m_size, m_stream);
         math::min(m_size, *this, min, result);
 
         return result;
@@ -246,7 +249,7 @@ vector vector::min(value_type min) const
 
 vector vector::max(value_type max) const
 {
-        vector result(m_size);
+        vector result(m_size, m_stream);
         math::max(m_size, *this, max, result);
 
         return result;
@@ -254,7 +257,7 @@ vector vector::max(value_type max) const
 
 vector vector::clamp(value_type min, float max) const
 {
-        vector result(m_size);
+        vector result(m_size, m_stream);
         math::clamp(m_size, *this, min, max, result);
 
         return result;
@@ -267,7 +270,7 @@ vector vector::min(const vector &other) const
                 throw LOGGER_EX("Vector sizes must match.");
 #endif // DEBUG_MODE_ENABLED
 
-        vector result(m_size);
+        vector result(m_size, m_stream);
         math::min(m_size, *this, other, result);
 
         return result;
@@ -280,7 +283,7 @@ vector vector::max(const vector &other) const
                 throw LOGGER_EX("Vector sizes must match.");
 #endif // DEBUG_MODE_ENABLED
 
-        vector result(m_size);
+        vector result(m_size, m_stream);
         math::max(m_size, *this, other, result);
 
         return result;
@@ -293,7 +296,7 @@ vector vector::clamp(const vector &min, const vector &max) const
                 throw LOGGER_EX("Vector sizes must match.");
 #endif // DEBUG_MODE_ENABLED
 
-        vector result(m_size);
+        vector result(m_size, m_stream);
         math::clamp(m_size, *this, min, max, result);
 
         return result;

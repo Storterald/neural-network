@@ -111,8 +111,8 @@ static void _test(
                 nn::vector in(784, &inputs[(size_t)i * 784]);
                 nn::vector out = network.forward(in);
 
-                uint32_t output   = std::distance(out.begin(), std::ranges::max_element(out));
-                uint32_t expected = std::distance(tmp.begin(), std::ranges::max_element(tmp));
+                uint32_t output   = (uint32_t)std::distance(out.begin(), std::ranges::max_element(out));
+                uint32_t expected = (uint32_t)std::distance(tmp.begin(), std::ranges::max_element(tmp));
                 correct          += output == expected;
 
                 auto pref = output == expected ? LOGGER_PREF(INFO) : LOGGER_PREF(ERROR);
@@ -133,8 +133,8 @@ static void _user_image(
         std::vector<float> in = _get_image(path.string().c_str());
         nn::network network(args..., fs::exists(encoded) ? encoded : "");
 
-        nn::vector out = network.forward(nn::vector(784, in.data()));
-        uint32_t output = std::distance(out.begin(), std::ranges::max_element(out));
+        nn::vector out  = network.forward(nn::vector(784, in.data()));
+        uint32_t output = (uint32_t)std::distance(out.begin(), std::ranges::max_element(out));
 
         std::cout << "The network thinks the number in the image is: " << output
                   << ", with " << out[output] << " certainty.\n";

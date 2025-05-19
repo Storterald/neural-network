@@ -10,7 +10,7 @@
 
 namespace nn {
 
-template<> void _math<MATH_AVX512>::sum(
+template<> void _math_normal<MATH_AVX512>::sum(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -29,7 +29,7 @@ template<> void _math<MATH_AVX512>::sum(
         _math<MATH_NORMAL>::sum(size - end, first + end, second + end, result + end);
 }
 
-template<> void _math<MATH_AVX512>::sub(
+template<> void _math_normal<MATH_AVX512>::sub(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -48,7 +48,7 @@ template<> void _math<MATH_AVX512>::sub(
         _math<MATH_NORMAL>::sub(size - end, first + end, second + end, result + end);
 }
 
-template<> void _math<MATH_AVX512>::mul(
+template<> void _math_normal<MATH_AVX512>::mul(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -67,7 +67,7 @@ template<> void _math<MATH_AVX512>::mul(
         _math<MATH_NORMAL>::mul(size - end, first + end, second + end, result + end);
 }
 
-template<> void _math<MATH_AVX512>::div(
+template<> void _math_normal<MATH_AVX512>::div(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -86,7 +86,7 @@ template<> void _math<MATH_AVX512>::div(
         _math<MATH_NORMAL>::div(size - end, first + end, second + end, result + end);
 }
 
-template<> void _math<MATH_AVX512>::sum(
+template<> void _math_normal<MATH_AVX512>::sum(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -106,7 +106,7 @@ template<> void _math<MATH_AVX512>::sum(
         _math<MATH_NORMAL>::sum(size - end, data + end, scalar, result + end);
 }
 
-template<> void _math<MATH_AVX512>::sub(
+template<> void _math_normal<MATH_AVX512>::sub(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -126,7 +126,7 @@ template<> void _math<MATH_AVX512>::sub(
         _math<MATH_NORMAL>::sub(size - end, data + end, scalar, result + end);
 }
 
-template<> void _math<MATH_AVX512>::mul(
+template<> void _math_normal<MATH_AVX512>::mul(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -146,7 +146,7 @@ template<> void _math<MATH_AVX512>::mul(
         _math<MATH_NORMAL>::mul(size - end, data + end, scalar, result + end);
 }
 
-template<> void _math<MATH_AVX512>::div(
+template<> void _math_normal<MATH_AVX512>::div(
         uint32_t           size,
         const float        data[],
         float              scalar,
@@ -166,7 +166,7 @@ template<> void _math<MATH_AVX512>::div(
         _math<MATH_NORMAL>::div(size - end, data + end, scalar, result + end);
 }
 
-template<> void _math<MATH_AVX512>::tanh(
+template<> void _math_normal<MATH_AVX512>::tanh(
         uint32_t           size,
         const float        data[],
         float              result[]) {
@@ -211,14 +211,14 @@ template<> void _math<MATH_AVX512>::tanh(
         _math<MATH_NORMAL>::tanh(size - end, data + end, result + end);
 }
 
-template<> void _math<MATH_AVX512>::tanh_derivative(
+template<> void _math_normal<MATH_AVX512>::tanh_derivative(
         uint32_t           size,
         const float        data[],
         float              result[]) {
 
         const uint32_t end = size & ~(SIMD_WIDTH - 1);
 
-        _math<MATH_AVX512>::tanh(size - end, data, result);
+        _math_normal<MATH_AVX512>::tanh(size - end, data, result);
 
         const __m512 threshold = _mm512_set1_ps(4.9f);
         const __m512 zero      = _mm512_setzero_ps();
@@ -241,7 +241,7 @@ template<> void _math<MATH_AVX512>::tanh_derivative(
         _math<MATH_NORMAL>::tanh_derivative(size - end, data + end, result + end);
 }
 
-template<> void _math<MATH_AVX512>::ReLU(
+template<> void _math_normal<MATH_AVX512>::ReLU(
         uint32_t           size,
         const float        data[],
         float              result[]) {
@@ -260,7 +260,7 @@ template<> void _math<MATH_AVX512>::ReLU(
         _math<MATH_NORMAL>::ReLU(size - end, data + end, result + end);
 }
 
-template<> void _math<MATH_AVX512>::ReLU_derivative(
+template<> void _math_normal<MATH_AVX512>::ReLU_derivative(
         uint32_t           size,
         const float        data[],
         float              result[]) {
@@ -281,7 +281,7 @@ template<> void _math<MATH_AVX512>::ReLU_derivative(
         _math<MATH_NORMAL>::ReLU_derivative(size - end, data + end, result + end);
 }
 
-template<> void _math<MATH_AVX512>::min(
+template<> void _math_normal<MATH_AVX512>::min(
         uint32_t           size,
         const float        data[],
         float              min,
@@ -301,7 +301,7 @@ template<> void _math<MATH_AVX512>::min(
         _math<MATH_NORMAL>::min(size - end, data + end, min, result + end);
 }
 
-template<> void _math<MATH_AVX512>::max(
+template<> void _math_normal<MATH_AVX512>::max(
         uint32_t           size,
         const float        data[],
         float              max,
@@ -321,7 +321,7 @@ template<> void _math<MATH_AVX512>::max(
         _math<MATH_NORMAL>::max(size - end, data + end, max, result + end);
 }
 
-template<> void _math<MATH_AVX512>::clamp(
+template<> void _math_normal<MATH_AVX512>::clamp(
         uint32_t           size,
         const float        data[],
         float              min,
@@ -343,7 +343,7 @@ template<> void _math<MATH_AVX512>::clamp(
         _math<MATH_NORMAL>::clamp(size - end, data + end, min, max, result + end);
 }
 
-template<> void _math<MATH_AVX512>::min(
+template<> void _math_normal<MATH_AVX512>::min(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -362,7 +362,7 @@ template<> void _math<MATH_AVX512>::min(
         _math<MATH_NORMAL>::min(size - end, first + end, second + end, result + end);
 }
 
-template<> void _math<MATH_AVX512>::max(
+template<> void _math_normal<MATH_AVX512>::max(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -381,7 +381,7 @@ template<> void _math<MATH_AVX512>::max(
         _math<MATH_NORMAL>::max(size - end, first + end, second + end, result + end);
 }
 
-template<> void _math<MATH_AVX512>::clamp(
+template<> void _math_normal<MATH_AVX512>::clamp(
         uint32_t           size,
         const float        data[],
         const float        min[],
@@ -402,7 +402,7 @@ template<> void _math<MATH_AVX512>::clamp(
         _math<MATH_NORMAL>::clamp(size - end, data + end, min + end, max + end, result + end);
 }
 
-template<> void _math<MATH_AVX512>::compare(
+template<> void _math_normal<MATH_AVX512>::compare(
         uint32_t           size,
         const float        first[],
         const float        second[],
@@ -426,7 +426,7 @@ template<> void _math<MATH_AVX512>::compare(
         _math<MATH_NORMAL>::compare(size - end, first + end, second + end, result);
 }
 
-template<> void _math<MATH_AVX512>::matvec_mul(
+template<> void _math_normal<MATH_AVX512>::matvec_mul(
         uint32_t           width,
         uint32_t           height,
         const float        matrix[],

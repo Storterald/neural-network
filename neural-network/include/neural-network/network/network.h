@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef BUILD_CUDA_SUPPORT
+#include <driver_types.h> // cudaStream_t
+#endif // BUILD_CUDA_SUPPORT
+
 #include <string_view>
 #include <filesystem>
 #include <cstdint>
@@ -40,7 +44,7 @@ public:
         void backward(vector cost, const vector activationValues[]);
 
         void train_supervised(
-                uint32_t           sampleCount,
+                uint32_t           samplesCount,
                 const float        inputs[],
                 const float        outputs[]);
 
@@ -75,11 +79,18 @@ public:
         ~network();
 
 private:
-        uint32_t                      m_layerCount = 0;
-        uint32_t                      m_inputSize  = 0;
-        uint32_t                      m_outputSize = 0;
-        std::unique_ptr<layer>        *m_L         = nullptr;  // [m_layerCount - 1]
-        uint32_t                      *m_n         = nullptr;  // [m_layerCount]
+#ifdef BUILD_CUDA_SUPPORT
+        cudaStream_t                  m_stream;
+#endif // BUILD_CUDA_SUPPORT
+        uint32_t                      m_layerCount;
+        uint32_t                      m_inputSize;
+        uint32_t                      m_outputSize;
+        std::unique_ptr<layer>        *m_L;  // [m_layerCount - 1]
+        uint32_t                      *m_n;  // [m_layerCount]
+
+#ifdef BUILD_CUDA_SUPPORT
+        [[nodiscard]] cudaStream_t _create_stream() const;
+#endif // BUILD_CUDA_SUPPORT
 
         [[nodiscard]] std::unique_ptr<layer> *_create_layers(
                 const layer_create_info        *infos) const;
@@ -92,8 +103,7 @@ private:
                 const layer_create_info        *infos) const;
 
         [[nodiscard]] std::future<void> _get_supervised_future(
-                uint32_t           start,
-                uint32_t           end,
+                uint32_t           sampleSize,
                 const float        inputs[],
                 const float        outputs[]);
 
