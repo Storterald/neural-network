@@ -288,8 +288,8 @@ namespace kernels {
 #define DECLARE_CUDA_FUNCTION(__name__, __size__, ...)                                                          \
 template<> void _math<MATH_CUDA>:: __name__ (GET_ARGS(__VA_ARGS__))                                             \
 {                                                                                                               \
-        const uint32_t BLOCKS_COUNT = ((__size__) + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT;                          \
-        kernels:: __name__ <<<BLOCKS_COUNT, BLOCK_SIZE>>>(GET_ARGS_NAMES(__VA_ARGS__));                         \
+        const uint32_t blocks = (__size__ + CUDA_THREADS - 1) / CUDA_THREADS;                                   \
+        kernels:: __name__ <<<blocks, CUDA_THREADS>>>(GET_ARGS_NAMES(__VA_ARGS__));                             \
         CUDA_CHECK_ERROR(cudaGetLastError(), "kernels::" #__name__ " launch failed.");                          \
         CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in _math<MATH_CUDA>::" #__name__);       \
 }
@@ -411,8 +411,8 @@ template<> void _math<MATH_CUDA>::compare(
         *result = true;
         span s(1, true, result, false, true);
 
-        const uint32_t BLOCKS_COUNT = (size + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT;
-        kernels::compare<<<BLOCKS_COUNT, BLOCK_SIZE>>>(size, first, second, s);
+        const uint32_t BLOCKS_COUNT = (size + CUDA_THREADS - 1) / CUDA_THREADS;
+        kernels::compare<<<BLOCKS_COUNT, CUDA_THREADS>>>(size, first, second, s);
         CUDA_CHECK_ERROR(cudaGetLastError(), "Kernels::compare launch failed.");
         CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in _Math<MATH_CUDA>::compare");
 }

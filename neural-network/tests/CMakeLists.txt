@@ -2,17 +2,6 @@ cmake_minimum_required(VERSION 3.10)
 project(NeuralNetworkTest LANGUAGES CXX)
 
 # ------------------------------------------------------------------------------
-# FLAGS
-# ------------------------------------------------------------------------------
-
-# C++
-if (MSVC)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4189")
-else ()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable")
-endif ()
-
-# ------------------------------------------------------------------------------
 # PROJECT
 # ------------------------------------------------------------------------------
 
@@ -20,8 +9,6 @@ set(SRC_DIR "${CMAKE_CURRENT_LIST_DIR}")
 
 file(GLOB_RECURSE SOURCES "${SRC_DIR}/*.cpp")
 add_executable(NeuralNetworkTest ${SOURCES})
-
-add_compile_definitions(DEBUG_MODE_ENABLED)
 
 if (BUILD_CUDA_SUPPORT)
         enable_language(CUDA)

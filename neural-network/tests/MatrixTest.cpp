@@ -4,6 +4,7 @@
 
 #include <neural-network/types/matrix.h>
 #include <neural-network/utils/logger.h>
+#include <neural-network/base.h>
 
 TEST(MatrixTest, DefaultConstructorInitializesEmptyData) {
         nn::matrix m{};
@@ -19,7 +20,7 @@ TEST(MatrixTest, SizesConstructorAllocatesData) {
         EXPECT_EQ(m.size(), 100);
         EXPECT_EQ(m.width(), 10);
         EXPECT_EQ(m.height(), 10);
-        EXPECT_NO_FATAL_FAILURE(float value = m[9][9]);
+        EXPECT_NO_FATAL_FAILURE([[maybe_unused]] float value = m[9][9]);
 }
 
 TEST(MatrixTest, ConstructorWithInitializerListWorks) {
@@ -34,10 +35,12 @@ TEST(MatrixTest, ConstructorWithInitializerListWorks) {
                         EXPECT_EQ(m[i][j], std::data(std::data(values)[i])[j]);
 }
 
+#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, ConstructorWithInitializerListThrowsIfSizesDontMatch) {
         const std::initializer_list<std::initializer_list<float>> values = { { 1, 2, 3, 4 }, { 5, 6, 7 } };
         EXPECT_THROW(nn::matrix m(values), nn::logger::fatal_error);
 }
+#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, AccessOperator) {
         nn::matrix m(10, 10);
@@ -46,10 +49,12 @@ TEST(MatrixTest, AccessOperator) {
         EXPECT_EQ(m[9][9], 3.0f);
 }
 
+#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, AccessOperatorThrowsIfIndexOutOfBounds) {
         nn::matrix m(10, 10);
-        EXPECT_THROW(nn::ptr<float> value = m[10], nn::logger::fatal_error);
+        EXPECT_THROW([[maybe_unused]] nn::ptr<float> value = m[10], nn::logger::fatal_error);
 }
+#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, PairAccessOperator) {
         nn::matrix m(10, 10);
@@ -65,15 +70,17 @@ TEST(MatrixTest, PairAccessOperatorMatchesAccessOperator) {
         EXPECT_EQ(m[nn::matrix::indexer(9, 9)], m[9][9]);
 }
 
+#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, PairAccessOperatorThrowsIfRowIndexOutOfBounds) {
         nn::matrix m(10, 10);
-        EXPECT_THROW(float value = m[nn::matrix::indexer(10, 9)], nn::logger::fatal_error);
+        EXPECT_THROW([[maybe_unused]] float value = m[nn::matrix::indexer(10, 9)], nn::logger::fatal_error);
 }
 
 TEST(MatrixTestDebug, PairAccessOperatorThrowsIfHeightIndexOutOfBounds) {
         nn::matrix m(10, 10);
-        EXPECT_THROW(float value = m[nn::matrix::indexer(9, 10)], nn::logger::fatal_error);
+        EXPECT_THROW([[maybe_unused]] float value = m[nn::matrix::indexer(9, 10)], nn::logger::fatal_error);
 }
+#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, AtFunction) {
         nn::matrix m(10, 10);
@@ -82,10 +89,12 @@ TEST(MatrixTest, AtFunction) {
         EXPECT_EQ(m.at(9)[9], 3.0f);
 }
 
+#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, AtFunctionThrowsIfIndexOutOfBounds) {
         const nn::matrix m(10, 10);
-        EXPECT_THROW(nn::ptr value = m.at(10), nn::logger::fatal_error);
+        EXPECT_THROW([[maybe_unused]] nn::ptr value = m.at(10), nn::logger::fatal_error);
 }
+#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, PairAtFunctionReturnsCorrectValue) {
         nn::matrix m(10, 10);
@@ -101,15 +110,17 @@ TEST(MatrixTest, PairAtFunctionMatchesAtFunction) {
         EXPECT_EQ(m.at(9)[9], m.at(9, 9));
 }
 
+#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, PairAtFunctionThrowsIfRowIndexOutOfBounds) {
         const nn::matrix m(10, 10);
-        EXPECT_THROW(float value = m.at(10, 9), nn::logger::fatal_error);
+        EXPECT_THROW([[maybe_unused]] float value = m.at(10, 9), nn::logger::fatal_error);
 }
 
 TEST(MatrixTestDebug, PairAtFunctionThrowsIfHeightIndexOutOfBounds) {
         const nn::matrix m(10, 10);
-        EXPECT_THROW(float value = m.at(9, 10), nn::logger::fatal_error);
+        EXPECT_THROW([[maybe_unused]] float value = m.at(9, 10), nn::logger::fatal_error);
 }
+#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, AdditionOperator) {
         const nn::matrix m1     = { { 1, 2 }, { 3, 4 } };
@@ -118,6 +129,7 @@ TEST(MatrixTest, AdditionOperator) {
         EXPECT_EQ(result, nn::matrix({ { 6, 8 }, { 10, 12 } }));
 }
 
+#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, AdditionOperatorThrowsIfWidthDoesNotMatch) {
         const nn::matrix m1 = { { 1, 2 }, { 3, 4 } };
         const nn::matrix m2 = { { 5, 6, 7 }, { 8, 9, 10 } };
@@ -129,6 +141,7 @@ TEST(MatrixTestDebug, AdditionOperatorThrowsIfHeightDoesNotMatch) {
         const nn::matrix m2 = { { 5, 6 }, { 7, 8 }, { 9, 10 } };
         EXPECT_THROW(nn::matrix value = m1 + m2, nn::logger::fatal_error);
 }
+#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, AdditionAssignmentOperator) {
         nn::matrix m1       = { { 1, 2 }, { 3, 4 } };
@@ -137,6 +150,7 @@ TEST(MatrixTest, AdditionAssignmentOperator) {
         EXPECT_EQ(m1, nn::matrix({ { 6, 8 }, { 10, 12 } }));
 }
 
+#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, AdditionAssignmentOperatorThrowsIfWidthDoesNotMatch) {
         nn::matrix m1       = { { 1, 2 }, { 3, 4 } };
         const nn::matrix m2 = { { 5, 6, 7 }, { 8, 9, 10 } };
@@ -148,6 +162,7 @@ TEST(MatrixTestDebug, AdditionAssignmentOperatorThrowsIfHeightDoesNotMatch) {
         const nn::matrix m2 = { { 5, 6 }, { 7, 8 }, { 9, 10 } };
         EXPECT_THROW(m1 += m2, nn::logger::fatal_error);
 }
+#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, ScalarAdditionOperator) {
         const nn::matrix m      = { { 1, 2 }, { 3, 4 } };
@@ -168,6 +183,7 @@ TEST(MatrixTest, SubtractionOperator) {
         EXPECT_EQ(result, nn::matrix({ { 4, 4 }, { 4, 4 } }));
 }
 
+#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, SubtractionOperatorThrowsIfWidthDoesNotMatch) {
         const nn::matrix m1 = { { 1, 2 }, { 3, 4 }};
         const nn::matrix m2 = { { 5, 6, 7 }, { 8, 9, 10 }};
@@ -179,6 +195,7 @@ TEST(MatrixTestDebug, SubtractionOperatorThrowsIfHeightDoesNotMatch) {
         const nn::matrix m2 = { { 5, 6 }, { 7, 8 }, { 9, 10 } };
         EXPECT_THROW(nn::matrix value = m1 - m2, nn::logger::fatal_error);
 }
+#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, SubtractionAssignmentOperator) {
         nn::matrix m1       = { { 5, 6 }, { 7, 8 } };
@@ -187,6 +204,7 @@ TEST(MatrixTest, SubtractionAssignmentOperator) {
         EXPECT_EQ(m1, nn::matrix({ { 4, 4 }, { 4, 4 } }));
 }
 
+#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, SubtractionAssignmentOperatorThrowsIfWidthDoesNotMatch) {
         nn::matrix m1       = { { 1, 2 }, { 3, 4 } };
         const nn::matrix m2 = { { 5, 6, 7 }, { 8, 9, 10 } };
@@ -198,6 +216,7 @@ TEST(MatrixTestDebug, SubtractionAssignmentOperatorThrowsIfHeightDoesNotMatch) {
         const nn::matrix m2 = { { 5, 6 }, { 7, 8 }, { 9, 10 } };
         EXPECT_THROW(m1 -= m2, nn::logger::fatal_error);
 }
+#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, ScalarSubtractionOperator) {
         const nn::matrix m      = { { 5, 6 }, { 7, 8 } };
@@ -229,10 +248,12 @@ TEST(MatrixTest, ScalarDivisionOperator) {
         EXPECT_EQ(result, nn::matrix({ { 3, 4 }, { 5, 6 } }));
 }
 
+#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, ScalarDivisionOperatorThrowsIfValueIs0) {
         nn::matrix m = { { 6, 8 }, { 10, 12 } };
         EXPECT_THROW(nn::matrix value = m / 0, nn::logger::fatal_error);
 }
+#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, ScalarDivisionAssignmentOperator) {
         nn::matrix m = { { 6, 8 }, { 10, 12 } };
@@ -240,10 +261,12 @@ TEST(MatrixTest, ScalarDivisionAssignmentOperator) {
         EXPECT_EQ(m, nn::matrix({ { 3, 4 }, { 5, 6 } }));
 }
 
+#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, ScalarDivisionAssignmentOperatorThrowsIfValueIs0) {
         nn::matrix m = { { 6, 8 }, { 10, 12 } };
         EXPECT_THROW(m /= 0, nn::logger::fatal_error);
 }
+#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, VectorMultiplicationOperator) {
         const nn::matrix m      = { { 1, 2, 1, 1 }, { 0, 1, 0, 1 }, { 2, 3, 4, 1 } };
@@ -252,8 +275,10 @@ TEST(MatrixTest, VectorMultiplicationOperator) {
         EXPECT_EQ(result, nn::vector({ 16, 7, 27 }));
 }
 
+#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, VectorMultiplicationOperatorThrowsIfVectorSizeDoesNotMatchMatrixWidth) {
         const nn::matrix m = { { 1, 2, 1, 1 }, { 0, 1, 0, 1 }, { 2, 3, 4, 1 } };
         const nn::vector v = { 2, 6, 1 };
         EXPECT_THROW(nn::vector value = m * v, nn::logger::fatal_error);
 }
+#endif // DEBUG_MODE_ENABLED

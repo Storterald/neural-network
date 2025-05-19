@@ -16,7 +16,7 @@ TEST(DataTest, DataIsCorrectlyAllocatedOnCPU) {
         EXPECT_EQ(buffer.size(), 10);
 
         const nn::span s = buffer.as_span();
-        EXPECT_NO_FATAL_FAILURE(float value = s[9]);
+        EXPECT_NO_FATAL_FAILURE([[maybe_unused]] float value = s[9]);
 }
 
 TEST(DataTest, CopyConstructorCorrectlyCopiesData) {

@@ -3,8 +3,10 @@
 #include <string_view>
 #include <filesystem>
 #include <cstdint>
+#include <ranges>
 #include <future>
 #include <memory>
+#include <span>
 
 #include <neural-network/network/PPO/environment.h>
 #include <neural-network/network/layer.h>
@@ -12,14 +14,25 @@
 
 namespace nn {
 
+template<typename T>
+concept network_infos = std::ranges::range<T>
+        && std::same_as<std::iter_value_t<T>, layer_create_info>
+        && !std::same_as<T, std::span<layer_create_info>>;
+
 class network {
 public:
         network() = default;
 
+        inline network(
+                uint32_t                           inputSize,
+                const network_infos auto           &infos,
+                const std::filesystem::path        &path = "") :
+                network(inputSize, std::to_address(std::ranges::begin(infos)), std::to_address(std::ranges::end(infos)), path) {}
+
         network(
                 uint32_t                           inputSize,
-                uint32_t                           layerCount,
-                const layer_create_info            layerInfos[],
+                const layer_create_info            *infosBegin,
+                const layer_create_info            *infosEnd,
                 const std::filesystem::path        &path = "");
 
         [[nodiscard]] vector forward(vector input) const;
@@ -68,20 +81,17 @@ private:
         std::unique_ptr<layer>        *m_L         = nullptr;  // [m_layerCount - 1]
         uint32_t                      *m_n         = nullptr;  // [m_layerCount]
 
-        std::unique_ptr<layer> *_create_layers(
-                uint32_t                       layerCount,
-                const layer_create_info        *layerInfos) const;
+        [[nodiscard]] std::unique_ptr<layer> *_create_layers(
+                const layer_create_info        *infos) const;
 
-        std::unique_ptr<layer> *_create_layers(
-                uint32_t                       layerCount,
-                const layer_create_info        *layerInfos,
+        [[nodiscard]] std::unique_ptr<layer> *_create_layers(
+                const layer_create_info        *infos,
                 const std::string_view         &path) const;
 
-        uint32_t *_get_sizes(
-                uint32_t                       layerCount,
-                const layer_create_info        *layerInfos) const;
+        [[nodiscard]] uint32_t *_get_sizes(
+                const layer_create_info        *infos) const;
 
-        std::future<void> _get_supervised_future(
+        [[nodiscard]] std::future<void> _get_supervised_future(
                 uint32_t           start,
                 uint32_t           end,
                 const float        inputs[],

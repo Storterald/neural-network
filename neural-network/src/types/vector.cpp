@@ -19,36 +19,36 @@
 
 namespace nn {
 
-vector::vector(uint32_t size) : buf(size) {}
+vector::vector(uint32_t size, loc_type location) : buf(size, location) {}
 
-vector::vector(uint32_t size, const float values[]) : buf(size)
+vector::vector(uint32_t size, const value_type values[], loc_type location) : buf(size, location)
 {
         if (!m_device) {
-                std::memcpy(this->data().get(), values, m_size * sizeof(float));
+                std::memcpy(this->data().get(), values, m_size * sizeof(value_type));
                 return;
         }
 
 #if BUILD_CUDA_SUPPORT
-        CUDA_CHECK_ERROR(cudaMemcpy(this->data().get(), values, m_size * sizeof(float),
+        CUDA_CHECK_ERROR(cudaMemcpy(this->data().get(), values, m_size * sizeof(value_type),
                 cudaMemcpyHostToDevice), "Failed to copy data to the GPU.");
 #endif // BUILD_CUDA_SUPPORT
 }
 
-vector::vector(const std::initializer_list<float> &values) :
-        buf((uint32_t)values.size()) {
+vector::vector(const std::initializer_list<value_type> &values, loc_type location) :
+        buf((uint32_t)values.size(), location) {
 
         if (!m_device) {
-                std::memcpy(this->data().get(), std::data(values), m_size * sizeof(float));
+                std::memcpy(this->data().get(), std::data(values), m_size * sizeof(value_type));
                 return;
         }
 
 #if BUILD_CUDA_SUPPORT
-        CUDA_CHECK_ERROR(cudaMemcpy(this->data().get(), std::data(values), m_size * sizeof(float),
+        CUDA_CHECK_ERROR(cudaMemcpy(this->data().get(), std::data(values), m_size * sizeof(value_type),
                 cudaMemcpyHostToDevice), "Failed to copy data to the GPU.");
 #endif // BUILD_CUDA_SUPPORT
 }
 
-ref<vector::value_type> vector::operator[] (uint32_t i)
+vector::reference vector::operator[] (uint32_t i)
 {
 #ifdef DEBUG_MODE_ENABLED
         if (i >= m_size)
@@ -58,7 +58,7 @@ ref<vector::value_type> vector::operator[] (uint32_t i)
         return *(this->data() + i);
 }
 
-ref<vector::const_value_type> vector::operator[] (uint32_t i) const
+vector::const_reference vector::operator[] (uint32_t i) const
 {
 #ifdef DEBUG_MODE_ENABLED
         if (i >= m_size)
@@ -68,7 +68,7 @@ ref<vector::const_value_type> vector::operator[] (uint32_t i) const
         return *(this->data() + i);
 }
 
-float vector::at(uint32_t i) const
+vector::value_type vector::at(uint32_t i) const
 {
 #ifdef DEBUG_MODE_ENABLED
         if (i >= m_size)
@@ -174,7 +174,7 @@ void vector::operator/= (const vector &other)
         math::div(m_size, *this, other, *this);
 }
 
-vector vector::operator+ (float scalar) const
+vector vector::operator+ (value_type scalar) const
 {
         vector result(m_size);
         math::sum(m_size, *this, scalar, result);
@@ -182,7 +182,7 @@ vector vector::operator+ (float scalar) const
         return result;
 }
 
-vector vector::operator- (float scalar) const
+vector vector::operator- (value_type scalar) const
 {
         vector result(m_size);
         math::sub(m_size, *this, scalar, result);
@@ -190,7 +190,7 @@ vector vector::operator- (float scalar) const
         return result;
 }
 
-vector vector::operator* (float scalar) const
+vector vector::operator* (value_type scalar) const
 {
         vector result(m_size);
         math::mul(m_size, *this, scalar, result);
@@ -198,7 +198,7 @@ vector vector::operator* (float scalar) const
         return result;
 }
 
-vector vector::operator/ (float scalar) const
+vector vector::operator/ (value_type scalar) const
 {
 #ifdef DEBUG_MODE_ENABLED
         if (scalar == 0.0f)
@@ -211,22 +211,22 @@ vector vector::operator/ (float scalar) const
         return result;
 }
 
-void vector::operator+= (float scalar)
+void vector::operator+= (value_type scalar)
 {
         math::sum(m_size, *this, scalar, *this);
 }
 
-void vector::operator-= (float scalar)
+void vector::operator-= (value_type scalar)
 {
         math::sub(m_size, *this, scalar, *this);
 }
 
-void vector::operator*= (float scalar)
+void vector::operator*= (value_type scalar)
 {
         math::mul(m_size, *this, scalar, *this);
 }
 
-void vector::operator/= (float scalar)
+void vector::operator/= (value_type scalar)
 {
 #ifdef DEBUG_MODE_ENABLED
         if (scalar == 0.0f)
@@ -236,7 +236,7 @@ void vector::operator/= (float scalar)
         math::div(m_size, *this, scalar, *this);
 }
 
-vector vector::min(float min) const
+vector vector::min(value_type min) const
 {
         vector result(m_size);
         math::min(m_size, *this, min, result);
@@ -244,7 +244,7 @@ vector vector::min(float min) const
         return result;
 }
 
-vector vector::max(float max) const
+vector vector::max(value_type max) const
 {
         vector result(m_size);
         math::max(m_size, *this, max, result);
@@ -252,7 +252,7 @@ vector vector::max(float max) const
         return result;
 }
 
-vector vector::clamp(float min, float max) const
+vector vector::clamp(value_type min, float max) const
 {
         vector result(m_size);
         math::clamp(m_size, *this, min, max, result);

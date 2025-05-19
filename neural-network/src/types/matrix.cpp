@@ -20,13 +20,13 @@
 
 namespace nn {
 
-matrix::matrix(uint32_t width, uint32_t height) :
-        buf(width * height),
+matrix::matrix(uint32_t width, uint32_t height, loc_type location) :
+        buf(width * height, location),
         m_width(width),
         m_height(height) {}
 
-matrix::matrix(std::initializer_list<std::initializer_list<float>> values) :
-        buf((uint32_t)(values.begin()->size() * values.size())),
+matrix::matrix(std::initializer_list<std::initializer_list<value_type>> values, loc_type location) :
+        buf((uint32_t)(values.begin()->size() * values.size()), location),
         m_width((uint32_t)values.begin()->size()),
         m_height((uint32_t)values.size()) {
 
@@ -40,7 +40,7 @@ matrix::matrix(std::initializer_list<std::initializer_list<float>> values) :
                         std::memcpy(
                                 this->operator[](i).get(),
                                 std::data(std::data(values)[i]),
-                                m_width * sizeof(float));
+                                m_width * sizeof(value_type));
                 return;
         }
 
@@ -49,15 +49,13 @@ matrix::matrix(std::initializer_list<std::initializer_list<float>> values) :
                 CUDA_CHECK_ERROR(cudaMemcpy(
                         this->operator[](i).get(),
                         std::data(std::data(values)[i]),
-                        m_size * sizeof(float), cudaMemcpyHostToDevice),
+                        m_size * sizeof(value_type), cudaMemcpyHostToDevice),
                         "Failed to copy data to the GPU.");
 #endif // BUILD_CUDA_SUPPORT
 }
 
-ptr<matrix::value_type> matrix::operator[](uint32_t row)
+matrix::pointer matrix::operator[](uint32_t row)
 {
-        using difference_type = ptr<const_value_type>::difference_type;
-
 #ifdef DEBUG_MODE_ENABLED
         if (row >= m_height)
                 throw LOGGER_EX("Matrix::operator[] access index out of bounds.");
@@ -67,10 +65,8 @@ ptr<matrix::value_type> matrix::operator[](uint32_t row)
         return this->data() + offset;
 }
 
-ptr<matrix::const_value_type> matrix::operator[](uint32_t row) const
+matrix::const_pointer matrix::operator[](uint32_t row) const
 {
-        using difference_type = ptr<const_value_type>::difference_type;
-
 #ifdef DEBUG_MODE_ENABLED
         if (row >= m_height)
                 throw LOGGER_EX("Matrix::operator[] access index out of bounds.");
@@ -80,10 +76,8 @@ ptr<matrix::const_value_type> matrix::operator[](uint32_t row) const
         return this->data() + offset;
 }
 
-ptr<matrix::const_value_type> matrix::at(uint32_t row) const
+matrix::const_pointer matrix::at(uint32_t row) const
 {
-        using difference_type = ptr<const_value_type>::difference_type;
-
 #ifdef DEBUG_MODE_ENABLED
         if (row >= m_height)
                 throw LOGGER_EX("Matrix::at access index out of bounds.");
@@ -93,10 +87,8 @@ ptr<matrix::const_value_type> matrix::at(uint32_t row) const
         return this->data() + offset;
 }
 
-ref<matrix::value_type> matrix::operator[] (indexer position)
+matrix::reference matrix::operator[] (indexer position)
 {
-        using difference_type = ptr<const_value_type>::difference_type;
-
 #ifdef DEBUG_MODE_ENABLED
         if (position.row >= m_height || position.column >= m_width)
                 throw LOGGER_EX("Matrix::at access index out of bounds.");
@@ -106,10 +98,8 @@ ref<matrix::value_type> matrix::operator[] (indexer position)
         return *(this->data() + offset);
 }
 
-ref<matrix::const_value_type> matrix::operator[] (indexer position) const
+matrix::const_reference matrix::operator[] (indexer position) const
 {
-        using difference_type = ptr<const_value_type>::difference_type;
-
 #ifdef DEBUG_MODE_ENABLED
         if (position.row >= m_height || position.column >= m_width)
                 throw LOGGER_EX("Matrix::at access index out of bounds.");
@@ -119,16 +109,14 @@ ref<matrix::const_value_type> matrix::operator[] (indexer position) const
         return *(this->data() + offset);
 }
 
-float matrix::at(uint32_t row, uint32_t height) const
+matrix::value_type matrix::at(uint32_t row, uint32_t column) const
 {
-        using difference_type = ptr<const_value_type>::difference_type;
-
 #ifdef DEBUG_MODE_ENABLED
-        if (row >= m_height || height >= m_width)
+        if (row >= m_height || column >= m_width)
                 throw LOGGER_EX("Matrix::at access index out of bounds.");
 #endif // DEBUG_MODE_ENABLED
 
-        const auto offset = (difference_type)row * m_width + height;
+        const auto offset = (difference_type)row * m_width + column;
         return *(this->data() + offset);
 }
 
@@ -178,7 +166,7 @@ void matrix::operator-= (const matrix &other)
         math::sub(m_size, *this, other, *this);
 }
 
-matrix matrix::operator+ (float scalar) const
+matrix matrix::operator+ (value_type scalar) const
 {
         matrix result(m_width, m_height);
         math::sum(m_size, *this, scalar, result);
@@ -186,7 +174,7 @@ matrix matrix::operator+ (float scalar) const
         return result;
 }
 
-matrix matrix::operator- (float scalar) const
+matrix matrix::operator- (value_type scalar) const
 {
         matrix result(m_width, m_height);
         math::sub(m_size, *this, scalar, result);
@@ -194,7 +182,7 @@ matrix matrix::operator- (float scalar) const
         return result;
 }
 
-matrix matrix::operator* (float scalar) const
+matrix matrix::operator* (value_type scalar) const
 {
         matrix result(m_width, m_height);
         math::mul(m_size, *this, scalar, result);
@@ -202,7 +190,7 @@ matrix matrix::operator* (float scalar) const
         return result;
 }
 
-matrix matrix::operator/ (float scalar) const
+matrix matrix::operator/ (value_type scalar) const
 {
 #ifdef DEBUG_MODE_ENABLED
         if (scalar == 0.0f)
@@ -215,22 +203,22 @@ matrix matrix::operator/ (float scalar) const
         return result;
 }
 
-void matrix::operator+= (float scalar)
+void matrix::operator+= (value_type scalar)
 {
         math::sum(m_size, *this, scalar, *this);
 }
 
-void matrix::operator-= (float scalar)
+void matrix::operator-= (value_type scalar)
 {
         math::sub(m_size, *this, scalar, *this);
 }
 
-void matrix::operator*= (float scalar)
+void matrix::operator*= (value_type scalar)
 {
         math::mul(m_size, *this, scalar, *this);
 }
 
-void matrix::operator/= (float scalar)
+void matrix::operator/= (value_type scalar)
 {
 #ifdef DEBUG_MODE_ENABLED
         if (scalar == 0.0f)

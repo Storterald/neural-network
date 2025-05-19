@@ -73,12 +73,13 @@ int main()
 
         outFile << "#pragma once\n"
                    "\n"
+                   "#include <cstdint>\n"
                    "#include <vector>\n"
                    "\n";
 
         uint32_t layerIndex { 0 };
         while (true) {
-                uint32_t infos[4]{};
+                uint32_t infos[4];
                 inFile.read((char *)infos, 4 * sizeof(uint32_t));
 
                 if (inFile.eof())
@@ -95,7 +96,7 @@ int main()
                                 decodeFullyConnectedLayer(infos, inFile, outFile);
                                 break;
                         default:
-                                throw std::exception("Layer type not recognized.");
+                                throw std::runtime_error("Layer type not recognized.");
                 }
 
                 outFile << "}\n"

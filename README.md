@@ -5,15 +5,12 @@ and unsupervised training.<br>*No external libraries required*.
 
 # Requirements
 
- - **CMake**
+ - **CMake 3.13.0+**
  - **Visual Studio 2022** *or* **Ninja**, **Mingw** and **NASM**
  - **git**
  - **Nvidia CUDA Toolkit** *(optional)*
 
 # How To Build
-
-> CMake **3.13.0** or later is required to build the project, you can download it
-> [here](https://cmake.org/download/).
 
 The CMakeLists.txt script automatically **downloads** and builds the [dependencies](#Dependencies)
 needed by the project.
@@ -35,3 +32,5 @@ corresponding **build** preset should be used, e.g.: **msvc-release-build**.
 # Dependencies
 
  - [googletest](https://github.com/google/googletest)
+ - [googletest](https://github.com/google/googletest) *optional*
+ - [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h) *optional*

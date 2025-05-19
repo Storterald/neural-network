@@ -31,8 +31,7 @@
 
 namespace nn {
 
-constexpr uint32_t BLOCK_BITSHIFT = 8;
-constexpr uint32_t BLOCK_SIZE     = 1 << BLOCK_BITSHIFT;
-constexpr uint32_t CUDA_MINIMUM   = 10000;
+constexpr uint32_t CUDA_THREADS = 256;
+constexpr uint32_t CUDA_MINIMUM = 10000;
 
 } // namespace nn

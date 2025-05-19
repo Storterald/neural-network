@@ -9,10 +9,8 @@
 
 TEST(IntrinsicTest, CpuSIMDSupportIsCorrectlyDetected) {
 #ifdef IS_X86_64BIT
-        constexpr int EAX = 0;
         constexpr int EBX = 1;
         constexpr int ECX = 2;
-        constexpr int EDX = 3;
 
         const nn::simd support = []() -> nn::simd {
                 int regs[4]{};

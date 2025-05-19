@@ -12,6 +12,12 @@ class buf {
 public:
         using value_type = float;
         using const_value_type = const float;
+        using size_type = uint32_t;
+        using pointer = ptr<value_type>;
+        using const_pointer = ptr<const_value_type>;
+        using reference = ref<value_type>;
+        using const_reference = ref<const_value_type>;
+        using difference_type = pointer::difference_type;
 
         enum loc_type {
                 KEEP,
@@ -21,7 +27,7 @@ public:
         }; // enum location
 
         buf() = default;
-        explicit buf(uint32_t size);
+        explicit buf(uint32_t size, loc_type location = KEEP);
 
         buf(const buf &other);
         buf &operator= (const buf &other);
@@ -33,37 +39,37 @@ public:
 
         [[nodiscard]] bool operator== (const buf &other) const;
 
-        [[nodiscard]] inline ptr<value_type> data()
+        [[nodiscard]] inline pointer data()
         {
                 return { m_data, m_device };
         }
 
-        [[nodiscard]] inline ptr<const_value_type> data() const
+        [[nodiscard]] inline const_pointer data() const
         {
                 return { m_data, m_device };
         }
 
-        [[nodiscard]] inline ptr<value_type> begin()
+        [[nodiscard]] inline pointer begin()
         {
                 return { m_data, m_device };
         }
 
-        [[nodiscard]] inline ptr<const_value_type> begin() const
+        [[nodiscard]] inline const_pointer begin() const
         {
                 return { m_data, m_device };
         }
 
-        [[nodiscard]] inline ptr<value_type> end()
+        [[nodiscard]] inline pointer end()
         {
                 return { m_data + m_size, m_device };
         }
 
-        [[nodiscard]] inline ptr<const_value_type> end() const
+        [[nodiscard]] inline const_pointer end() const
         {
                 return { m_data + m_size, m_device };
         }
 
-        [[nodiscard]] constexpr uint32_t size() const noexcept
+        [[nodiscard]] constexpr size_type size() const noexcept
         {
                 return m_size;
         }
@@ -85,8 +91,10 @@ public:
                 return m_device ? DEVICE : HOST;
         }
 
+        void move(loc_type location);
+
 protected:
-        uint32_t              m_size   = 0;
+        size_type             m_size   = 0;
 
 #ifdef BUILD_CUDA_SUPPORT
         bool                  m_device = false;

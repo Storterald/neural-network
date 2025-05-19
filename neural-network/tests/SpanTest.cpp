@@ -104,7 +104,7 @@ TEST(SpanTest, ImplicitTypePointerCastReturnsPointerToCorrectLocationWhenCreated
         nn::span s(10, false, d_arr, true);
 
         float *p = s;
-        EXPECT_NO_FATAL_FAILURE(float value = *p);
+        EXPECT_NO_FATAL_FAILURE([[maybe_unused]] float value = *p);
         // While this expectation should be correct, it is not guaranteed to work.
         // EXPECT_DEATH(Helper::access_values(1, p), "");
 

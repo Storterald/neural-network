@@ -23,23 +23,23 @@ public:
         };
 
         matrix() = default;
-        matrix(uint32_t width, uint32_t height);
-        matrix(std::initializer_list<std::initializer_list<float>> values);
+        matrix(uint32_t width, uint32_t height, loc_type location = KEEP);
+        matrix(std::initializer_list<std::initializer_list<value_type>> values, loc_type location = KEEP);
 
-        [[nodiscard]] ptr<value_type> operator[] (uint32_t row);
-        [[nodiscard]] ptr<const_value_type> operator[] (uint32_t row) const;
-        [[nodiscard]] ptr<const_value_type> at(uint32_t row) const;
+        [[nodiscard]] pointer operator[] (uint32_t row);
+        [[nodiscard]] const_pointer operator[] (uint32_t row) const;
+        [[nodiscard]] const_pointer at(uint32_t row) const;
 
-        [[nodiscard]] ref<value_type> operator[] (indexer position);
-        [[nodiscard]] ref<const_value_type> operator[] (indexer position) const;
-        [[nodiscard]] float at(uint32_t row, uint32_t height) const;
+        [[nodiscard]] reference operator[] (indexer position);
+        [[nodiscard]] const_reference operator[] (indexer position) const;
+        [[nodiscard]] value_type at(uint32_t row, uint32_t column) const;
 
-        [[nodiscard]] inline uint32_t width() const noexcept
+        [[nodiscard]] inline size_type width() const noexcept
         {
                 return m_width;
         }
 
-        [[nodiscard]] inline uint32_t height() const noexcept
+        [[nodiscard]] inline size_type height() const noexcept
         {
                 return m_height;
         }
@@ -50,15 +50,15 @@ public:
         void operator+= (const matrix &other);
         void operator-= (const matrix &other);
 
-        [[nodiscard]] matrix operator+ (float scalar) const;
-        [[nodiscard]] matrix operator- (float scalar) const;
-        [[nodiscard]] matrix operator* (float scalar) const;
-        [[nodiscard]] matrix operator/ (float scalar) const;
+        [[nodiscard]] matrix operator+ (value_type scalar) const;
+        [[nodiscard]] matrix operator- (value_type scalar) const;
+        [[nodiscard]] matrix operator* (value_type scalar) const;
+        [[nodiscard]] matrix operator/ (value_type scalar) const;
 
-        void operator+= (float scalar);
-        void operator-= (float scalar);
-        void operator*= (float scalar);
-        void operator/= (float scalar);
+        void operator+= (value_type scalar);
+        void operator-= (value_type scalar);
+        void operator*= (value_type scalar);
+        void operator/= (value_type scalar);
 
         [[nodiscard]] vector operator* (const vector &vec) const;
 

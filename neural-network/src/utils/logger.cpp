@@ -42,20 +42,24 @@ logger::~logger()
         m_file.close();
 }
 
-void logger::set_directory(const std::filesystem::path &path)
+logger &logger::set_directory(const std::filesystem::path &path)
 {
         m_file.close();
 
         m_dir = path;
         m_fileCount = 0;
         m_file = std::ofstream(m_dir / "latest-0.log");
+
         if (!m_file)
                 throw std::runtime_error("Could not open log file.");
+
+        return *this;
 }
 
-void logger::set_print_on_fatal(bool value)
+logger &logger::set_print_on_fatal(bool value)
 {
         m_printOnFatal = value;
+        return *this;
 }
 
 std::string logger::pref(log_type type, std::string_view file, int line) {

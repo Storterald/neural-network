@@ -444,7 +444,7 @@ TEST(PtrTest, DereferenceOperatorReturnsValidRefWithValidPointer) {
         float v;
         const nn::ptr ptr(&v, false);
 
-        EXPECT_NO_THROW(nn::ref r = *ptr);
+        EXPECT_NO_THROW([[maybe_unused]] nn::ref r = *ptr);
 
         nn::ref r = *ptr;
         EXPECT_EQ(ptr, &r);
@@ -452,7 +452,7 @@ TEST(PtrTest, DereferenceOperatorReturnsValidRefWithValidPointer) {
 
 TEST(PtrTest, DereferenceOperatorThrowsWithNullptr) {
         nn::ptr<float> ptr(nullptr, false);
-        EXPECT_THROW(nn::ref r = *ptr, nn::logger::fatal_error);
+        EXPECT_THROW([[maybe_unused]] nn::ref r = *ptr, nn::logger::fatal_error);
 }
 
 TEST(PtrTest, DereferenceOperatorReturnsRefWithTheSameValueTypeAsThePointer) {
@@ -475,7 +475,7 @@ TEST(PtrTest, IndexerOperatorReturnsValidRefWithValidPointer) {
         float v;
         const nn::ptr ptr(&v, false);
 
-        EXPECT_NO_THROW(nn::ref r = ptr[0]);
+        EXPECT_NO_THROW([[maybe_unused]] nn::ref r = ptr[0]);
 
         nn::ref r = ptr[0];
         EXPECT_EQ(ptr, &r);
@@ -483,14 +483,14 @@ TEST(PtrTest, IndexerOperatorReturnsValidRefWithValidPointer) {
 
 TEST(PtrTest, IndexerOperatorThrowsWithNullptr) {
         const nn::ptr<float> ptr(nullptr, false);
-        EXPECT_THROW(nn::ref r = ptr[0], nn::logger::fatal_error);
+        EXPECT_THROW([[maybe_unused]] nn::ref r = ptr[0], nn::logger::fatal_error);
 }
 
 TEST(PtrTest, SumOperatorReturnsNewValidPointer) {
         float v[3] = { 1, 2, 3 };
 
         const nn::ptr a(&v[0], false);
-        EXPECT_NO_THROW(nn::ptr b = a + 2);
+        EXPECT_NO_THROW([[maybe_unused]] nn::ptr b = a + 2);
 
         nn::ptr b = a + 2;
         EXPECT_EQ(b, &v[0] + 2);
@@ -502,7 +502,7 @@ TEST(PtrTest, SubOperatorReturnsNewValidPointer) {
         float v[3] = { 1, 2, 3 };
 
         const nn::ptr a(&v[2], false);
-        EXPECT_NO_THROW(nn::ptr b = a - 2);
+        EXPECT_NO_THROW([[maybe_unused]] nn::ptr b = a - 2);
 
         nn::ptr b = a - 2;
         EXPECT_EQ(b, &v[2] - 2);
@@ -536,7 +536,7 @@ TEST(PtrTest, IncreaseOperatorReturnsNewValidPointer) {
         float v[3] = { 1, 2, 3 };
 
         nn::ptr a(&v[0], false);
-        EXPECT_NO_THROW(nn::ptr b = a++);
+        EXPECT_NO_THROW([[maybe_unused]] nn::ptr b = a++);
 
         nn::ptr b = a;
         EXPECT_EQ(b, &v[0] + 1);
@@ -548,7 +548,7 @@ TEST(PtrTest, DecreaseOperatorReturnsNewValidPointer) {
         float v[3] = { 1, 2, 3 };
 
         nn::ptr a(&v[2], false);
-        EXPECT_NO_THROW(nn::ptr b = a--);
+        EXPECT_NO_THROW([[maybe_unused]] nn::ptr b = a--);
 
         nn::ptr b = a;
         EXPECT_EQ(b, &v[2] - 1);
@@ -599,5 +599,5 @@ TEST(PtrTest, DeviceReturnsIfThePointerIsADeviceOneWhenOnDevice) {
 TEST(PtrTest, MakeSpanReturnsValidSpan) {
         float v;
         const nn::ptr p(&v, false);
-        EXPECT_NO_THROW(nn::span s = p.make_span(1, false));
+        EXPECT_NO_THROW([[maybe_unused]] nn::span s = p.make_span(1, false));
 }

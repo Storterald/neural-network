@@ -16,20 +16,20 @@ namespace nn {
 class vector : public buf {
 public:
         vector() = default;
-        explicit vector(uint32_t size);
-        vector(uint32_t size, const float values[]);
-        vector(const std::initializer_list<float> &values);
+        explicit vector(uint32_t size, loc_type location = KEEP);
+        vector(uint32_t size, const value_type values[], loc_type location = KEEP);
+        vector(const std::initializer_list<value_type> &values, loc_type location = KEEP);
 
-        [[nodiscard]] ref<value_type> operator[] (uint32_t i);
-        [[nodiscard]] ref<const_value_type> operator[] (uint32_t i) const;
-        [[nodiscard]] float at(uint32_t i) const;
+        [[nodiscard]] reference operator[] (uint32_t i);
+        [[nodiscard]] const_reference operator[] (uint32_t i) const;
+        [[nodiscard]] value_type at(uint32_t i) const;
 
-        [[nodiscard]] vector min(float min) const;
-        [[nodiscard]] vector max(float max) const;
-        [[nodiscard]] vector clamp(float min, float max) const;
+        [[nodiscard]] vector min  (value_type min) const;
+        [[nodiscard]] vector max  (value_type max) const;
+        [[nodiscard]] vector clamp(value_type min, value_type max) const;
 
-        [[nodiscard]] vector min(const vector &other) const;
-        [[nodiscard]] vector max(const vector &other) const;
+        [[nodiscard]] vector min  (const vector &other) const;
+        [[nodiscard]] vector max  (const vector &other) const;
         [[nodiscard]] vector clamp(const vector &min, const vector &max) const;
 
         [[nodiscard]] vector operator+ (const vector &other) const;
@@ -42,15 +42,15 @@ public:
         void operator*= (const vector &other);
         void operator/= (const vector &other);
 
-        [[nodiscard]] vector operator+ (float scalar) const;
-        [[nodiscard]] vector operator- (float scalar) const;
-        [[nodiscard]] vector operator* (float scalar) const;
-        [[nodiscard]] vector operator/ (float scalar) const;
+        [[nodiscard]] vector operator+ (value_type scalar) const;
+        [[nodiscard]] vector operator- (value_type scalar) const;
+        [[nodiscard]] vector operator* (value_type scalar) const;
+        [[nodiscard]] vector operator/ (value_type scalar) const;
 
-        void operator+= (float scalar);
-        void operator-= (float scalar);
-        void operator*= (float scalar);
-        void operator/= (float scalar);
+        void operator+= (value_type scalar);
+        void operator-= (value_type scalar);
+        void operator*= (value_type scalar);
+        void operator/= (value_type scalar);
 
 }; // class vector
 

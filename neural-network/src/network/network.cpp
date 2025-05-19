@@ -19,15 +19,15 @@ namespace nn {
 
 network::network(
         uint32_t                           inputSize,
-        uint32_t                           layerCount,
-        const layer_create_info            layerInfos[],
+        const layer_create_info            *infosBegin,
+        const layer_create_info            *infosEnd,
         const std::filesystem::path        &path) :
 
-        m_layerCount(layerCount + 1),
+        m_layerCount((uint32_t)std::distance(infosBegin, infosEnd) + 1),
         m_inputSize(inputSize),
-        m_outputSize(layerInfos[layerCount - 1].neuronCount),
-        m_L(_create_layers(layerCount, layerInfos, path.string().c_str())),
-        m_n(_get_sizes(layerCount, layerInfos)) {}
+        m_outputSize(infosBegin[m_layerCount - 2].neuronCount),
+        m_L(_create_layers(infosBegin, path.string().c_str())),
+        m_n(_get_sizes(infosBegin)) {}
 
 network::~network()
 {
@@ -111,59 +111,62 @@ void network::encode(const std::filesystem::path &path) const
 }
 
 std::unique_ptr<layer> *network::_create_layers(
-        uint32_t                       layerCount,
-        const layer_create_info        *layerInfos) const {
+        const layer_create_info        *infos) const {
 
-        if (layerCount == 0)
+        if (m_layerCount == 1)
                 throw LOGGER_EX("Cannot initialize Network with no layers. The "
                                 "minimum required amount is 1, the output layer.");
 
-        auto layers = new std::unique_ptr<layer>[layerCount];
-        layers[0]   = layer::create(m_inputSize, layerInfos[0]);
+        const size_t size = m_layerCount - 1;
 
-        for (uint32_t L = 1; L < layerCount; ++L)
-                layers[L] = layer::create(layerInfos[L - 1].neuronCount, layerInfos[L]);
+        auto layers = new std::unique_ptr<layer>[size];
+        layers[0]   = layer::create(m_inputSize, infos[0]);
+
+        for (uint32_t L = 1; L < size; ++L)
+                layers[L] = layer::create(infos[L - 1].neuronCount, infos[L]);
 
         return layers;
 }
 
 std::unique_ptr<layer> *network::_create_layers(
-        uint32_t                       layerCount,
-        const layer_create_info        *layerInfos,
+        const layer_create_info        *infos,
         const std::string_view         &path) const {
 
         namespace fs = std::filesystem;
 
-        if (layerCount == 0)
+        if (path.empty())
+                return _create_layers(infos);
+
+        if (m_layerCount == 1)
                 throw LOGGER_EX("Cannot initialize Network with no layers. The "
                                 "minimum required amount is 1, the output layer.");
 
-        if (path.empty())
-                return _create_layers(layerCount, layerInfos);
+        const size_t size = m_layerCount - 1;
 
         if (!fs::exists(path))
                 throw LOGGER_EX("File given to Network() does not exist.");
 
         std::ifstream file(fs::path(path), std::ios::binary);
-        auto layers = new std::unique_ptr<layer>[layerCount];
-        layers[0]   = layer::create(m_inputSize, layerInfos[0], file);
+        auto layers = new std::unique_ptr<layer>[size];
+        layers[0]   = layer::create(m_inputSize, infos[0], file);
 
-        for (uint32_t L = 1; L < layerCount; ++L)
-                layers[L] = layer::create(layerInfos[L - 1].neuronCount, layerInfos[L], file);
+        for (uint32_t L = 1; L < size; ++L)
+                layers[L] = layer::create(infos[L - 1].neuronCount, infos[L], file);
 
         file.close();
         return layers;
 }
 
 uint32_t *network::_get_sizes(
-        uint32_t                       layerCount,
-        const layer_create_info        *layerInfos) const {
+        const layer_create_info        *infos) const {
 
-        auto sizes = new uint32_t[layerCount];
+        const size_t size = m_layerCount - 1;
+
+        auto sizes = new uint32_t[size];
         sizes[0]   = m_inputSize;
 
-        for (uint32_t L = 1; L < layerCount; ++L)
-                sizes[L] = layerInfos[L - 1].neuronCount;
+        for (uint32_t L = 1; L < size; ++L)
+                sizes[L] = infos[L - 1].neuronCount;
 
         return sizes;
 }

@@ -1,5 +1,5 @@
 ; Full code explanation is in the simd_support.asm file, written in MASM
-; assembly
+; assembly.
 
 global _get_simd_support
 

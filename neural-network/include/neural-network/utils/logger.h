@@ -26,8 +26,8 @@ public:
                 return log;
         }
 
-        void set_directory(const std::filesystem::path &path);
-        void set_print_on_fatal(bool value);
+        logger &set_directory(const std::filesystem::path &path);
+        logger &set_print_on_fatal(bool value);
 
         static std::string pref(log_type type, std::string_view file, int line);
 
@@ -59,5 +59,5 @@ private:
 
 } // namespace nn
 
-#define LOGGER_PREF(type) ::nn::logger::pref(::nn::LOG_##type, __FILE__, __LINE__)
-#define LOGGER_EX(msg) ::nn::logger::fatal_error(LOGGER_PREF(FATAL) + msg)
+#define LOGGER_PREF(type) (::nn::logger::pref(::nn::LOG_##type, __FILE__, __LINE__))
+#define LOGGER_EX(msg)    (::nn::logger::fatal_error(LOGGER_PREF(FATAL) + msg))

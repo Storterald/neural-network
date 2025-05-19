@@ -55,17 +55,22 @@ fully_connected_layer::fully_connected_layer(
         uint32_t             layerSize,
         function_type        functionType) :
 
-        m_w(previousLayerSize, layerSize),
+        m_w(previousLayerSize, layerSize, buf::HOST),
         m_b(layerSize),
         m_functionType(functionType) {
 
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_real_distribution dis(-0.5f, 0.5f);
+        std::uniform_real_distribution<float> dis(-0.5f, 0.5f);
 
         for (uint32_t i = 0; i < layerSize; i++)
                 for (uint32_t j = 0; j < previousLayerSize; j++)
                         m_w[{i, j}] = dis(gen);
+
+#ifdef BUILD_CUDA_SUPPORT
+        m_w.move(m_w.size() > CUDA_MINIMUM ? buf::DEVICE : buf::HOST);
+#endif // BUILD_CUDA_SUPPORT
+        m_b.move(m_w.location());
 }
 
 fully_connected_layer::fully_connected_layer(
@@ -74,7 +79,7 @@ fully_connected_layer::fully_connected_layer(
         function_type        functionType,
         std::istream         &encodedData) :
 
-        m_w(previousLayerSize, layerSize),
+        m_w(previousLayerSize, layerSize, buf::HOST),
         m_b(layerSize),
         m_functionType(functionType) {
 
@@ -88,11 +93,16 @@ fully_connected_layer::fully_connected_layer(
                 throw LOGGER_EX("Encoded sizes and constructor sizes parameters do not match.");
 
         encodedData.read(
-                (char *)(float *)m_w.as_span(buf::HOST),
+                (char *)(float *)m_w.as_span(buf::HOST, true),
                 std::streamsize(m_w.size() * sizeof(float)));
         encodedData.read(
-                (char *)(float *)m_b.as_span(buf::HOST),
+                (char *)(float *)m_b.as_span(buf::HOST, true),
                 std::streamsize(m_b.size() * sizeof(float)));
+
+#ifdef BUILD_CUDA_SUPPORT
+        m_w.move(m_w.size() > CUDA_MINIMUM ? buf::DEVICE : buf::HOST);
+#endif // BUILD_CUDA_SUPPORT
+        m_b.move(m_w.location());
 }
 
 vector fully_connected_layer::forward(const vector &input) const
@@ -108,20 +118,21 @@ vector fully_connected_layer::backward(const vector &cost, const vector &input)
         //  ∂Ce      ∂zjL   ∂ajL   ∂Ce
         // ⎯⎯⎯⎯⎯ = ⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯ = 1 * AFoo'(z) * Lcost
         //  ∂bL      ∂bL    ∂zjL   ∂ajL
-        const vector db = _activation_derivative(m_functionType, m_w * input + m_b) * cost;
+        vector db = _activation_derivative(m_functionType, m_w * input + m_b) * cost;
+        db.move(m_w.location());
 
         //  ∂Ce      ∂zjL    ∂ajL   ∂Ce
         // ⎯⎯⎯⎯⎯ = ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯ = input * AFoo'(z) * Lcost
         //  ∂wjkL    ∂wjkL   ∂zjL   ∂ajL
-        matrix dw(m_w.width(), m_w.height());
+        matrix dw(m_w.width(), m_w.height(), m_w.location());
 
         //   ∂Ce     nL - 1    ∂zjL    ∂ajL    ∂Ce   nL - 1
         // ⎯⎯⎯⎯⎯⎯⎯ =   Σ    ⎯⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯ =   Σ    wjkL * AFoo'(z) * Lcost
         // ∂ak(L-1)    j=0   ∂ak(L-1)  ∂zjL   ∂ajL     j=0
-        vector prev(m_w.width());
+        vector prev(m_w.width(), m_w.location());
 
 #ifdef BUILD_CUDA_SUPPORT
-        if (m_w.size() < CUDA_MINIMUM) {
+        if (m_w.location() == buf::HOST) {
 #endif // BUILD_CUDA_SUPPORT
                 // Cycles through the columns of the m_w matrix, this
                 // means that it's impossible to use operators on sub-vectors

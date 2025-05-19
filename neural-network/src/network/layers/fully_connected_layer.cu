@@ -42,8 +42,8 @@ void fully_connected_layer::_d_backward(
         const float        db[],
         float              result[]) const {
 
-        const uint32_t BLOCKS_COUNT = (m_w.width() + BLOCK_SIZE - 1) >> BLOCK_BITSHIFT;
-        kernels::backward<<<BLOCKS_COUNT, BLOCK_SIZE>>>(
+        const uint32_t BLOCKS_COUNT = (m_w.width() + CUDA_THREADS - 1) / CUDA_THREADS;
+        kernels::backward<<<BLOCKS_COUNT, CUDA_THREADS>>>(
                 m_w.width(), m_w.height(), input,
                 m_w.as_span(nn::buf::DEVICE), dw, db, result);
 

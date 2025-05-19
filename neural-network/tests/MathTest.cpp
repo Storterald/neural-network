@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <cmath>
 
 #include <neural-network/intrinsic/intrinsic.h>
 #include <neural-network/types/matrix.h> // used for easier test of the matvec_mul function

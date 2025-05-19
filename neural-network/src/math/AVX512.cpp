@@ -26,7 +26,7 @@ template<> void _math<MATH_AVX512>::sum(
                 _mm512_storeu_ps(&result[i], sumResult);
         }
 
-        _math<MATH_AVX>::sum(size - end, first + end, second + end, result + end);
+        _math<MATH_NORMAL>::sum(size - end, first + end, second + end, result + end);
 }
 
 template<> void _math<MATH_AVX512>::sub(
@@ -45,7 +45,7 @@ template<> void _math<MATH_AVX512>::sub(
                 _mm512_storeu_ps(&result[i], subResult);
         }
 
-        _math<MATH_AVX>::sub(size - end, first + end, second + end, result + end);
+        _math<MATH_NORMAL>::sub(size - end, first + end, second + end, result + end);
 }
 
 template<> void _math<MATH_AVX512>::mul(
@@ -64,7 +64,7 @@ template<> void _math<MATH_AVX512>::mul(
                 _mm512_storeu_ps(&result[i], mulResult);
         }
 
-        _math<MATH_AVX>::mul(size - end, first + end, second + end, result + end);
+        _math<MATH_NORMAL>::mul(size - end, first + end, second + end, result + end);
 }
 
 template<> void _math<MATH_AVX512>::div(
@@ -83,7 +83,7 @@ template<> void _math<MATH_AVX512>::div(
                 _mm512_storeu_ps(&result[i], divResult);
         }
 
-        _math<MATH_AVX>::div(size - end, first + end, second + end, result + end);
+        _math<MATH_NORMAL>::div(size - end, first + end, second + end, result + end);
 }
 
 template<> void _math<MATH_AVX512>::sum(
@@ -103,7 +103,7 @@ template<> void _math<MATH_AVX512>::sum(
                 _mm512_storeu_ps(&result[i], sumResult);
         }
 
-        _math<MATH_AVX>::sum(size - end, data + end, scalar, result + end);
+        _math<MATH_NORMAL>::sum(size - end, data + end, scalar, result + end);
 }
 
 template<> void _math<MATH_AVX512>::sub(
@@ -123,7 +123,7 @@ template<> void _math<MATH_AVX512>::sub(
                 _mm512_storeu_ps(&result[i], subResult);
         }
 
-        _math<MATH_AVX>::sub(size - end, data + end, scalar, result + end);
+        _math<MATH_NORMAL>::sub(size - end, data + end, scalar, result + end);
 }
 
 template<> void _math<MATH_AVX512>::mul(
@@ -143,7 +143,7 @@ template<> void _math<MATH_AVX512>::mul(
                 _mm512_storeu_ps(&result[i], mulResult);
         }
 
-        _math<MATH_AVX>::mul(size - end, data + end, scalar, result + end);
+        _math<MATH_NORMAL>::mul(size - end, data + end, scalar, result + end);
 }
 
 template<> void _math<MATH_AVX512>::div(
@@ -163,7 +163,7 @@ template<> void _math<MATH_AVX512>::div(
                 _mm512_storeu_ps(&result[i], divResult);
         }
 
-        _math<MATH_AVX>::div(size - end, data + end, scalar, result + end);
+        _math<MATH_NORMAL>::div(size - end, data + end, scalar, result + end);
 }
 
 template<> void _math<MATH_AVX512>::tanh(
@@ -208,7 +208,7 @@ template<> void _math<MATH_AVX512>::tanh(
                 _mm512_storeu_ps(&result[i], tanh);
         }
 
-        _math<MATH_AVX>::tanh(size - end, data + end, result + end);
+        _math<MATH_NORMAL>::tanh(size - end, data + end, result + end);
 }
 
 template<> void _math<MATH_AVX512>::tanh_derivative(
@@ -238,7 +238,7 @@ template<> void _math<MATH_AVX512>::tanh_derivative(
                 _mm512_storeu_ps(&result[i], tanhDerivative);
         }
 
-        _math<MATH_AVX>::tanh_derivative(size - end, data + end, result + end);
+        _math<MATH_NORMAL>::tanh_derivative(size - end, data + end, result + end);
 }
 
 template<> void _math<MATH_AVX512>::ReLU(
@@ -257,7 +257,7 @@ template<> void _math<MATH_AVX512>::ReLU(
                 _mm512_storeu_ps(&result[i], relu);
         }
 
-        _math<MATH_AVX>::ReLU(size - end, data + end, result + end);
+        _math<MATH_NORMAL>::ReLU(size - end, data + end, result + end);
 }
 
 template<> void _math<MATH_AVX512>::ReLU_derivative(
@@ -278,7 +278,7 @@ template<> void _math<MATH_AVX512>::ReLU_derivative(
                 _mm512_storeu_ps(&result[i], reluDerivative);
         }
 
-        _math<MATH_AVX>::ReLU_derivative(size - end, data + end, result + end);
+        _math<MATH_NORMAL>::ReLU_derivative(size - end, data + end, result + end);
 }
 
 template<> void _math<MATH_AVX512>::min(
@@ -298,7 +298,7 @@ template<> void _math<MATH_AVX512>::min(
                 _mm512_storeu_ps(&result[i], minResult);
         }
 
-        _math<MATH_AVX>::min(size - end, data + end, min, result + end);
+        _math<MATH_NORMAL>::min(size - end, data + end, min, result + end);
 }
 
 template<> void _math<MATH_AVX512>::max(
@@ -318,7 +318,7 @@ template<> void _math<MATH_AVX512>::max(
                 _mm512_storeu_ps(&result[i], maxResult);
         }
 
-        _math<MATH_AVX>::max(size - end, data + end, max, result + end);
+        _math<MATH_NORMAL>::max(size - end, data + end, max, result + end);
 }
 
 template<> void _math<MATH_AVX512>::clamp(
@@ -340,7 +340,7 @@ template<> void _math<MATH_AVX512>::clamp(
                 _mm512_storeu_ps(&result[i], clamp);
         }
 
-        _math<MATH_AVX>::clamp(size - end, data + end, min, max, result + end);
+        _math<MATH_NORMAL>::clamp(size - end, data + end, min, max, result + end);
 }
 
 template<> void _math<MATH_AVX512>::min(
@@ -359,7 +359,7 @@ template<> void _math<MATH_AVX512>::min(
                 _mm512_storeu_ps(&result[i], minValues);
         }
 
-        _math<MATH_AVX>::min(size - end, first + end, second + end, result + end);
+        _math<MATH_NORMAL>::min(size - end, first + end, second + end, result + end);
 }
 
 template<> void _math<MATH_AVX512>::max(
@@ -378,7 +378,7 @@ template<> void _math<MATH_AVX512>::max(
                 _mm512_storeu_ps(&result[i], maxValues);
         }
 
-        _math<MATH_AVX>::max(size - end, first + end, second + end, result + end);
+        _math<MATH_NORMAL>::max(size - end, first + end, second + end, result + end);
 }
 
 template<> void _math<MATH_AVX512>::clamp(
@@ -399,7 +399,7 @@ template<> void _math<MATH_AVX512>::clamp(
                 _mm512_storeu_ps(&result[i], clamp);
         }
 
-        _math<MATH_AVX>::clamp(size - end, data + end, min + end, max + end, result + end);
+        _math<MATH_NORMAL>::clamp(size - end, data + end, min + end, max + end, result + end);
 }
 
 template<> void _math<MATH_AVX512>::compare(
@@ -423,7 +423,7 @@ template<> void _math<MATH_AVX512>::compare(
                 }
         }
 
-        _math<MATH_AVX>::compare(size - end, first + end, second + end, result);
+        _math<MATH_NORMAL>::compare(size - end, first + end, second + end, result);
 }
 
 template<> void _math<MATH_AVX512>::matvec_mul(
