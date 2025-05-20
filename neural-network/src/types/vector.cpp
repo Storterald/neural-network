@@ -25,12 +25,12 @@ vector::vector(uint32_t size, loc_type location) : buf(size, location) {}
 vector::vector(uint32_t size, const value_type values[], loc_type location) : buf(size, location)
 {
         if (!m_device) {
-                std::memcpy(this->data().get(), values, m_size * sizeof(value_type));
+                std::memcpy(this->data(), values, m_size * sizeof(value_type));
                 return;
         }
 
 #if BUILD_CUDA_SUPPORT
-        CUDA_CHECK_ERROR(cudaMemcpyAsync(this->data().get(), values, m_size * sizeof(value_type),
+        CUDA_CHECK_ERROR(cudaMemcpyAsync(this->data(), values, m_size * sizeof(value_type),
                 cudaMemcpyHostToDevice, m_stream), "Failed to copy data to the GPU.");
 #endif // BUILD_CUDA_SUPPORT
 }
@@ -39,12 +39,12 @@ vector::vector(const std::initializer_list<value_type> &values, loc_type locatio
         buf((uint32_t)values.size(), location) {
 
         if (!m_device) {
-                std::memcpy(this->data().get(), std::data(values), m_size * sizeof(value_type));
+                std::memcpy(this->data(), std::data(values), m_size * sizeof(value_type));
                 return;
         }
 
 #if BUILD_CUDA_SUPPORT
-        CUDA_CHECK_ERROR(cudaMemcpyAsync(this->data().get(), std::data(values), m_size * sizeof(value_type),
+        CUDA_CHECK_ERROR(cudaMemcpyAsync(this->data(), std::data(values), m_size * sizeof(value_type),
                 cudaMemcpyHostToDevice, m_stream), "Failed to copy data to the GPU.");
 #endif // BUILD_CUDA_SUPPORT
 }
@@ -58,7 +58,7 @@ vector::reference vector::operator[] (uint32_t i)
                 throw LOGGER_EX("Vector sizes must match.");
 #endif // DEBUG_MODE_ENABLED
 
-        return *(this->data() + i);
+        return *(this->begin() + i);
 }
 
 vector::const_reference vector::operator[] (uint32_t i) const
@@ -68,7 +68,7 @@ vector::const_reference vector::operator[] (uint32_t i) const
                 throw LOGGER_EX("Vector sizes must match.");
 #endif // DEBUG_MODE_ENABLED
 
-        return *(this->data() + i);
+        return *(this->begin() + i);
 }
 
 vector::value_type vector::at(uint32_t i) const
@@ -78,7 +78,7 @@ vector::value_type vector::at(uint32_t i) const
                 throw LOGGER_EX("Vector sizes must match.");
 #endif // DEBUG_MODE_ENABLED
 
-        return *(this->data() + i);
+        return *(this->begin() + i);
 }
 
 vector vector::operator+ (const vector &other) const

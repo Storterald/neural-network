@@ -347,6 +347,8 @@ public:
                         CUDA_CHECK_ERROR(cudaMemcpyAsync((raw_type *)m_ptr, src, m_size * sizeof(raw_type),
                                 cudaMemcpyDeviceToHost, m_stream), "Failed to copy data from the GPU.");
 
+                        // Ensure CPU buffer is ready before returning.
+                        _sync();
                         return;
                 }
 
@@ -483,7 +485,7 @@ public:
                 _sync();
         }
 
-        constexpr void update() requires (std::is_const_v<value_type>) {}
+        constexpr void update() noexcept requires (std::is_const_v<value_type>) {}
 
 private:
         T                   *m_src;
@@ -508,10 +510,8 @@ private:
 
         void _sync() const
         {
-                if (!m_owning)
-                        return;
-
-                CUDA_CHECK_ERROR(cudaStreamSynchronize(m_stream), "Error synchronizing in span<T>.");
+                CUDA_CHECK_ERROR(cudaStreamSynchronize(m_stream),
+                        "Error synchronizing in span<T>.");
         }
 
 }; // class span

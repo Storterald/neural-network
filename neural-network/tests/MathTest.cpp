@@ -213,9 +213,9 @@ TEST(CudaTest, Sum) {
 
         nn::vector result(COUNT);
         nn::_math<nn::MATH_CUDA>::sum(
-                COUNT, v1.as_span(nn::buf::DEVICE, true),
-                v2.as_span(nn::buf::DEVICE, true),
-                result.as_span(nn::buf::DEVICE, true), 0);
+                COUNT, v1.view(nn::buf::DEVICE),
+                v2.view(nn::buf::DEVICE),
+                result.data(nn::buf::DEVICE, true), 0);
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -423,9 +423,9 @@ TEST(CudaTest, Sub) {
 
         nn::vector result(COUNT);
         nn::_math<nn::MATH_CUDA>::sub(
-                COUNT, v1.as_span(nn::buf::DEVICE, true),
-                v2.as_span(nn::buf::DEVICE, true),
-                result.as_span(nn::buf::DEVICE, true), 0);
+                COUNT, v1.view(nn::buf::DEVICE),
+                v2.view(nn::buf::DEVICE),
+                result.data(nn::buf::DEVICE, true), 0);
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -633,9 +633,9 @@ TEST(CudaTest, Mul) {
 
         nn::vector result(COUNT);
         nn::_math<nn::MATH_CUDA>::mul(
-                COUNT, v1.as_span(nn::buf::DEVICE, true),
-                v2.as_span(nn::buf::DEVICE, true),
-                result.as_span(nn::buf::DEVICE, true), 0);
+                COUNT, v1.view(nn::buf::DEVICE),
+                v2.view(nn::buf::DEVICE),
+                result.data(nn::buf::DEVICE, true), 0);
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -843,9 +843,9 @@ TEST(CudaTest, Div) {
 
         nn::vector result(COUNT);
         nn::_math<nn::MATH_CUDA>::div(
-                COUNT, v1.as_span(nn::buf::DEVICE, true),
-                v2.as_span(nn::buf::DEVICE, true),
-                result.as_span(nn::buf::DEVICE, true), 0);
+                COUNT, v1.view(nn::buf::DEVICE),
+                v2.view(nn::buf::DEVICE),
+                result.data(nn::buf::DEVICE, true), 0);
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1053,8 +1053,8 @@ TEST(CudaTest, SumScalar) {
 
         nn::vector result(COUNT);
         nn::_math<nn::MATH_CUDA>::sum(
-                COUNT, data.as_span(nn::buf::DEVICE, true),
-                scalar, result.as_span(nn::buf::DEVICE, true), 0);
+                COUNT, data.view(nn::buf::DEVICE),
+                scalar, result.data(nn::buf::DEVICE, true), 0);
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1262,8 +1262,8 @@ TEST(CudaTest, SubScalar) {
 
         nn::vector result(COUNT);
         nn::_math<nn::MATH_CUDA>::sub(
-                COUNT, data.as_span(nn::buf::DEVICE, true),
-                scalar, result.as_span(nn::buf::DEVICE, true), 0);
+                COUNT, data.view(nn::buf::DEVICE),
+                scalar, result.data(nn::buf::DEVICE, true), 0);
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1471,8 +1471,8 @@ TEST(CudaTest, MulScalar) {
 
         nn::vector result(COUNT);
         nn::_math<nn::MATH_CUDA>::mul(
-                COUNT, data.as_span(nn::buf::DEVICE, true),
-                scalar, result.as_span(nn::buf::DEVICE, true), 0);
+                COUNT, data.view(nn::buf::DEVICE),
+                scalar, result.data(nn::buf::DEVICE, true), 0);
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1680,8 +1680,8 @@ TEST(CudaTest, DivScalar) {
 
         nn::vector result(COUNT);
         nn::_math<nn::MATH_CUDA>::div(
-                COUNT, data.as_span(nn::buf::DEVICE, true),
-                scalar, result.as_span(nn::buf::DEVICE, true), 0);
+                COUNT, data.view(nn::buf::DEVICE),
+                scalar, result.data(nn::buf::DEVICE, true), 0);
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1878,8 +1878,8 @@ TEST(CudaTest, Tanh) {
 
         nn::vector result(COUNT);
         nn::_math<nn::MATH_CUDA>::tanh(
-                COUNT, data.as_span(nn::buf::DEVICE, true),
-                result.as_span(nn::buf::DEVICE, true), 0);
+                COUNT, data.view(nn::buf::DEVICE),
+                result.data(nn::buf::DEVICE, true), 0);
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2096,8 +2096,8 @@ TEST(CudaTest, TanhDerivative) {
 
         nn::vector result(COUNT);
         nn::_math<nn::MATH_CUDA>::tanh_derivative(
-                COUNT, data.as_span(nn::buf::DEVICE, true),
-                result.as_span(nn::buf::DEVICE, true), 0);
+                COUNT, data.view(nn::buf::DEVICE),
+                result.data(nn::buf::DEVICE, true), 0);
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -2296,8 +2296,8 @@ TEST(CudaTest, ReLU) {
 
         nn::vector result(COUNT);
         nn::_math<nn::MATH_CUDA>::ReLU(
-                COUNT, data.as_span(nn::buf::DEVICE, true),
-                result.as_span(nn::buf::DEVICE, true), 0);
+                COUNT, data.view(nn::buf::DEVICE),
+                result.data(nn::buf::DEVICE, true), 0);
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2494,8 +2494,8 @@ TEST(CudaTest, ReLUDerivative) {
 
         nn::vector result(COUNT);
         nn::_math<nn::MATH_CUDA>::ReLU_derivative(
-                COUNT, data.as_span(nn::buf::DEVICE, true),
-                result.as_span(nn::buf::DEVICE, true), 0);
+                COUNT, data.view(nn::buf::DEVICE),
+                result.data(nn::buf::DEVICE, true), 0);
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2703,8 +2703,8 @@ TEST(CudaTest, MinScalar) {
 
         nn::vector result(COUNT);
         nn::_math<nn::MATH_CUDA>::min(
-                COUNT, data.as_span(nn::buf::DEVICE, true),
-                min, result.as_span(nn::buf::DEVICE, true), 0);
+                COUNT, data.view(nn::buf::DEVICE),
+                min, result.data(nn::buf::DEVICE, true), 0);
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2912,8 +2912,8 @@ TEST(CudaTest, MaxScalar) {
 
         nn::vector result(COUNT);
         nn::_math<nn::MATH_CUDA>::max(
-                COUNT, data.as_span(nn::buf::DEVICE, true),
-                max, result.as_span(nn::buf::DEVICE, true), 0);
+                COUNT, data.view(nn::buf::DEVICE),
+                max, result.data(nn::buf::DEVICE, true), 0);
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3132,8 +3132,8 @@ TEST(CudaTest, ClampScalar) {
 
         nn::vector result(COUNT);
         nn::_math<nn::MATH_CUDA>::clamp(
-                COUNT, data.as_span(nn::buf::DEVICE, true),
-                min, max, result.as_span(nn::buf::DEVICE, true), 0);
+                COUNT, data.view(nn::buf::DEVICE),
+                min, max, result.data(nn::buf::DEVICE, true), 0);
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3341,9 +3341,9 @@ TEST(CudaTest, Min) {
 
         nn::vector result(COUNT);
         nn::_math<nn::MATH_CUDA>::min(
-                COUNT, v1.as_span(nn::buf::DEVICE, true),
-                v2.as_span(nn::buf::DEVICE, true),
-                result.as_span(nn::buf::DEVICE, true), 0);
+                COUNT, v1.view(nn::buf::DEVICE),
+                v2.view(nn::buf::DEVICE),
+                result.data(nn::buf::DEVICE, true), 0);
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3551,9 +3551,9 @@ TEST(CudaTest, Max) {
 
         nn::vector result(COUNT);
         nn::_math<nn::MATH_CUDA>::max(
-                COUNT, v1.as_span(nn::buf::DEVICE, true),
-                v2.as_span(nn::buf::DEVICE, true),
-                result.as_span(nn::buf::DEVICE, true), 0);
+                COUNT, v1.view(nn::buf::DEVICE),
+                v2.view(nn::buf::DEVICE),
+                result.data(nn::buf::DEVICE, true), 0);
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3772,8 +3772,8 @@ TEST(CudaTest, Clamp) {
 
         nn::vector result(COUNT);
         nn::_math<nn::MATH_CUDA>::clamp(
-                COUNT, data.as_span(nn::buf::DEVICE, true), min.as_span(nn::buf::DEVICE, true),
-                max.as_span(nn::buf::DEVICE, true), result.as_span(nn::buf::DEVICE, true), 0);
+                COUNT, data.view(nn::buf::DEVICE), min.view(nn::buf::DEVICE),
+                max.view(nn::buf::DEVICE), result.data(nn::buf::DEVICE, true), 0);
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -4088,8 +4088,8 @@ TEST(CudaTest, CompareTrue) {
 
         bool ans;
         nn::_math<nn::MATH_CUDA>::compare(
-                COUNT, first.as_span(nn::buf::DEVICE),
-                second.as_span(nn::buf::DEVICE), &ans, 0);
+                COUNT, first.view(nn::buf::DEVICE),
+                second.view(nn::buf::DEVICE), &ans, 0);
 
         EXPECT_TRUE(ans);
 }
@@ -4102,8 +4102,8 @@ TEST(CudaTest, CompareFalse) {
 
         bool ans;
         nn::_math<nn::MATH_CUDA>::compare(
-                COUNT, first.as_span(nn::buf::DEVICE),
-                second.as_span(nn::buf::DEVICE), &ans, 0);
+                COUNT, first.view(nn::buf::DEVICE),
+                second.view(nn::buf::DEVICE), &ans, 0);
 
         EXPECT_FALSE(ans);
 }
@@ -4119,8 +4119,8 @@ TEST(MathTest, MatrixVectorMul) {
 
         nn::vector result(m.height());
         nn::_math<nn::MATH_NORMAL>::matvec_mul(
-                m.width(), m.height(), m.as_span(nn::buf::HOST, true),
-                v.as_span(nn::buf::HOST, true), result.as_span(nn::buf::HOST, true));
+                m.width(), m.height(), m.view(nn::buf::HOST),
+                v.view(nn::buf::HOST), result.data(nn::buf::HOST, true));
 
         EXPECT_EQ(result, nn::vector({ 53, 89, 47 }));
 }
@@ -4139,8 +4139,8 @@ TEST(SSETest, MatrixVectorMul) {
 
         nn::vector result(m.height());
         nn::_math<nn::MATH_SSE3>::matvec_mul(
-                m.width(), m.height(), m.as_span(nn::buf::HOST, true),
-                v.as_span(nn::buf::HOST, true), result.as_span(nn::buf::HOST, true));
+                m.width(), m.height(), m.view(nn::buf::HOST),
+                v.view(nn::buf::HOST), result.data(nn::buf::HOST, true));
 
         EXPECT_EQ(result, nn::vector({ 53, 89, 47 }));
 }
@@ -4159,8 +4159,8 @@ TEST(AVXTest, MatrixVectorMul) {
 
         nn::vector result(m.height());
         nn::_math<nn::MATH_AVX>::matvec_mul(
-                m.width(), m.height(), m.as_span(nn::buf::HOST, true),
-                v.as_span(nn::buf::HOST, true), result.as_span(nn::buf::HOST, true));
+                m.width(), m.height(), m.view(nn::buf::HOST),
+                v.view(nn::buf::HOST), result.data(nn::buf::HOST, true));
 
         EXPECT_EQ(result, nn::vector({ 154, 194, 67, 87 }));
 }
@@ -4179,8 +4179,8 @@ TEST(AVX512Test, MatrixVectorMul) {
 
         nn::vector result(m.height());
         nn::_math<nn::MATH_AVX512>::matvec_mul(
-                m.width(), m.height(), m.as_span(nn::buf::HOST, true),
-                v.as_span(nn::buf::HOST, true), result.as_span(nn::buf::HOST, true));
+                m.width(), m.height(), m.view(nn::buf::HOST),
+                v.view(nn::buf::HOST), result.data(nn::buf::HOST, true));
 
         EXPECT_EQ(result, nn::vector({ 213, 232, 122, 230 }));
 }
@@ -4193,8 +4193,8 @@ TEST(CudaTest, MatrixVectorMul) {
 
         nn::vector result(m.height());
         nn::_math<nn::MATH_CUDA>::matvec_mul(
-                m.width(), m.height(), m.as_span(nn::buf::DEVICE, true),
-                v.as_span(nn::buf::DEVICE, true), result.as_span(nn::buf::DEVICE, true), 0);
+                m.width(), m.height(), m.view(nn::buf::DEVICE),
+                v.view(nn::buf::DEVICE), result.data(nn::buf::DEVICE, true), 0);
 
         EXPECT_EQ(result, nn::vector({ 16, 7, 27 }));
 }

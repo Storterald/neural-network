@@ -10,8 +10,17 @@
  *
  */
 
+#include <type_traits>
+
 #ifdef BUILD_CUDA_SUPPORT
 #include "_memory_cuda.h"
 #else // BUILD_CUDA_SUPPORT
 #include "_memory_cpu.h"
 #endif // BUILD_CUDA_SUPPORT
+
+namespace nn {
+
+template <typename T>
+using view = span<std::add_const_t<T>>;
+
+} // namespace nn

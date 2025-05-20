@@ -1,6 +1,6 @@
 #include <neural-network/math/math.h>
 
-#include <concepts>
+#include <type_traits>
 #include <cstdint>
 
 #include <neural-network/intrinsic/intrinsic.h>
@@ -9,12 +9,18 @@
 #include "_math.h"
 
 template<typename T>
-static constexpr auto _get(T &&v, nn::buf::loc_type location)
+static constexpr decltype(auto) _get(T &&v, nn::buf::loc_type location)
 {
-        if constexpr (std::same_as<std::remove_cvref_t<T>, nn::buf>)
-                return v.as_span(location, true);
-        else
-                return v;
+        using raw = std::remove_cvref_t<T>;
+
+        if constexpr (std::is_same_v<raw, nn::buf>) {
+                if constexpr (std::is_const_v<std::remove_reference_t<T>>)
+                        return std::forward<T>(v).view(location);
+                else
+                        return std::forward<T>(v).data(location, true);
+        } else {
+                return std::forward<T>(v);
+        }
 }
 
 #define GET_ALL(__dest__, ...)                          \

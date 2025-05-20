@@ -7,14 +7,14 @@
 TEST(VectorTest, DefaultConstructorInitializesEmptyData) {
         const nn::vector v{};
 
-        EXPECT_EQ(v.data(), nullptr);
+        EXPECT_EQ(v.view(), nullptr);
         EXPECT_EQ(v.size(), 0);
 }
 
 TEST(VectorTest, SizeConstructorAllocatesData) {
         const nn::vector v(10);
 
-        EXPECT_NE(v.data(), nullptr);
+        EXPECT_NE(v.view(), nullptr);
         EXPECT_EQ(v.size(), 10);
         EXPECT_NO_FATAL_FAILURE([[maybe_unused]] float value = v[9]);
 }
@@ -23,7 +23,7 @@ TEST(VectorTest, ConstructorWithFloatArrayWorks) {
         float values[] = { 1.0f, 2.0f, 3.0f };
         const nn::vector v(3, values);
 
-        EXPECT_NE(v.data(), nullptr);
+        EXPECT_NE(v.view(), nullptr);
         EXPECT_EQ(v.size(), 3);
         for (uint32_t i = 0; i < 3; ++i)
                 EXPECT_EQ(v[i], values[i]);
@@ -33,7 +33,7 @@ TEST(VectorTest, ConstructorWithInitializerListWorks) {
         auto values = { 1.0f, 2.0f, 3.0f };
         const nn::vector v(values);
 
-        EXPECT_NE(v.data(), nullptr);
+        EXPECT_NE(v.view(), nullptr);
         EXPECT_EQ(v.size(), values.size());
         EXPECT_TRUE([&]() -> bool {
                 bool value = true;

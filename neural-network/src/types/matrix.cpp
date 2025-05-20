@@ -68,7 +68,7 @@ matrix::pointer matrix::operator[](uint32_t row)
 #endif // DEBUG_MODE_ENABLED
 
         const auto offset = (difference_type)row * m_width;
-        return this->data() + offset;
+        return this->begin() + offset;
 }
 
 matrix::const_pointer matrix::operator[](uint32_t row) const
@@ -79,7 +79,7 @@ matrix::const_pointer matrix::operator[](uint32_t row) const
 #endif // DEBUG_MODE_ENABLED
 
         const auto offset = (difference_type)row * m_width;
-        return this->data() + offset;
+        return this->begin() + offset;
 }
 
 matrix::const_pointer matrix::at(uint32_t row) const
@@ -90,7 +90,7 @@ matrix::const_pointer matrix::at(uint32_t row) const
 #endif // DEBUG_MODE_ENABLED
 
         const auto offset = (difference_type)row * m_width;
-        return this->data() + offset;
+        return this->begin() + offset;
 }
 
 matrix::reference matrix::operator[] (indexer position)
@@ -101,7 +101,7 @@ matrix::reference matrix::operator[] (indexer position)
 #endif // DEBUG_MODE_ENABLED
 
         const auto offset = (difference_type)position.row * m_width + position.column;
-        return *(this->data() + offset);
+        return *(this->begin() + offset);
 }
 
 matrix::const_reference matrix::operator[] (indexer position) const
@@ -112,7 +112,7 @@ matrix::const_reference matrix::operator[] (indexer position) const
 #endif // DEBUG_MODE_ENABLED
 
         const auto offset = (difference_type)position.row * m_width + position.column;
-        return *(this->data() + offset);
+        return *(this->begin() + offset);
 }
 
 matrix::value_type matrix::at(uint32_t row, uint32_t column) const
@@ -123,7 +123,7 @@ matrix::value_type matrix::at(uint32_t row, uint32_t column) const
 #endif // DEBUG_MODE_ENABLED
 
         const auto offset = (difference_type)row * m_width + column;
-        return *(this->data() + offset);
+        return *(this->begin() + offset);
 }
 
 matrix matrix::operator+ (const matrix &other) const

@@ -48,14 +48,16 @@ public:
 
         [[nodiscard]] bool operator== (const buf &other) const;
 
-        [[nodiscard]] inline pointer data()
+        [[nodiscard]] inline span<value_type> data(loc_type location = KEEP, bool update = false)
         {
-                return { m_data, m_device };
+                const bool device = location == KEEP ? m_device : location == DEVICE;
+                return { m_size, device, m_data, m_device, update, m_stream };
         }
 
-        [[nodiscard]] inline const_pointer data() const
+        [[nodiscard]] inline view<value_type> view(loc_type location = KEEP) const
         {
-                return { m_data, m_device };
+                const bool device = location == KEEP ? m_device : location == DEVICE;
+                return { m_size, device, m_data, m_device, false, m_stream };
         }
 
         [[nodiscard]] inline pointer begin()
@@ -81,18 +83,6 @@ public:
         [[nodiscard]] constexpr size_type size() const noexcept
         {
                 return m_size;
-        }
-
-        [[nodiscard]] inline span<value_type> as_span(loc_type location = KEEP, bool update = false)
-        {
-                const bool device = location == KEEP ? m_device : location == DEVICE;
-                return { m_size, device, m_data, m_device, update, m_stream };
-        }
-
-        [[nodiscard]] inline span<const_value_type> as_span(loc_type location = KEEP, bool update = false) const
-        {
-                const bool device = location == KEEP ? m_device : location == DEVICE;
-                return { m_size, device, m_data, m_device, update, m_stream };
         }
 
         [[nodiscard]] constexpr loc_type location() const noexcept
@@ -129,7 +119,7 @@ template<>
 struct std::hash<nn::buf> {
         size_t operator() (const nn::buf &data) const noexcept
         {
-                const float *span = data.as_span(nn::buf::HOST);
+                const float *span = data.view(nn::buf::HOST);
 
                 uint64_t hash = 0;
                 for (uint32_t i = 0; i < data.size(); i++)

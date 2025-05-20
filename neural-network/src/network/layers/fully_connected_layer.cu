@@ -45,7 +45,7 @@ void fully_connected_layer::_d_backward(
         const uint32_t BLOCKS_COUNT = (m_w.width() + CUDA_THREADS - 1) / CUDA_THREADS;
         kernels::backward<<<BLOCKS_COUNT, CUDA_THREADS>>>(
                 m_w.width(), m_w.height(), input,
-                m_w.as_span(nn::buf::DEVICE), dw, db, result);
+                m_w.view(nn::buf::DEVICE), dw, db, result);
 
         CUDA_CHECK_ERROR(cudaGetLastError(), "backward kernel launch failed.");
         CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in fully_connected_layer::_d_backward.");

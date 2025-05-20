@@ -305,7 +305,7 @@ public:
                 return 0;
         }
 
-        constexpr void update() const noexcept {}
+        constexpr void update() noexcept {}
 
 private:
         value_type        *m_ptr;

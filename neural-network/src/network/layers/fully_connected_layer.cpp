@@ -105,10 +105,10 @@ fully_connected_layer::fully_connected_layer(
                 throw LOGGER_EX("Encoded sizes and constructor sizes parameters do not match.");
 
         encodedData.read(
-                (char *)(float *)m_w.as_span(buf::HOST, true),
+                (char *)(float *)m_w.data(buf::HOST, true),
                 std::streamsize(m_w.size() * sizeof(float)));
         encodedData.read(
-                (char *)(float *)m_b.as_span(buf::HOST, true),
+                (char *)(float *)m_b.data(buf::HOST, true),
                 std::streamsize(m_b.size() * sizeof(float)));
 
 #ifdef BUILD_CUDA_SUPPORT
@@ -163,10 +163,10 @@ fully_connected_layer::fully_connected_layer(
                 throw LOGGER_EX("Encoded sizes and constructor sizes parameters do not match.");
 
         encodedData.read(
-                (char *)(float *)m_w.as_span(buf::HOST, true),
+                (char *)(float *)m_w.data(buf::HOST, true),
                 std::streamsize(m_w.size() * sizeof(float)));
         encodedData.read(
-                (char *)(float *)m_b.as_span(buf::HOST, true),
+                (char *)(float *)m_b.data(buf::HOST, true),
                 std::streamsize(m_b.size() * sizeof(float)));
 }
 #endif // BUILD_CUDA_SUPPORT
@@ -214,8 +214,8 @@ vector fully_connected_layer::backward(const vector &cost, const vector &input)
 #ifdef BUILD_CUDA_SUPPORT
         } else {
                 _d_backward(
-                        input.as_span(buf::DEVICE, true), dw.as_span(buf::DEVICE, true),
-                        db.as_span(buf::DEVICE, true), prev.as_span(buf::DEVICE, true));
+                        input.view(buf::DEVICE), dw.data(buf::DEVICE, true),
+                        db.view(buf::DEVICE), prev.data(buf::DEVICE, true));
         }
 #endif // BUILD_CUDA_SUPPORT
 
@@ -241,10 +241,10 @@ void fully_connected_layer::encode(std::ostream &out) const
         out.write((char *)infos, 4 * sizeof(uint32_t));
 
         out.write(
-                (char *)(const float *)m_w.as_span(buf::HOST),
+                (char *)(const float *)m_w.view(buf::HOST),
                 std::streamsize(m_w.size() * sizeof(float)));
         out.write(
-                (char *)(const float *)m_b.as_span(buf::HOST),
+                (char *)(const float *)m_b.view(buf::HOST),
                 std::streamsize(m_b.size() * sizeof(float)));
 }
 
