@@ -31,8 +31,8 @@ static void _get_inputs(
         inputs.resize((size_t)sampleCount * 784, 0);
         outputs.resize((size_t)sampleCount * 10, 0);
 
-        fs::path cwd = fs::path(__FILE__).parent_path();
-        fs::path filePath = cwd / ".." / ".." / "mnist" / path;
+        const fs::path cwd      = fs::path(__FILE__).parent_path();
+        const fs::path filePath = cwd / ".." / ".." / "mnist" / path;
         std::ifstream file(filePath, std::ios::binary);
 
         int tmp;
@@ -51,12 +51,12 @@ static std::vector<float> _get_image(const char *path)
         std::vector<float> out(784);
         for (int y = 0; y < 28; ++y) {
                 for (int x = 0; x < 28; ++x) {
-                        int index      = (y * 28 + x);
-                        int pixelIndex = 4 * (y * 28 + x);
+                        const int index      = y * 28 + x;
+                        const int pixelIndex = 4 * (y * 28 + x);
 
-                        stbi_uc r = pixels[pixelIndex + 0];
-                        stbi_uc g = pixels[pixelIndex + 1];
-                        stbi_uc b = pixels[pixelIndex + 2];
+                        const stbi_uc r = pixels[pixelIndex + 0];
+                        const stbi_uc g = pixels[pixelIndex + 1];
+                        const stbi_uc b = pixels[pixelIndex + 2];
 
                         out[index] = (float)(r + g + b) / 3.0f / 255.0f;
                 }
@@ -81,7 +81,7 @@ static void _train(
 
         for (uint32_t i = 0; i < MAX_ITERATIONS; ++i) {
                 network.train_supervised(sampleCount, inputs.data(), outputs.data());
-                nn::logger::log() << LOGGER_PREF(DEBUG) << "Iteration " << i
+                nn::logger::log() << nn::logger::pref(nn::LOG_INFO) << "Iteration " << i
                                   << " completed.\n";
         }
 
@@ -103,25 +103,30 @@ static void _test(
         _get_inputs("mnist_test.nntv", sampleCount, inputs, outputs);
 
         nn::network network(args..., fs::exists(encoded) ? encoded : "");
-        const auto start = ch::system_clock::now();
+
+        long long us = 0;
 
         uint32_t correct = 0;
         for (uint32_t i = 0; i < sampleCount; ++i) {
+                const auto start = ch::high_resolution_clock::now();
                 std::span tmp(&outputs[(size_t)i * 10], 10);
                 nn::vector in(784, &inputs[(size_t)i * 784]);
                 nn::vector out = network.forward(in);
+                const auto end = ch::high_resolution_clock::now();
 
-                uint32_t output   = (uint32_t)std::distance(out.begin(), std::ranges::max_element(out));
-                uint32_t expected = (uint32_t)std::distance(tmp.begin(), std::ranges::max_element(tmp));
+                us += ch::duration_cast<ch::microseconds>(end - start).count();
+
+                // Not benchmarking this part as it is extremely slow on GPU and
+                // in a real scenario it would be done in a kernel.
+                const uint32_t output   = (uint32_t)std::distance(out.begin(), std::ranges::max_element(out));
+                const uint32_t expected = (uint32_t)std::distance(tmp.begin(), std::ranges::max_element(tmp));
                 correct          += output == expected;
 
-                auto pref = output == expected ? LOGGER_PREF(INFO) : LOGGER_PREF(ERROR);
+                auto pref = output == expected ? nn::logger::pref(nn::LOG_INFO) : nn::logger::pref(nn::LOG_ERROR);
                 nn::logger::log() << pref << "Expected: " << expected << ", got: " << output << ", with " << out[output] << " certainty.\n";
         }
 
-        const auto end = ch::system_clock::now();
-        std::cout << "Test completed in " << ch::duration_cast<ch::microseconds>(end - start)
-                  << ". Correct guesses: " << correct << "/1000.\n";
+        std::cout << "Test completed in " << us << "us. Correct guesses: " << correct << "/1000.\n";
 }
 
 template<typename ...Args>

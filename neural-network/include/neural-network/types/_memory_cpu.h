@@ -3,7 +3,7 @@
 #include <type_traits>
 #include <cstddef> // ptrdiff_t
 
-#include <neural-network/utils/logger.h>
+#include <neural-network/utils/exceptions.h>
 #include <neural-network/base.h>
 
 namespace nn {
@@ -39,7 +39,7 @@ public:
 
         inline ptr() noexcept : m_pointer(nullptr) {}
 
-        ptr(T *ptr, bool, void * = 0) noexcept : m_pointer(ptr) {}
+        ptr(T *ptr, bool, stream = invalid_stream) noexcept : m_pointer(ptr) {}
 
         template<typename other_type>
         [[nodiscard]] constexpr bool operator== (const ptr<other_type> &other) const noexcept
@@ -67,7 +67,7 @@ public:
         {
 #ifdef DEBUG_MODE_ENABLED
                 if (!m_pointer)
-                        throw LOGGER_EX("Cannot dereference null pointer.");
+                        throw fatal_error("Cannot dereference null pointer.");
 #endif // DEBUG_MODE_ENABLED
 
                 return { m_pointer, false };
@@ -77,7 +77,7 @@ public:
         {
 #ifdef DEBUG_MODE_ENABLED
                 if (!m_pointer)
-                        throw LOGGER_EX("Cannot index null pointer.");
+                        throw fatal_error("Cannot index null pointer.");
 #endif // DEBUG_MODE_ENABLED
 
                 return { m_pointer + i, false };
@@ -178,9 +178,9 @@ public:
         using value_type = T;
         using const_value_type = std::add_const_t<T>;
 
-        ref(T *pValue, bool, void * = 0) : m_ptr(pValue, false) {
+        ref(T *pValue, bool, stream = invalid_stream) : m_ptr(pValue, false) {
                 if (!pValue)
-                        throw LOGGER_EX("Cannot create null reference.");
+                        throw fatal_error("Cannot create null reference.");
         }
 
         ref(const ref &other) = delete;
@@ -247,7 +247,7 @@ public:
         using value_type = T;
         using const_value_type = std::add_const_t<T>;
 
-        span(uint32_t size, bool, T *src, bool, bool = false, void * = 0) noexcept :
+        span(uint32_t size, bool, T *src, bool, bool = false, stream = invalid_stream) noexcept :
                 m_ptr(src), m_size(size) {}
 
         [[nodiscard]] constexpr operator value_type *() noexcept
@@ -302,7 +302,7 @@ public:
 
         [[nodiscard]] stream stream() const noexcept
         {
-                return 0;
+                return invalid_stream;
         }
 
         constexpr void update() noexcept {}

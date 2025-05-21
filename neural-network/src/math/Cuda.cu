@@ -1,16 +1,18 @@
-#include "_math.h"
+#include "_math_cuda.h"
 
 #include <cuda/std/__algorithm/clamp.h>
 #include <cuda/std/__algorithm/max.h>
 #include <cuda/std/__algorithm/min.h>
 #include <cuda/std/cmath>
-#include <cuda_runtime.h>
-#include <driver_types.h> // cudaStream_t
+#include <host_defines.h> // __global__, __device__
 
 #include <cstdint>
 
 #include <neural-network/utils/macros.h>
 #include <neural-network/types/memory.h>
+#include <neural-network/utils/cuda.h>
+#include <neural-network/cuda_base.h>
+#include <neural-network/base.h>
 
 namespace utils {
 
@@ -287,11 +289,11 @@ namespace kernels {
 } // namespace kernels
 
 #define DECLARE_CUDA_FUNCTION(__name__, __size__, ...)                                          \
-void _math_cuda:: __name__ (GET_ARGS(__VA_ARGS__), cudaStream_t stream)                         \
+void _math_cuda:: __name__ (GET_ARGS(__VA_ARGS__), stream stream)                         \
 {                                                                                               \
         const uint32_t blocks = (__size__ + CUDA_THREADS - 1) / CUDA_THREADS;                   \
         kernels:: __name__ <<<blocks, CUDA_THREADS, 0, stream>>>(GET_ARGS_NAMES(__VA_ARGS__));  \
-        CUDA_CHECK_ERROR(cudaGetLastError(), "kernels::" #__name__ " launch failed.");          \
+        cuda::check_last_error("kernels::" #__name__ " launch failed.");                        \
 }
 
 namespace nn {
@@ -407,14 +409,14 @@ void _math_cuda::compare(
         const float        first[],
         const float        second[],
         bool               *result,
-        cudaStream_t       stream) {
+        stream             stream) {
 
         *result = true;
         span s(1, true, result, false, true);
 
         const uint32_t BLOCKS_COUNT = (size + CUDA_THREADS - 1) / CUDA_THREADS;
         kernels::compare<<<BLOCKS_COUNT, CUDA_THREADS, 0, stream>>>(size, first, second, s);
-        CUDA_CHECK_LAST_ERROR("Kernels::compare launch failed.");
+        cuda::check_last_error("Kernels::compare launch failed.");
 }
 
 DECLARE_CUDA_FUNCTION(matvec_mul, width,

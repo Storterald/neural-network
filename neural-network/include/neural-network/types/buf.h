@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef BUILD_CUDA_SUPPORT
-#include <driver_types.h> // cudaStream_t
-#endif // BUILD_CUDA_SUPPORT
-
 #include <functional> // std::hash<float>
 #include <cstdint>
 #include <cstddef>    // size_t
@@ -32,11 +28,10 @@ public:
         }; // enum location
 
         buf() = default;
-        explicit buf(uint32_t size, loc_type location = KEEP);
         /**
-         * A default (0) stream will allocate the buffer depending on size.
+         * A invalid stream (null) will allocate the buffer on the cpu.
          */
-        buf(uint32_t size, nn::stream stream);
+        explicit buf(uint32_t size, nn::stream stream = invalid_stream);
 
         buf(const buf &other);
         buf &operator= (const buf &other);
@@ -95,21 +90,20 @@ public:
                 return m_stream;
         }
 
-        void move(loc_type location);
+        void move(loc_type location, ::nn::stream stream);
 
 protected:
+        float                              *m_data = nullptr;
+
 #ifdef BUILD_CUDA_SUPPORT
-        nn::stream                         m_stream;
-        bool                               m_device;
+        nn::stream                         m_stream = invalid_stream;
+        bool                               m_device = false;
 #else // BUILD_CUDA_SUPPORT
         static constexpr nn::stream        m_stream = 0;
         static constexpr bool              m_device = false;
 #endif // BUILD_CUDA_SUPPORT
 
-        size_type                          m_size;
-
-private:
-        float                              *m_data;
+        size_type                          m_size = 0;
 
 }; // class buf
 

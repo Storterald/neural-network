@@ -1,24 +1,22 @@
 #include <neural-network/network/layers/fully_connected_layer.h>
 
-#ifdef BUILD_CUDA_SUPPORT
-#include <driver_types.h> // cudaStream_t
-#endif // BUILD_CUDA_SUPPORT
-
 #include <cstdint>
 #include <random>
 #include <mutex>
 
+#include <neural-network/utils/exceptions.h>
 #include <neural-network/network/layer.h>
 #include <neural-network/types/vector.h>
 #include <neural-network/types/matrix.h>
 #include <neural-network/types/buf.h>
 #include <neural-network/math/math.h>
+#include <neural-network/base.h>
 
 static nn::vector _activation(
         nn::function_type        functionType,
         const nn::vector         &input) {
 
-        nn::vector result(input.size());
+        nn::vector result(input.size(), input.stream());
         switch (functionType) {
         case nn::TANH:
                 nn::math::tanh(input.size(), input, result);
@@ -27,7 +25,7 @@ static nn::vector _activation(
                 nn::math::ReLU(input.size(), input, result);
                 break;
         default:
-                throw LOGGER_EX("Activation function not implemented.");
+                throw nn::fatal_error("Activation function not implemented.");
         }
 
         return result;
@@ -37,7 +35,7 @@ static nn::vector _activation_derivative(
         nn::function_type        functionType,
         const nn::vector         &input) {
 
-        nn::vector result(input.size());
+        nn::vector result(input.size(), input.stream());
         switch (functionType) {
         case nn::TANH:
                 nn::math::tanh_derivative(input.size(), input, result);
@@ -46,7 +44,7 @@ static nn::vector _activation_derivative(
                 nn::math::ReLU_derivative(input.size(), input, result);
                 break;
         default:
-                throw LOGGER_EX("Activation function not implemented.");
+                throw nn::fatal_error("Activation function not implemented.");
         }
 
         return result;
@@ -57,88 +55,25 @@ namespace nn {
 fully_connected_layer::fully_connected_layer(
         uint32_t             previousLayerSize,
         uint32_t             layerSize,
-        function_type        functionType) :
-
-        m_w(previousLayerSize, layerSize, buf::HOST),
-        m_b(layerSize),
-        m_functionType(functionType)
-#ifdef BUILD_CUDA_SUPPORT
-        , m_stream(0)
-#endif // BUILD_CUDA_SUPPORT
-{
-
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_real_distribution<float> dis(-0.5f, 0.5f);
-
-        for (uint32_t i = 0; i < layerSize; i++)
-                for (uint32_t j = 0; j < previousLayerSize; j++)
-                        m_w[{i, j}] = dis(gen);
-
-#ifdef BUILD_CUDA_SUPPORT
-        m_w.move(m_w.size() > CUDA_MINIMUM ? buf::DEVICE : buf::HOST);
-#endif // BUILD_CUDA_SUPPORT
-        m_b.move(m_w.location());
-}
-
-fully_connected_layer::fully_connected_layer(
-        uint32_t             previousLayerSize,
-        uint32_t             layerSize,
         function_type        functionType,
-        std::istream         &encodedData) :
-
-        m_w(previousLayerSize, layerSize, buf::HOST),
-        m_b(layerSize),
-        m_functionType(functionType)
-#ifdef BUILD_CUDA_SUPPORT
-        , m_stream(0)
-#endif // BUILD_CUDA_SUPPORT
-{
-
-        uint32_t sizes[4]{};
-        encodedData.read((char *)sizes, 4 * sizeof(uint32_t));
-
-        if (sizes[0] != FULLY_CONNECTED || sizes[1] != functionType)
-                throw LOGGER_EX("Encoded layer infos does not match constructor info.");
-
-        if (previousLayerSize != sizes[2] || layerSize != sizes[3])
-                throw LOGGER_EX("Encoded sizes and constructor sizes parameters do not match.");
-
-        encodedData.read(
-                (char *)(float *)m_w.data(buf::HOST, true),
-                std::streamsize(m_w.size() * sizeof(float)));
-        encodedData.read(
-                (char *)(float *)m_b.data(buf::HOST, true),
-                std::streamsize(m_b.size() * sizeof(float)));
-
-#ifdef BUILD_CUDA_SUPPORT
-        m_w.move(m_w.size() > CUDA_MINIMUM ? buf::DEVICE : buf::HOST);
-#endif // BUILD_CUDA_SUPPORT
-        m_b.move(m_w.location());
-}
-
-#ifdef BUILD_CUDA_SUPPORT
-fully_connected_layer::fully_connected_layer(
-        uint32_t             previousLayerSize,
-        uint32_t             layerSize,
-        function_type        functionType,
-        cudaStream_t         stream) :
+        stream               stream) :
 
         m_w(previousLayerSize, layerSize, stream),
         m_b(layerSize, stream),
-        m_functionType(functionType),
-        m_stream(stream) {
+        m_functionType(functionType)
+#ifdef BUILD_CUDA_SUPPORT
+        , m_stream(stream)
+#endif // BUILD_CUDA_SUPPORT
+{
 
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_real_distribution<float> dis(-0.5f, 0.5f);
+        std::uniform_real_distribution dis(-0.5f, 0.5f);
 
-        // This is slow as m_w is allocated in the GPU, maybe a kernel could be
-        // created taking an array of random values.
-        // TODO
+        span tmp = m_w.data(buf::HOST, true);
         for (uint32_t i = 0; i < layerSize; i++)
                 for (uint32_t j = 0; j < previousLayerSize; j++)
-                        m_w[{i, j}] = dis(gen);
+                        tmp[i * m_w.width() + j] = dis(gen);
 }
 
 fully_connected_layer::fully_connected_layer(
@@ -146,21 +81,24 @@ fully_connected_layer::fully_connected_layer(
         uint32_t             layerSize,
         function_type        functionType,
         std::istream         &encodedData,
-        cudaStream_t         stream) :
+        stream               stream) :
 
         m_w(previousLayerSize, layerSize, stream),
         m_b(layerSize, stream),
-        m_functionType(functionType),
-        m_stream(stream) {
+        m_functionType(functionType)
+#ifdef BUILD_CUDA_SUPPORT
+        , m_stream(stream)
+#endif // BUILD_CUDA_SUPPORT
+{
 
         uint32_t sizes[4]{};
         encodedData.read((char *)sizes, 4 * sizeof(uint32_t));
 
         if (sizes[0] != FULLY_CONNECTED || sizes[1] != functionType)
-                throw LOGGER_EX("Encoded layer infos does not match constructor info.");
+                throw fatal_error("Encoded layer infos does not match constructor info.");
 
         if (previousLayerSize != sizes[2] || layerSize != sizes[3])
-                throw LOGGER_EX("Encoded sizes and constructor sizes parameters do not match.");
+                throw fatal_error("Encoded sizes and constructor sizes parameters do not match.");
 
         encodedData.read(
                 (char *)(float *)m_w.data(buf::HOST, true),
@@ -169,7 +107,6 @@ fully_connected_layer::fully_connected_layer(
                 (char *)(float *)m_b.data(buf::HOST, true),
                 std::streamsize(m_b.size() * sizeof(float)));
 }
-#endif // BUILD_CUDA_SUPPORT
 
 vector fully_connected_layer::forward(const vector &input) const
 {

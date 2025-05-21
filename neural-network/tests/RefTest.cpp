@@ -2,12 +2,11 @@
 
 #include <concepts>
 
+#include <neural-network/utils/exceptions.h>
 #include <neural-network/types/memory.h>
 
 #ifdef BUILD_CUDA_SUPPORT
-#include <cuda_runtime.h>
-
-#include <neural-network/cuda_base.h>
+#include <neural-network/utils/cuda.h>
 #endif // BUILD_CUDA_SUPPORT
 
 TEST(RefTest, TypeAliasesAreCorrectlyInitialized) {
@@ -18,11 +17,11 @@ TEST(RefTest, TypeAliasesAreCorrectlyInitialized) {
 }
 
 TEST(RefTest, ConstructorThrowsWithNullptrOnHost) {
-        EXPECT_THROW(nn::ref<float> r(nullptr, false), nn::logger::fatal_error);
+        EXPECT_THROW(nn::ref<float> r(nullptr, false), nn::fatal_error);
 }
 
 TEST(RefTest, ConstructorThrowsWithNullptrOnDevice) {
-        EXPECT_THROW(nn::ref<float> r(nullptr, true), nn::logger::fatal_error);
+        EXPECT_THROW(nn::ref<float> r(nullptr, true), nn::fatal_error);
 }
 
 TEST(RefTest, ConstructorDoesNotThrowWithValidPointerOnHost) {
@@ -35,16 +34,14 @@ TEST(RefTest, ConstructorDoesNotThrowWithValidPointerOnHost) {
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(RefTest, ConstructorDoesNotThrowWithValidPointerOnDevice) {
-        float *d_v;
-        CUDA_CHECK_ERROR(cudaMalloc(&d_v, sizeof(float)),
-                "Failed to allocate memory on the GPU.");
+        float *d_v = nn::cuda::alloc<float>();
 
         EXPECT_NO_THROW(nn::ref r(d_v, true));
 
         nn::ref r(d_v, true);
         EXPECT_EQ(&r, d_v);
 
-        CUDA_CHECK_ERROR(cudaFree(d_v), "Failed to free GPU memory.");
+        nn::cuda::free(d_v);
 }
 #endif // BUILD_CUDA_SUPPORT
 
@@ -87,22 +84,19 @@ TEST(RefTest, AssignmentOperatorCorrectlySetsValueInTheHost) {
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(RefTest, AssignmentOperatorCorrectlySetsValueInTheDevice) {
-        float *d_v;
-        CUDA_CHECK_ERROR(cudaMalloc(&d_v, sizeof(float)),
-                "Failed to allocate memory on the GPU.");
+        float *d_v = nn::cuda::alloc<float>();
         nn::ref r(d_v, true);
 
         EXPECT_NO_THROW(r = 12);
         EXPECT_EQ(r, 12);
 
         float v;
-        CUDA_CHECK_ERROR(cudaMemcpy(&v, d_v, sizeof(float),
-                cudaMemcpyDeviceToHost), "Failed to copy data from the GPU.");
+        nn::cuda::memcpy(&v, d_v, sizeof(float), cudaMemcpyDeviceToHost);
 
         EXPECT_EQ(v, 12);
         EXPECT_EQ(&r, d_v);
 
-        CUDA_CHECK_ERROR(cudaFree(d_v), "Failed to free GPU memory.");
+        nn::cuda::free(d_v);
 }
 #endif // BUILD_CUDA_SUPPORT
 

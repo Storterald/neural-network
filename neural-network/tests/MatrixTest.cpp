@@ -2,8 +2,8 @@
 
 #include <initializer_list>
 
+#include <neural-network/utils/exceptions.h>
 #include <neural-network/types/matrix.h>
-#include <neural-network/utils/logger.h>
 #include <neural-network/base.h>
 
 TEST(MatrixTest, DefaultConstructorInitializesEmptyData) {
@@ -38,7 +38,7 @@ TEST(MatrixTest, ConstructorWithInitializerListWorks) {
 #ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, ConstructorWithInitializerListThrowsIfSizesDontMatch) {
         const std::initializer_list<std::initializer_list<float>> values = { { 1, 2, 3, 4 }, { 5, 6, 7 } };
-        EXPECT_THROW(nn::matrix m(values), nn::logger::fatal_error);
+        EXPECT_THROW(nn::matrix m(values), nn::fatal_error);
 }
 #endif // DEBUG_MODE_ENABLED
 
@@ -52,7 +52,7 @@ TEST(MatrixTest, AccessOperator) {
 #ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, AccessOperatorThrowsIfIndexOutOfBounds) {
         nn::matrix m(10, 10);
-        EXPECT_THROW([[maybe_unused]] nn::ptr<float> value = m[10], nn::logger::fatal_error);
+        EXPECT_THROW([[maybe_unused]] nn::ptr<float> value = m[10], nn::fatal_error);
 }
 #endif // DEBUG_MODE_ENABLED
 
@@ -73,12 +73,12 @@ TEST(MatrixTest, PairAccessOperatorMatchesAccessOperator) {
 #ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, PairAccessOperatorThrowsIfRowIndexOutOfBounds) {
         nn::matrix m(10, 10);
-        EXPECT_THROW([[maybe_unused]] float value = m[nn::matrix::indexer(10, 9)], nn::logger::fatal_error);
+        EXPECT_THROW([[maybe_unused]] float value = m[nn::matrix::indexer(10, 9)], nn::fatal_error);
 }
 
 TEST(MatrixTestDebug, PairAccessOperatorThrowsIfHeightIndexOutOfBounds) {
         nn::matrix m(10, 10);
-        EXPECT_THROW([[maybe_unused]] float value = m[nn::matrix::indexer(9, 10)], nn::logger::fatal_error);
+        EXPECT_THROW([[maybe_unused]] float value = m[nn::matrix::indexer(9, 10)], nn::fatal_error);
 }
 #endif // DEBUG_MODE_ENABLED
 
@@ -92,7 +92,7 @@ TEST(MatrixTest, AtFunction) {
 #ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, AtFunctionThrowsIfIndexOutOfBounds) {
         const nn::matrix m(10, 10);
-        EXPECT_THROW([[maybe_unused]] nn::ptr value = m.at(10), nn::logger::fatal_error);
+        EXPECT_THROW([[maybe_unused]] nn::ptr value = m.at(10), nn::fatal_error);
 }
 #endif // DEBUG_MODE_ENABLED
 
@@ -113,12 +113,12 @@ TEST(MatrixTest, PairAtFunctionMatchesAtFunction) {
 #ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, PairAtFunctionThrowsIfRowIndexOutOfBounds) {
         const nn::matrix m(10, 10);
-        EXPECT_THROW([[maybe_unused]] float value = m.at(10, 9), nn::logger::fatal_error);
+        EXPECT_THROW([[maybe_unused]] float value = m.at(10, 9), nn::fatal_error);
 }
 
 TEST(MatrixTestDebug, PairAtFunctionThrowsIfHeightIndexOutOfBounds) {
         const nn::matrix m(10, 10);
-        EXPECT_THROW([[maybe_unused]] float value = m.at(9, 10), nn::logger::fatal_error);
+        EXPECT_THROW([[maybe_unused]] float value = m.at(9, 10), nn::fatal_error);
 }
 #endif // DEBUG_MODE_ENABLED
 
@@ -133,13 +133,13 @@ TEST(MatrixTest, AdditionOperator) {
 TEST(MatrixTestDebug, AdditionOperatorThrowsIfWidthDoesNotMatch) {
         const nn::matrix m1 = { { 1, 2 }, { 3, 4 } };
         const nn::matrix m2 = { { 5, 6, 7 }, { 8, 9, 10 } };
-        EXPECT_THROW(nn::matrix value = m1 + m2, nn::logger::fatal_error);
+        EXPECT_THROW(nn::matrix value = m1 + m2, nn::fatal_error);
 }
 
 TEST(MatrixTestDebug, AdditionOperatorThrowsIfHeightDoesNotMatch) {
         const nn::matrix m1 = { { 1, 2 }, { 3, 4 } };
         const nn::matrix m2 = { { 5, 6 }, { 7, 8 }, { 9, 10 } };
-        EXPECT_THROW(nn::matrix value = m1 + m2, nn::logger::fatal_error);
+        EXPECT_THROW(nn::matrix value = m1 + m2, nn::fatal_error);
 }
 #endif // DEBUG_MODE_ENABLED
 
@@ -154,13 +154,13 @@ TEST(MatrixTest, AdditionAssignmentOperator) {
 TEST(MatrixTestDebug, AdditionAssignmentOperatorThrowsIfWidthDoesNotMatch) {
         nn::matrix m1       = { { 1, 2 }, { 3, 4 } };
         const nn::matrix m2 = { { 5, 6, 7 }, { 8, 9, 10 } };
-        EXPECT_THROW(m1 += m2, nn::logger::fatal_error);
+        EXPECT_THROW(m1 += m2, nn::fatal_error);
 }
 
 TEST(MatrixTestDebug, AdditionAssignmentOperatorThrowsIfHeightDoesNotMatch) {
         nn::matrix m1       = { { 1, 2 }, { 3, 4 } };
         const nn::matrix m2 = { { 5, 6 }, { 7, 8 }, { 9, 10 } };
-        EXPECT_THROW(m1 += m2, nn::logger::fatal_error);
+        EXPECT_THROW(m1 += m2, nn::fatal_error);
 }
 #endif // DEBUG_MODE_ENABLED
 
@@ -187,13 +187,13 @@ TEST(MatrixTest, SubtractionOperator) {
 TEST(MatrixTestDebug, SubtractionOperatorThrowsIfWidthDoesNotMatch) {
         const nn::matrix m1 = { { 1, 2 }, { 3, 4 }};
         const nn::matrix m2 = { { 5, 6, 7 }, { 8, 9, 10 }};
-        EXPECT_THROW(nn::matrix value = m1 - m2, nn::logger::fatal_error);
+        EXPECT_THROW(nn::matrix value = m1 - m2, nn::fatal_error);
 }
 
 TEST(MatrixTestDebug, SubtractionOperatorThrowsIfHeightDoesNotMatch) {
         const nn::matrix m1 = { { 1, 2 }, { 3, 4 } };
         const nn::matrix m2 = { { 5, 6 }, { 7, 8 }, { 9, 10 } };
-        EXPECT_THROW(nn::matrix value = m1 - m2, nn::logger::fatal_error);
+        EXPECT_THROW(nn::matrix value = m1 - m2, nn::fatal_error);
 }
 #endif // DEBUG_MODE_ENABLED
 
@@ -208,13 +208,13 @@ TEST(MatrixTest, SubtractionAssignmentOperator) {
 TEST(MatrixTestDebug, SubtractionAssignmentOperatorThrowsIfWidthDoesNotMatch) {
         nn::matrix m1       = { { 1, 2 }, { 3, 4 } };
         const nn::matrix m2 = { { 5, 6, 7 }, { 8, 9, 10 } };
-        EXPECT_THROW(m1 -= m2, nn::logger::fatal_error);
+        EXPECT_THROW(m1 -= m2, nn::fatal_error);
 }
 
 TEST(MatrixTestDebug, SubtractionAssignmentOperatorThrowsIfHeightDoesNotMatch) {
         nn::matrix m1       = { { 1, 2 }, { 3, 4 } };
         const nn::matrix m2 = { { 5, 6 }, { 7, 8 }, { 9, 10 } };
-        EXPECT_THROW(m1 -= m2, nn::logger::fatal_error);
+        EXPECT_THROW(m1 -= m2, nn::fatal_error);
 }
 #endif // DEBUG_MODE_ENABLED
 
@@ -251,7 +251,7 @@ TEST(MatrixTest, ScalarDivisionOperator) {
 #ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, ScalarDivisionOperatorThrowsIfValueIs0) {
         nn::matrix m = { { 6, 8 }, { 10, 12 } };
-        EXPECT_THROW(nn::matrix value = m / 0, nn::logger::fatal_error);
+        EXPECT_THROW(nn::matrix value = m / 0, nn::fatal_error);
 }
 #endif // DEBUG_MODE_ENABLED
 
@@ -264,7 +264,7 @@ TEST(MatrixTest, ScalarDivisionAssignmentOperator) {
 #ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, ScalarDivisionAssignmentOperatorThrowsIfValueIs0) {
         nn::matrix m = { { 6, 8 }, { 10, 12 } };
-        EXPECT_THROW(m /= 0, nn::logger::fatal_error);
+        EXPECT_THROW(m /= 0, nn::fatal_error);
 }
 #endif // DEBUG_MODE_ENABLED
 
@@ -279,6 +279,6 @@ TEST(MatrixTest, VectorMultiplicationOperator) {
 TEST(MatrixTestDebug, VectorMultiplicationOperatorThrowsIfVectorSizeDoesNotMatchMatrixWidth) {
         const nn::matrix m = { { 1, 2, 1, 1 }, { 0, 1, 0, 1 }, { 2, 3, 4, 1 } };
         const nn::vector v = { 2, 6, 1 };
-        EXPECT_THROW(nn::vector value = m * v, nn::logger::fatal_error);
+        EXPECT_THROW(nn::vector value = m * v, nn::fatal_error);
 }
 #endif // DEBUG_MODE_ENABLED

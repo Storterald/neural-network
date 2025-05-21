@@ -2,12 +2,11 @@
 
 #include <concepts>
 
+#include <neural-network/utils/exceptions.h>
 #include <neural-network/types/memory.h>
 
 #ifdef BUILD_CUDA_SUPPORT
-#include <cuda_runtime.h>
-
-#include <neural-network/cuda_base.h>
+#include <neural-network/utils/cuda.h>
 #endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, TypeAliasesAreCorrectlyInitialized) {
@@ -51,9 +50,7 @@ TEST(PtrTest, ConstructorWorksWithValidPointerOnHost) {
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, ConstructorWorksWithValidPointerOnDevice) {
-        float *d_v;
-        CUDA_CHECK_ERROR(cudaMalloc(&d_v, sizeof(float)),
-                "Failed to allocate memory on the GPU.");
+        float *d_v = nn::cuda::alloc<float>();
 
         EXPECT_NO_THROW(nn::ptr p(d_v, true));
 
@@ -62,7 +59,7 @@ TEST(PtrTest, ConstructorWorksWithValidPointerOnDevice) {
         EXPECT_TRUE(p.is_device());
         EXPECT_TRUE((std::same_as<decltype(p)::value_type, float>));
 
-        CUDA_CHECK_ERROR(cudaFree(d_v), "Failed to free GPU memory.");
+        nn::cuda::free(d_v);
 }
 #endif // BUILD_CUDA_SUPPORT
 
@@ -75,16 +72,13 @@ TEST(PtrTest, ConstructorSavesValueOnHostWithPointerOnHost) {
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, ConstructorSavesValueOnHostWithPointerOnDevice) {
         float v = 13;
-        float *d_v;
-        CUDA_CHECK_ERROR(cudaMalloc(&d_v, sizeof(float)),
-                "Failed to allocate memory on the GPU.");
-        CUDA_CHECK_ERROR(cudaMemcpy(d_v, &v, sizeof(float),
-                cudaMemcpyHostToDevice), "Failed to copy data to the GPU.");
+        float *d_v = nn::cuda::alloc<float>();
+        nn::cuda::memcpy(d_v, &v, sizeof(float), cudaMemcpyHostToDevice);
 
         const nn::ptr p(d_v, true);
         EXPECT_EQ(*p, v);
 
-        CUDA_CHECK_ERROR(cudaFree(d_v), "Failed to free GPU memory.");
+        nn::cuda::free(d_v);
 }
 #endif // BUILD_CUDA_SUPPORT
 
@@ -131,11 +125,8 @@ TEST(PtrTest, CopyConstructorWorksWithValidPointerOnHost) {
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, CopyConstructorWorksWithValidPointerOnDevice) {
         float v = 13;
-        float *d_v;
-        CUDA_CHECK_ERROR(cudaMalloc(&d_v, sizeof(float)),
-                "Failed to allocate memory on the GPU.");
-        CUDA_CHECK_ERROR(cudaMemcpy(d_v, &v, sizeof(float),
-                cudaMemcpyHostToDevice), "Failed to copy data to the GPU.");
+        float *d_v = nn::cuda::alloc<float>();
+        nn::cuda::memcpy(d_v, &v, sizeof(float), cudaMemcpyHostToDevice);
 
         const nn::ptr p(d_v, true);
 
@@ -146,7 +137,7 @@ TEST(PtrTest, CopyConstructorWorksWithValidPointerOnDevice) {
         EXPECT_TRUE(copy.is_device());
         EXPECT_EQ(*copy, v);
 
-        CUDA_CHECK_ERROR(cudaFree(d_v), "Failed to free GPU memory.");
+        nn::cuda::free(d_v);
 }
 #endif // BUILD_CUDA_SUPPORT
 
@@ -181,11 +172,8 @@ TEST(PtrTest, MoveConstructorWorksWithValidPointerOnHost) {
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, MoveConstructorWorksWithValidPointerOnDevice) {
         float v = 13;
-        float *d_v;
-        CUDA_CHECK_ERROR(cudaMalloc(&d_v, sizeof(float)),
-                "Failed to allocate memory on the GPU.");
-        CUDA_CHECK_ERROR(cudaMemcpy(d_v, &v, sizeof(float),
-                cudaMemcpyHostToDevice), "Failed to copy data to the GPU.");
+        float *d_v = nn::cuda::alloc<float>();
+        nn::cuda::memcpy(d_v, &v, sizeof(float), cudaMemcpyHostToDevice);
 
         EXPECT_NO_THROW(nn::ptr p(nn::ptr(d_v, true)));
 
@@ -194,7 +182,7 @@ TEST(PtrTest, MoveConstructorWorksWithValidPointerOnDevice) {
         EXPECT_TRUE(p.is_device());
         EXPECT_EQ(*p, v);
 
-        CUDA_CHECK_ERROR(cudaFree(d_v), "Failed to free GPU memory.");
+        nn::cuda::free(d_v);
 }
 #endif // BUILD_CUDA_SUPPORT
 
@@ -233,11 +221,8 @@ TEST(PtrTest, CopyAssignmentOperatorWorksWithValidPointerOnHost) {
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, CopyAssignmentOperatorWorksWithValidPointerOnDevice) {
         float v = 13;
-        float *d_v;
-        CUDA_CHECK_ERROR(cudaMalloc(&d_v, sizeof(float)),
-                "Failed to allocate memory on the GPU.");
-        CUDA_CHECK_ERROR(cudaMemcpy(d_v, &v, sizeof(float),
-                cudaMemcpyHostToDevice), "Failed to copy data to the GPU.");
+        float *d_v = nn::cuda::alloc<float>();
+        nn::cuda::memcpy(d_v, &v, sizeof(float), cudaMemcpyHostToDevice);
 
         const nn::ptr p(d_v, true);
         nn::ptr<float> copy(nullptr, true);
@@ -247,7 +232,7 @@ TEST(PtrTest, CopyAssignmentOperatorWorksWithValidPointerOnDevice) {
         EXPECT_TRUE(copy.is_device());
         EXPECT_EQ(*copy, v);
 
-        CUDA_CHECK_ERROR(cudaFree(d_v), "Failed to free GPU memory.");
+        nn::cuda::free(d_v);
 }
 #endif // BUILD_CUDA_SUPPORT
 
@@ -282,11 +267,8 @@ TEST(PtrTest, MoveAssignmentOperatorWorksWithValidPointerOnHost) {
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, MoveAssignmentOperatorWorksWithValidPointerOnDevice) {
         float v = 13;
-        float *d_v;
-        CUDA_CHECK_ERROR(cudaMalloc(&d_v, sizeof(float)),
-                "Failed to allocate memory on the GPU.");
-        CUDA_CHECK_ERROR(cudaMemcpy(d_v, &v, sizeof(float),
-                cudaMemcpyHostToDevice), "Failed to copy data to the GPU.");
+        float *d_v = nn::cuda::alloc<float>();
+        nn::cuda::memcpy(d_v, &v, sizeof(float), cudaMemcpyHostToDevice);
 
         nn::ptr<float> p(nullptr, true);
         EXPECT_NO_THROW(p = nn::ptr(d_v, true));
@@ -295,7 +277,7 @@ TEST(PtrTest, MoveAssignmentOperatorWorksWithValidPointerOnDevice) {
         EXPECT_TRUE(p.is_device());
         EXPECT_EQ(*p, v);
 
-        CUDA_CHECK_ERROR(cudaFree(d_v), "Failed to free GPU memory.");
+        nn::cuda::free(d_v);
 }
 #endif // BUILD_CUDA_SUPPORT
 
@@ -310,9 +292,7 @@ TEST(PtrTest, ComparisonOperatorsWorksWithEqualPointersBothOnHost) {
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, ComparisonOperatorsWorksWithEqualPointersBothOnDevice) {
-        float *d_v;
-        CUDA_CHECK_ERROR(cudaMalloc(&d_v, sizeof(float)),
-                "Failed to allocate memory on the GPU.");
+        float *d_v = nn::cuda::alloc<float>();
 
         const nn::ptr a(d_v, true);
         const nn::ptr b(d_v, true);
@@ -320,7 +300,7 @@ TEST(PtrTest, ComparisonOperatorsWorksWithEqualPointersBothOnDevice) {
         EXPECT_TRUE(a == b);
         EXPECT_FALSE(a != b);
 
-        CUDA_CHECK_ERROR(cudaFree(d_v), "Failed to free GPU memory.");
+        nn::cuda::free(d_v);
 }
 #endif // BUILD_CUDA_SUPPORT
 
@@ -336,13 +316,8 @@ TEST(PtrTest, ComparisonOperatorsWorksWithDifferentPointersBothOnHost) {
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, ComparisonOperatorsWorksWithDifferentPointersBothOnDevice) {
-        float *d_v1;
-        CUDA_CHECK_ERROR(cudaMalloc(&d_v1, sizeof(float)),
-                "Failed to allocate memory on the GPU.");
-
-        float *d_v2;
-        CUDA_CHECK_ERROR(cudaMalloc(&d_v2, sizeof(float)),
-                "Failed to allocate memory on the GPU.");
+        float *d_v1 = nn::cuda::alloc<float>();
+        float *d_v2 = nn::cuda::alloc<float>();
 
         const nn::ptr a(d_v1, true);
         const nn::ptr b(d_v2, true);
@@ -350,17 +325,15 @@ TEST(PtrTest, ComparisonOperatorsWorksWithDifferentPointersBothOnDevice) {
         EXPECT_FALSE(a == b);
         EXPECT_TRUE(a != b);
 
-        CUDA_CHECK_ERROR(cudaFree(d_v1), "Failed to free GPU memory.");
-        CUDA_CHECK_ERROR(cudaFree(d_v2), "Failed to free GPU memory.");
+        nn::cuda::free(d_v1);
+        nn::cuda::free(d_v2);
 }
 #endif // BUILD_CUDA_SUPPORT
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, ComparisonOperatorsWorksWithDifferentPointersOnHostAndOnDevice) {
         float v;
-        float *d_v;
-        CUDA_CHECK_ERROR(cudaMalloc(&d_v, sizeof(float)),
-                "Failed to allocate memory on the GPU.");
+        float *d_v = nn::cuda::alloc<float>();
 
         const nn::ptr a(&v, false);
         const nn::ptr b(d_v, true);
@@ -368,7 +341,7 @@ TEST(PtrTest, ComparisonOperatorsWorksWithDifferentPointersOnHostAndOnDevice) {
         EXPECT_FALSE(a == b);
         EXPECT_TRUE(a != b);
 
-        CUDA_CHECK_ERROR(cudaFree(d_v), "Failed to free GPU memory.");
+        nn::cuda::free(d_v);
 }
 #endif // BUILD_CUDA_SUPPORT
 
@@ -382,16 +355,14 @@ TEST(PtrTest, RawComparisonOperatorsWorksWithEqualPointersBothOnHost) {
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, RawComparisonOperatorsWorksWithEqualPointersBothOnDevice) {
-        float *d_v;
-        CUDA_CHECK_ERROR(cudaMalloc(&d_v, sizeof(float)),
-                "Failed to allocate memory on the GPU.");
+        float *d_v = nn::cuda::alloc<float>();
 
         const nn::ptr a(d_v, true);
 
         EXPECT_TRUE(a == d_v);
         EXPECT_FALSE(a != d_v);
 
-        CUDA_CHECK_ERROR(cudaFree(d_v), "Failed to free GPU memory.");
+        nn::cuda::free(d_v);
 }
 #endif // BUILD_CUDA_SUPPORT
 
@@ -406,37 +377,30 @@ TEST(PtrTest, RawComparisonOperatorsWorksWithDifferentPointersBothOnHost) {
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, RawComparisonOperatorsWorksWithDifferentPointersBothOnDevice) {
-        float *d_v1;
-        CUDA_CHECK_ERROR(cudaMalloc(&d_v1, sizeof(float)),
-                "Failed to allocate memory on the GPU.");
-
-        float *d_v2;
-        CUDA_CHECK_ERROR(cudaMalloc(&d_v2, sizeof(float)),
-                "Failed to allocate memory on the GPU.");
+        float *d_v1 = nn::cuda::alloc<float>();
+        float *d_v2 = nn::cuda::alloc<float>();
 
         const nn::ptr a(d_v1, true);
 
         EXPECT_FALSE(a == d_v2);
         EXPECT_TRUE(a != d_v2);
 
-        CUDA_CHECK_ERROR(cudaFree(d_v1), "Failed to free GPU memory.");
-        CUDA_CHECK_ERROR(cudaFree(d_v2), "Failed to free GPU memory.");
+        nn::cuda::free(d_v1);
+        nn::cuda::free(d_v2);
 }
 #endif // BUILD_CUDA_SUPPORT
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, RawComparisonOperatorsWorksWithDifferentPointersOnHostAndOnDevice) {
         float v;
-        float *d_v;
-        CUDA_CHECK_ERROR(cudaMalloc(&d_v, sizeof(float)),
-                "Failed to allocate memory on the GPU.");
+        float *d_v = nn::cuda::alloc<float>();
 
         const nn::ptr a(&v, false);
 
         EXPECT_FALSE(a == d_v);
         EXPECT_TRUE(a != d_v);
 
-        CUDA_CHECK_ERROR(cudaFree(d_v), "Failed to free GPU memory.");
+        nn::cuda::free(d_v);
 }
 #endif // BUILD_CUDA_SUPPORT
 
@@ -452,7 +416,7 @@ TEST(PtrTest, DereferenceOperatorReturnsValidRefWithValidPointer) {
 
 TEST(PtrTest, DereferenceOperatorThrowsWithNullptr) {
         nn::ptr<float> ptr(nullptr, false);
-        EXPECT_THROW([[maybe_unused]] nn::ref r = *ptr, nn::logger::fatal_error);
+        EXPECT_THROW([[maybe_unused]] nn::ref r = *ptr, nn::fatal_error);
 }
 
 TEST(PtrTest, DereferenceOperatorReturnsRefWithTheSameValueTypeAsThePointer) {
@@ -483,7 +447,7 @@ TEST(PtrTest, IndexerOperatorReturnsValidRefWithValidPointer) {
 
 TEST(PtrTest, IndexerOperatorThrowsWithNullptr) {
         const nn::ptr<float> ptr(nullptr, false);
-        EXPECT_THROW([[maybe_unused]] nn::ref r = ptr[0], nn::logger::fatal_error);
+        EXPECT_THROW([[maybe_unused]] nn::ref r = ptr[0], nn::fatal_error);
 }
 
 TEST(PtrTest, SumOperatorReturnsNewValidPointer) {

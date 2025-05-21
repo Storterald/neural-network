@@ -11,6 +11,7 @@
 #include <neural-network/network/layer.h>
 #include <neural-network/types/matrix.h>
 #include <neural-network/types/vector.h>
+#include <neural-network/base.h>
 
 namespace nn {
 
@@ -19,28 +20,15 @@ public:
         fully_connected_layer(
                 uint32_t             previousLayerSize,
                 uint32_t             layerSize,
-                function_type        functionType);
-
-        fully_connected_layer(
-                uint32_t             previousLayerSize,
-                uint32_t             layerSize,
                 function_type        functionType,
-                std::istream         &encodedData);
-
-#ifdef BUILD_CUDA_SUPPORT
-        fully_connected_layer(
-                uint32_t             previousLayerSize,
-                uint32_t             layerSize,
-                function_type        functionType,
-                cudaStream_t         stream);
+                stream               stream = invalid_stream);
 
         fully_connected_layer(
                 uint32_t             previousLayerSize,
                 uint32_t             layerSize,
                 function_type        functionType,
                 std::istream         &encodedData,
-                cudaStream_t         stream);
-#endif // BUILD_CUDA_SUPPORT
+                stream               stream = invalid_stream);
 
         [[nodiscard]] vector forward(const vector &input) const override;
         [[nodiscard]] vector backward(const vector &cost, const vector &input) override;
@@ -56,7 +44,7 @@ private:
 #ifdef BUILD_CUDA_SUPPORT
         stream                         m_stream;
 #else
-        static constexpr stream        m_stream = 0;
+        static constexpr stream        m_stream = invalid_stream;
 #endif // BUILD_CUDA_SUPPORT
         matrix                         m_w;
         vector                         m_b;

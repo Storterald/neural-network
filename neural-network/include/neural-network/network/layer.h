@@ -1,13 +1,11 @@
 #pragma once
 
-#ifdef BUILD_CUDA_SUPPORT
-#include <driver_types.h> // cudaStream_t
-#endif // BUILD_CUDA_SUPPORT
-
+#include <iostream>
 #include <cstdint>
 #include <memory>
 
 #include <neural-network/types/vector.h>
+#include <neural-network/base.h>
 
 namespace nn {
 
@@ -31,29 +29,16 @@ struct layer_create_info {
 
 class layer {
 public:
-        // TODO templates... maybe?
-
         static std::unique_ptr<layer> create(
                 uint32_t                       previousLayerSize,
-                const layer_create_info        &layerInfo);
+                const layer_create_info        &layerInfo,
+                stream                         stream = invalid_stream);
 
         static std::unique_ptr<layer> create(
                 uint32_t                       previousLayerSize,
                 const layer_create_info        &layerInfo,
-                std::ifstream                  &inputFile);
-
-#ifdef BUILD_CUDA_SUPPORT
-                static std::unique_ptr<layer> create(
-                        uint32_t                       previousLayerSize,
-                        const layer_create_info        &layerInfo,
-                        cudaStream_t                   stream);
-
-                static std::unique_ptr<layer> create(
-                        uint32_t                       previousLayerSize,
-                        const layer_create_info        &layerInfo,
-                        std::ifstream                  &inputFile,
-                        cudaStream_t                   stream);
-#endif // BUILD_CUDA_SUPPORT
+                std::istream                   &inputStream,
+                stream                         stream = invalid_stream);
 
         [[nodiscard]] virtual vector forward(const vector &input) const = 0;
         virtual vector backward(const vector &cost, const vector &input) = 0;

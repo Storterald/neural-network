@@ -3,17 +3,9 @@
 #include <string_view>
 #include <filesystem>
 #include <stdexcept>
-#include <iostream>
 #include <format>
 #include <string>
 #include <ctime>
-
-static constexpr std::string_view CONVERTER[4] {
-        "INFO ",
-        "DEBUG",
-        "ERROR",
-        "FATAL"
-};
 
 static std::string _time()
 {
@@ -62,8 +54,16 @@ logger &logger::set_print_on_fatal(bool value)
         return *this;
 }
 
-std::string logger::pref(log_type type, std::string_view file, int line) {
-        return std::format("{} {} {}:{} ", _time(), CONVERTER[type], file, line);
+std::string logger::pref(log_type type)
+{
+        constexpr std::string_view conv[4] {
+                "INFO ",
+                "DEBUG",
+                "ERROR",
+                "FATAL"
+        };
+
+        return std::format("{} {} ", _time(), conv[type]);
 }
 
 void logger::_update_file()
@@ -76,14 +76,6 @@ void logger::_update_file()
                 if (!m_file)
                         throw std::runtime_error("Could not open log file.");
         }
-}
-
-logger::fatal_error::fatal_error(const std::string &message)
-{
-        if (logger::log().m_printOnFatal)
-                std::cout << message << std::endl;
-
-        logger::log().m_file << message << std::endl;
 }
 
 } // namespace nn

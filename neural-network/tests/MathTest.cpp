@@ -7,7 +7,9 @@
 #include <neural-network/intrinsic/intrinsic.h>
 #include <neural-network/types/matrix.h> // used for easier test of the matvec_mul function
 #include <neural-network/types/vector.h> // used as a device memory container
-#include "../src/math/_math.h"
+#include "../src/math/_math_normal.h"
+#include "../src/math/_math_simd.h"
+#include "../src/math/_math_cuda.h"
 
 #define EXPECT_EQ_FLOAT_VEC(expected, actual, thresh)                   \
 do {                                                                    \
@@ -22,7 +24,7 @@ TEST(MathTest, Sum) {
         float v2[COUNT] = { 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_NORMAL>::sum(COUNT, v1, v2, result.data());
+        nn::_math_normal::sum(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -42,7 +44,7 @@ TEST(SSETest, SumPrecise) {
         float v2[COUNT] = { 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::sum(COUNT, v1, v2, result.data());
+        nn::_math_simd::sum<nn::simd::m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -61,7 +63,7 @@ TEST(SSETest, SumLess) {
         float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::sum(COUNT, v1, v2, result.data());
+        nn::_math_simd::sum<nn::simd::m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -80,7 +82,7 @@ TEST(SSETest, SumMore) {
         float v2[COUNT] = { 8, 9, 10, 11, 12, 13, 14 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::sum(COUNT, v1, v2, result.data());
+        nn::_math_simd::sum<nn::simd::m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -99,7 +101,7 @@ TEST(AVXTest, SumPrecise) {
         float v2[COUNT] = { 5, 6, 7, 8, 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::sum(COUNT, v1, v2, result.data());
+        nn::_math_simd::sum<nn::simd::m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -118,7 +120,7 @@ TEST(AVXTest, SumLess) {
         float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::sum(COUNT, v1, v2, result.data());
+        nn::_math_simd::sum<nn::simd::m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -137,7 +139,7 @@ TEST(AVXTest, SumMore) {
         float v2[COUNT] = { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::sum(COUNT, v1, v2, result.data());
+        nn::_math_simd::sum<nn::simd::m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -156,7 +158,7 @@ TEST(AVX512Test, SumPrecise) {
         float v2[COUNT] = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::sum(COUNT, v1, v2, result.data());
+        nn::_math_simd::sum<nn::simd::m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -175,7 +177,7 @@ TEST(AVX512Test, SumLess) {
         float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::sum(COUNT, v1, v2, result.data());
+        nn::_math_simd::sum<nn::simd::m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -194,7 +196,7 @@ TEST(AVX512Test, SumMore) {
         float v2[COUNT] = { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::sum(COUNT, v1, v2, result.data());
+        nn::_math_simd::sum<nn::simd::m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -212,7 +214,7 @@ TEST(CudaTest, Sum) {
         nn::vector v2 = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
 
         nn::vector result(COUNT);
-        nn::_math<nn::MATH_CUDA>::sum(
+        nn::_math_cuda::sum(
                 COUNT, v1.view(nn::buf::DEVICE),
                 v2.view(nn::buf::DEVICE),
                 result.data(nn::buf::DEVICE, true), 0);
@@ -232,7 +234,7 @@ TEST(MathTest, Sub) {
         float v2[COUNT] = { 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_NORMAL>::sub(COUNT, v1, v2, result.data());
+        nn::_math_normal::sub(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -252,7 +254,7 @@ TEST(SSETest, SubPrecise) {
         float v2[COUNT] = { 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::sub(COUNT, v1, v2, result.data());
+        nn::_math_simd::sub<nn::simd::m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -271,7 +273,7 @@ TEST(SSETest, SubLess) {
         float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::sub(COUNT, v1, v2, result.data());
+        nn::_math_simd::sub<nn::simd::m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -290,7 +292,7 @@ TEST(SSETest, SubMore) {
         float v2[COUNT] = { 8, 9, 10, 11, 12, 13, 14 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::sub(COUNT, v1, v2, result.data());
+        nn::_math_simd::sub<nn::simd::m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -309,7 +311,7 @@ TEST(AVXTest, SubPrecise) {
         float v2[COUNT] = { 5, 6, 7, 8, 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::sub(COUNT, v1, v2, result.data());
+        nn::_math_simd::sub<nn::simd::m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -328,7 +330,7 @@ TEST(AVXTest, SubLess) {
         float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::sub(COUNT, v1, v2, result.data());
+        nn::_math_simd::sub<nn::simd::m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -347,7 +349,7 @@ TEST(AVXTest, SubMore) {
         float v2[COUNT] = { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::sub(COUNT, v1, v2, result.data());
+        nn::_math_simd::sub<nn::simd::m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -366,7 +368,7 @@ TEST(AVX512Test, SubPrecise) {
         float v2[COUNT] = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::sub(COUNT, v1, v2, result.data());
+        nn::_math_simd::sub<nn::simd::m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -385,7 +387,7 @@ TEST(AVX512Test, SubLess) {
         float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::sub(COUNT, v1, v2, result.data());
+        nn::_math_simd::sub<nn::simd::m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -404,7 +406,7 @@ TEST(AVX512Test, SubMore) {
         float v2[COUNT] = { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::sub(COUNT, v1, v2, result.data());
+        nn::_math_simd::sub<nn::simd::m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -422,7 +424,7 @@ TEST(CudaTest, Sub) {
         nn::vector v2 = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
 
         nn::vector result(COUNT);
-        nn::_math<nn::MATH_CUDA>::sub(
+        nn::_math_cuda::sub(
                 COUNT, v1.view(nn::buf::DEVICE),
                 v2.view(nn::buf::DEVICE),
                 result.data(nn::buf::DEVICE, true), 0);
@@ -442,7 +444,7 @@ TEST(MathTest, Mul) {
         float v2[COUNT] = { 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_NORMAL>::mul(COUNT, v1, v2, result.data());
+        nn::_math_normal::mul(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -462,7 +464,7 @@ TEST(SSETest, MulPrecise) {
         float v2[COUNT] = { 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::mul(COUNT, v1, v2, result.data());
+        nn::_math_simd::mul<nn::simd::m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -481,7 +483,7 @@ TEST(SSETest, MulLess) {
         float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::mul(COUNT, v1, v2, result.data());
+        nn::_math_simd::mul<nn::simd::m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -500,7 +502,7 @@ TEST(SSETest, MulMore) {
         float v2[COUNT] = { 8, 9, 10, 11, 12, 13, 14 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::mul(COUNT, v1, v2, result.data());
+        nn::_math_simd::mul<nn::simd::m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -519,7 +521,7 @@ TEST(AVXTest, MulPrecise) {
         float v2[COUNT] = { 5, 6, 7, 8, 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::mul(COUNT, v1, v2, result.data());
+        nn::_math_simd::mul<nn::simd::m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -538,7 +540,7 @@ TEST(AVXTest, MulLess) {
         float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::mul(COUNT, v1, v2, result.data());
+        nn::_math_simd::mul<nn::simd::m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -557,7 +559,7 @@ TEST(AVXTest, MulMore) {
         float v2[COUNT] = { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::mul(COUNT, v1, v2, result.data());
+        nn::_math_simd::mul<nn::simd::m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -576,7 +578,7 @@ TEST(AVX512Test, MulPrecise) {
         float v2[COUNT] = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::mul(COUNT, v1, v2, result.data());
+        nn::_math_simd::mul<nn::simd::m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -595,7 +597,7 @@ TEST(AVX512Test, MulLess) {
         float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::mul(COUNT, v1, v2, result.data());
+        nn::_math_simd::mul<nn::simd::m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -614,7 +616,7 @@ TEST(AVX512Test, MulMore) {
         float v2[COUNT] = { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::mul(COUNT, v1, v2, result.data());
+        nn::_math_simd::mul<nn::simd::m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -632,7 +634,7 @@ TEST(CudaTest, Mul) {
         nn::vector v2 = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
 
         nn::vector result(COUNT);
-        nn::_math<nn::MATH_CUDA>::mul(
+        nn::_math_cuda::mul(
                 COUNT, v1.view(nn::buf::DEVICE),
                 v2.view(nn::buf::DEVICE),
                 result.data(nn::buf::DEVICE, true), 0);
@@ -652,7 +654,7 @@ TEST(MathTest, Div) {
         float v2[COUNT] = { 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_NORMAL>::div(COUNT, v1, v2, result.data());
+        nn::_math_normal::div(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -672,7 +674,7 @@ TEST(SSETest, DivPrecise) {
         float v2[COUNT] = { 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::div(COUNT, v1, v2, result.data());
+        nn::_math_simd::div<nn::simd::m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -691,7 +693,7 @@ TEST(SSETest, DivLess) {
         float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::div(COUNT, v1, v2, result.data());
+        nn::_math_simd::div<nn::simd::m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -710,7 +712,7 @@ TEST(SSETest, DivMore) {
         float v2[COUNT] = { 8, 9, 10, 11, 12, 13, 14 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::div(COUNT, v1, v2, result.data());
+        nn::_math_simd::div<nn::simd::m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -729,7 +731,7 @@ TEST(AVXTest, DivPrecise) {
         float v2[COUNT] = { 5, 6, 7, 8, 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::div(COUNT, v1, v2, result.data());
+        nn::_math_simd::div<nn::simd::m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -748,7 +750,7 @@ TEST(AVXTest, DivLess) {
         float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::div(COUNT, v1, v2, result.data());
+        nn::_math_simd::div<nn::simd::m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -767,7 +769,7 @@ TEST(AVXTest, DivMore) {
         float v2[COUNT] = { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::div(COUNT, v1, v2, result.data());
+        nn::_math_simd::div<nn::simd::m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -786,7 +788,7 @@ TEST(AVX512Test, DivPrecise) {
         float v2[COUNT] = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::div(COUNT, v1, v2, result.data());
+        nn::_math_simd::div<nn::simd::m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -805,7 +807,7 @@ TEST(AVX512Test, DivLess) {
         float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::div(COUNT, v1, v2, result.data());
+        nn::_math_simd::div<nn::simd::m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -824,7 +826,7 @@ TEST(AVX512Test, DivMore) {
         float v2[COUNT] = { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::div(COUNT, v1, v2, result.data());
+        nn::_math_simd::div<nn::simd::m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -842,7 +844,7 @@ TEST(CudaTest, Div) {
         nn::vector v2 = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
 
         nn::vector result(COUNT);
-        nn::_math<nn::MATH_CUDA>::div(
+        nn::_math_cuda::div(
                 COUNT, v1.view(nn::buf::DEVICE),
                 v2.view(nn::buf::DEVICE),
                 result.data(nn::buf::DEVICE, true), 0);
@@ -862,7 +864,7 @@ TEST(MathTest, SumScalar) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_NORMAL>::sum(COUNT, data, scalar, result.data());
+        nn::_math_normal::sum(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -882,7 +884,7 @@ TEST(SSETest, SumScalarPrecise) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::sum(COUNT, data, scalar, result.data());
+        nn::_math_simd::sum<nn::simd::m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -901,7 +903,7 @@ TEST(SSETest, SumScalarLess) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::sum(COUNT, data, scalar, result.data());
+        nn::_math_simd::sum<nn::simd::m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -920,7 +922,7 @@ TEST(SSETest, SumScalarMore) {
         float scalar       = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::sum(COUNT, data, scalar, result.data());
+        nn::_math_simd::sum<nn::simd::m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -939,7 +941,7 @@ TEST(AVXTest, SumScalarPrecise) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::sum(COUNT, data, scalar, result.data());
+        nn::_math_simd::sum<nn::simd::m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -958,7 +960,7 @@ TEST(AVXTest, SumScalarLess) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::sum(COUNT, data, scalar, result.data());
+        nn::_math_simd::sum<nn::simd::m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -977,7 +979,7 @@ TEST(AVXTest, SumScalarMore) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::sum(COUNT, data, scalar, result.data());
+        nn::_math_simd::sum<nn::simd::m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -996,7 +998,7 @@ TEST(AVX512Test, SumScalarPrecise) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::sum(COUNT, data, scalar, result.data());
+        nn::_math_simd::sum<nn::simd::m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1015,7 +1017,7 @@ TEST(AVX512Test, SumScalarLess) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::sum(COUNT, data, scalar, result.data());
+        nn::_math_simd::sum<nn::simd::m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1034,7 +1036,7 @@ TEST(AVX512Test, SumScalarMore) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::sum(COUNT, data, scalar, result.data());
+        nn::_math_simd::sum<nn::simd::m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1052,7 +1054,7 @@ TEST(CudaTest, SumScalar) {
         float scalar = 3.0f;
 
         nn::vector result(COUNT);
-        nn::_math<nn::MATH_CUDA>::sum(
+        nn::_math_cuda::sum(
                 COUNT, data.view(nn::buf::DEVICE),
                 scalar, result.data(nn::buf::DEVICE, true), 0);
 
@@ -1071,7 +1073,7 @@ TEST(MathTest, SubScalar) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_NORMAL>::sub(COUNT, data, scalar, result.data());
+        nn::_math_normal::sub(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1091,7 +1093,7 @@ TEST(SSETest, SubScalarPrecise) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::sub(COUNT, data, scalar, result.data());
+        nn::_math_simd::sub<nn::simd::m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1110,7 +1112,7 @@ TEST(SSETest, SubScalarLess) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::sub(COUNT, data, scalar, result.data());
+        nn::_math_simd::sub<nn::simd::m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1129,7 +1131,7 @@ TEST(SSETest, SubScalarMore) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::sub(COUNT, data, scalar, result.data());
+        nn::_math_simd::sub<nn::simd::m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1148,7 +1150,7 @@ TEST(AVXTest, SubScalarPrecise) {
         float scalar    = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::sub(COUNT, data, scalar, result.data());
+        nn::_math_simd::sub<nn::simd::m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1167,7 +1169,7 @@ TEST(AVXTest, SubScalarLess) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::sub(COUNT, data, scalar, result.data());
+        nn::_math_simd::sub<nn::simd::m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1186,7 +1188,7 @@ TEST(AVXTest, SubScalarMore) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::sub(COUNT, data, scalar, result.data());
+        nn::_math_simd::sub<nn::simd::m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1205,7 +1207,7 @@ TEST(AVX512Test, SubScalarPrecise) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::sub(COUNT, data, scalar, result.data());
+        nn::_math_simd::sub<nn::simd::m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1224,7 +1226,7 @@ TEST(AVX512Test, SubScalarLess) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::sub(COUNT, data, scalar, result.data());
+        nn::_math_simd::sub<nn::simd::m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1243,7 +1245,7 @@ TEST(AVX512Test, SubScalarMore) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::sub(COUNT, data, scalar, result.data());
+        nn::_math_simd::sub<nn::simd::m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1261,7 +1263,7 @@ TEST(CudaTest, SubScalar) {
         float scalar = 3.0f;
 
         nn::vector result(COUNT);
-        nn::_math<nn::MATH_CUDA>::sub(
+        nn::_math_cuda::sub(
                 COUNT, data.view(nn::buf::DEVICE),
                 scalar, result.data(nn::buf::DEVICE, true), 0);
 
@@ -1280,7 +1282,7 @@ TEST(MathTest, MulScalar) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_NORMAL>::mul(COUNT, data, scalar, result.data());
+        nn::_math_normal::mul(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1300,7 +1302,7 @@ TEST(SSETest, MulScalarPrecise) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::mul(COUNT, data, scalar, result.data());
+        nn::_math_simd::mul<nn::simd::m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1319,7 +1321,7 @@ TEST(SSETest, MulScalarLess) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::mul(COUNT, data, scalar, result.data());
+        nn::_math_simd::mul<nn::simd::m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1338,7 +1340,7 @@ TEST(SSETest, MulScalarMore) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::mul(COUNT, data, scalar, result.data());
+        nn::_math_simd::mul<nn::simd::m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1357,7 +1359,7 @@ TEST(AVXTest, MulScalarPrecise) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::mul(COUNT, data, scalar, result.data());
+        nn::_math_simd::mul<nn::simd::m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1376,7 +1378,7 @@ TEST(AVXTest, MulScalarLess) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::mul(COUNT, data, scalar, result.data());
+        nn::_math_simd::mul<nn::simd::m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1395,7 +1397,7 @@ TEST(AVXTest, MulScalarMore) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::mul(COUNT, data, scalar, result.data());
+        nn::_math_simd::mul<nn::simd::m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1414,7 +1416,7 @@ TEST(AVX512Test, MulScalarPrecise) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::mul(COUNT, data, scalar, result.data());
+        nn::_math_simd::mul<nn::simd::m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1433,7 +1435,7 @@ TEST(AVX512Test, MulScalarLess) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::mul(COUNT, data, scalar, result.data());
+        nn::_math_simd::mul<nn::simd::m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1452,7 +1454,7 @@ TEST(AVX512Test, MulScalarMore) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::mul(COUNT, data, scalar, result.data());
+        nn::_math_simd::mul<nn::simd::m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1470,7 +1472,7 @@ TEST(CudaTest, MulScalar) {
         float scalar = 3.0f;
 
         nn::vector result(COUNT);
-        nn::_math<nn::MATH_CUDA>::mul(
+        nn::_math_cuda::mul(
                 COUNT, data.view(nn::buf::DEVICE),
                 scalar, result.data(nn::buf::DEVICE, true), 0);
 
@@ -1489,7 +1491,7 @@ TEST(MathTest, DivScalar) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_NORMAL>::div(COUNT, data, scalar, result.data());
+        nn::_math_normal::div(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1509,7 +1511,7 @@ TEST(SSETest, DivScalarPrecise) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::div(COUNT, data, scalar, result.data());
+        nn::_math_simd::div<nn::simd::m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1528,7 +1530,7 @@ TEST(SSETest, DivScalarLess) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::div(COUNT, data, scalar, result.data());
+        nn::_math_simd::div<nn::simd::m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1547,7 +1549,7 @@ TEST(SSETest, DivScalarMore) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::div(COUNT, data, scalar, result.data());
+        nn::_math_simd::div<nn::simd::m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1566,7 +1568,7 @@ TEST(AVXTest, DivScalarPrecise) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::div(COUNT, data, scalar, result.data());
+        nn::_math_simd::div<nn::simd::m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1585,7 +1587,7 @@ TEST(AVXTest, DivScalarLess) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::div(COUNT, data, scalar, result.data());
+        nn::_math_simd::div<nn::simd::m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1604,7 +1606,7 @@ TEST(AVXTest, DivScalarMore) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::div(COUNT, data, scalar, result.data());
+        nn::_math_simd::div<nn::simd::m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1623,7 +1625,7 @@ TEST(AVX512Test, DivScalarPrecise) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::div(COUNT, data, scalar, result.data());
+        nn::_math_simd::div<nn::simd::m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1642,7 +1644,7 @@ TEST(AVX512Test, DivScalarLess) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::div(COUNT, data, scalar, result.data());
+        nn::_math_simd::div<nn::simd::m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1661,7 +1663,7 @@ TEST(AVX512Test, DivScalarMore) {
         float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::div(COUNT, data, scalar, result.data());
+        nn::_math_simd::div<nn::simd::m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1679,7 +1681,7 @@ TEST(CudaTest, DivScalar) {
         float scalar = 3.0f;
 
         nn::vector result(COUNT);
-        nn::_math<nn::MATH_CUDA>::div(
+        nn::_math_cuda::div(
                 COUNT, data.view(nn::buf::DEVICE),
                 scalar, result.data(nn::buf::DEVICE, true), 0);
 
@@ -1697,7 +1699,7 @@ TEST(MathTest, Tanh) {
         float data[COUNT] = { 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_NORMAL>::tanh(COUNT, data, result.data());
+        nn::_math_normal::tanh(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1716,7 +1718,7 @@ TEST(SSETest, TanhPrecise) {
         float data[COUNT] = { 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::tanh(COUNT, data, result.data());
+        nn::_math_simd::tanh<nn::simd::m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1734,7 +1736,7 @@ TEST(SSETest, TanhLess) {
         float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::tanh(COUNT, data, result.data());
+        nn::_math_simd::tanh<nn::simd::m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1752,7 +1754,7 @@ TEST(SSETest, TanhMore) {
         float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::tanh(COUNT, data, result.data());
+        nn::_math_simd::tanh<nn::simd::m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1770,7 +1772,7 @@ TEST(AVXTest, TanhPrecise) {
         float data[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::tanh(COUNT, data, result.data());
+        nn::_math_simd::tanh<nn::simd::m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1788,7 +1790,7 @@ TEST(AVXTest, TanhLess) {
         float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::tanh(COUNT, data, result.data());
+        nn::_math_simd::tanh<nn::simd::m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1806,7 +1808,7 @@ TEST(AVXTest, TanhMore) {
         float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::tanh(COUNT, data, result.data());
+        nn::_math_simd::tanh<nn::simd::m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1824,7 +1826,7 @@ TEST(AVX512Test, TanhPrecise) {
         float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::tanh(COUNT, data, result.data());
+        nn::_math_simd::tanh<nn::simd::m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1842,7 +1844,7 @@ TEST(AVX512Test, TanhLess) {
         float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::tanh(COUNT, data, result.data());
+        nn::_math_simd::tanh<nn::simd::m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1860,7 +1862,7 @@ TEST(AVX512Test, TanhMore) {
         float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::tanh(COUNT, data, result.data());
+        nn::_math_simd::tanh<nn::simd::m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1877,7 +1879,7 @@ TEST(CudaTest, Tanh) {
         nn::vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
         nn::vector result(COUNT);
-        nn::_math<nn::MATH_CUDA>::tanh(
+        nn::_math_cuda::tanh(
                 COUNT, data.view(nn::buf::DEVICE),
                 result.data(nn::buf::DEVICE, true), 0);
 
@@ -1895,7 +1897,7 @@ TEST(MathTest, TanhDerivative) {
         float data[COUNT] = { 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_NORMAL>::tanh_derivative(COUNT, data, result.data());
+        nn::_math_normal::tanh_derivative(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -1916,7 +1918,7 @@ TEST(SSETest, TanhDerivativePrecise) {
         float data[COUNT] = { 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::tanh_derivative(COUNT, data, result.data());
+        nn::_math_simd::tanh_derivative<nn::simd::m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -1936,7 +1938,7 @@ TEST(SSETest, TanhDerivativeLess) {
         float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::tanh_derivative(COUNT, data, result.data());
+        nn::_math_simd::tanh_derivative<nn::simd::m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -1956,7 +1958,7 @@ TEST(SSETest, TanhDerivativeMore) {
         float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::tanh_derivative(COUNT, data, result.data());
+        nn::_math_simd::tanh_derivative<nn::simd::m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -1976,7 +1978,7 @@ TEST(AVXTest, TanhDerivativePrecise) {
         float data[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::tanh_derivative(COUNT, data, result.data());
+        nn::_math_simd::tanh_derivative<nn::simd::m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -1996,7 +1998,7 @@ TEST(AVXTest, TanhDerivativeLess) {
         float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::tanh_derivative(COUNT, data, result.data());
+        nn::_math_simd::tanh_derivative<nn::simd::m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -2016,7 +2018,7 @@ TEST(AVXTest, TanhDerivativeMore) {
         float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::tanh_derivative(COUNT, data, result.data());
+        nn::_math_simd::tanh_derivative<nn::simd::m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -2036,7 +2038,7 @@ TEST(AVX512Test, TanhDerivativePrecise) {
         float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::tanh_derivative(COUNT, data, result.data());
+        nn::_math_simd::tanh_derivative<nn::simd::m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -2056,7 +2058,7 @@ TEST(AVX512Test, TanhDerivativeLess) {
         float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::tanh_derivative(COUNT, data, result.data());
+        nn::_math_simd::tanh_derivative<nn::simd::m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -2076,7 +2078,7 @@ TEST(AVX512Test, TanhDerivativeMore) {
         float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::tanh_derivative(COUNT, data, result.data());
+        nn::_math_simd::tanh_derivative<nn::simd::m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -2095,7 +2097,7 @@ TEST(CudaTest, TanhDerivative) {
         nn::vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
         nn::vector result(COUNT);
-        nn::_math<nn::MATH_CUDA>::tanh_derivative(
+        nn::_math_cuda::tanh_derivative(
                 COUNT, data.view(nn::buf::DEVICE),
                 result.data(nn::buf::DEVICE, true), 0);
 
@@ -2115,7 +2117,7 @@ TEST(MathTest, ReLU) {
         float data[COUNT] = { 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_NORMAL>::ReLU(COUNT, data, result.data());
+        nn::_math_normal::ReLU(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2134,7 +2136,7 @@ TEST(SSETest, ReLUPrecise) {
         float data[COUNT] = { 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::ReLU(COUNT, data, result.data());
+        nn::_math_simd::ReLU<nn::simd::m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2152,7 +2154,7 @@ TEST(SSETest, ReLULess) {
         float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::ReLU(COUNT, data, result.data());
+        nn::_math_simd::ReLU<nn::simd::m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2170,7 +2172,7 @@ TEST(SSETest, ReLUMore) {
         float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::ReLU(COUNT, data, result.data());
+        nn::_math_simd::ReLU<nn::simd::m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2188,7 +2190,7 @@ TEST(AVXTest, ReLUPrecise) {
         float data[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::ReLU(COUNT, data, result.data());
+        nn::_math_simd::ReLU<nn::simd::m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2206,7 +2208,7 @@ TEST(AVXTest, ReLULess) {
         float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::ReLU(COUNT, data, result.data());
+        nn::_math_simd::ReLU<nn::simd::m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2224,7 +2226,7 @@ TEST(AVXTest, ReLUMore) {
         float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::ReLU(COUNT, data, result.data());
+        nn::_math_simd::ReLU<nn::simd::m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2242,7 +2244,7 @@ TEST(AVX512Test, ReLUPrecise) {
         float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::ReLU(COUNT, data, result.data());
+        nn::_math_simd::ReLU<nn::simd::m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2260,7 +2262,7 @@ TEST(AVX512Test, ReLULess) {
         float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::ReLU(COUNT, data, result.data());
+        nn::_math_simd::ReLU<nn::simd::m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2278,7 +2280,7 @@ TEST(AVX512Test, ReLUMore) {
         float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::ReLU(COUNT, data, result.data());
+        nn::_math_simd::ReLU<nn::simd::m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2295,7 +2297,7 @@ TEST(CudaTest, ReLU) {
         nn::vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
         nn::vector result(COUNT);
-        nn::_math<nn::MATH_CUDA>::ReLU(
+        nn::_math_cuda::ReLU(
                 COUNT, data.view(nn::buf::DEVICE),
                 result.data(nn::buf::DEVICE, true), 0);
 
@@ -2313,7 +2315,7 @@ TEST(MathTest, ReLUDerivative) {
         float data[COUNT] = { 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_NORMAL>::ReLU_derivative(COUNT, data, result.data());
+        nn::_math_normal::ReLU_derivative(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2332,7 +2334,7 @@ TEST(SSETest, ReLUDerivativePrecise) {
         float data[COUNT] = { 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::ReLU_derivative(COUNT, data, result.data());
+        nn::_math_simd::ReLU_derivative<nn::simd::m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2350,7 +2352,7 @@ TEST(SSETest, ReLUDerivativeLess) {
         float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::ReLU_derivative(COUNT, data, result.data());
+        nn::_math_simd::ReLU_derivative<nn::simd::m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2368,7 +2370,7 @@ TEST(SSETest, ReLUDerivativeMore) {
         float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::ReLU_derivative(COUNT, data, result.data());
+        nn::_math_simd::ReLU_derivative<nn::simd::m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2386,7 +2388,7 @@ TEST(AVXTest, ReLUDerivativePrecise) {
         float data[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::ReLU_derivative(COUNT, data, result.data());
+        nn::_math_simd::ReLU_derivative<nn::simd::m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2404,7 +2406,7 @@ TEST(AVXTest, ReLUDerivativeLess) {
         float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::ReLU_derivative(COUNT, data, result.data());
+        nn::_math_simd::ReLU_derivative<nn::simd::m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2422,7 +2424,7 @@ TEST(AVXTest, ReLUDerivativeMore) {
         float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::ReLU_derivative(COUNT, data, result.data());
+        nn::_math_simd::ReLU_derivative<nn::simd::m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2440,7 +2442,7 @@ TEST(AVX512Test, ReLUDerivativePrecise) {
         float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::ReLU_derivative(COUNT, data, result.data());
+        nn::_math_simd::ReLU_derivative<nn::simd::m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2458,7 +2460,7 @@ TEST(AVX512Test, ReLUDerivativeLess) {
         float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::ReLU_derivative(COUNT, data, result.data());
+        nn::_math_simd::ReLU_derivative<nn::simd::m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2476,7 +2478,7 @@ TEST(AVX512Test, ReLUDerivativeMore) {
         float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::ReLU_derivative(COUNT, data, result.data());
+        nn::_math_simd::ReLU_derivative<nn::simd::m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2493,7 +2495,7 @@ TEST(CudaTest, ReLUDerivative) {
         nn::vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
         nn::vector result(COUNT);
-        nn::_math<nn::MATH_CUDA>::ReLU_derivative(
+        nn::_math_cuda::ReLU_derivative(
                 COUNT, data.view(nn::buf::DEVICE),
                 result.data(nn::buf::DEVICE, true), 0);
 
@@ -2512,7 +2514,7 @@ TEST(MathTest, MinScalar) {
         float min         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_NORMAL>::min(COUNT, data, min, result.data());
+        nn::_math_normal::min(COUNT, data, min, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2532,7 +2534,7 @@ TEST(SSETest, MinScalarPrecise) {
         float min         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::min(COUNT, data, min, result.data());
+        nn::_math_simd::min<nn::simd::m128>(COUNT, data, min, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2551,7 +2553,7 @@ TEST(SSETest, MinScalarLess) {
         float min         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::min(COUNT, data, min, result.data());
+        nn::_math_simd::min<nn::simd::m128>(COUNT, data, min, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2570,7 +2572,7 @@ TEST(SSETest, MinScalarMore) {
         float min         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::min(COUNT, data, min, result.data());
+        nn::_math_simd::min<nn::simd::m128>(COUNT, data, min, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2589,7 +2591,7 @@ TEST(AVXTest, MinScalarPrecise) {
         float min         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::min(COUNT, data, min, result.data());
+        nn::_math_simd::min<nn::simd::m256>(COUNT, data, min, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2608,7 +2610,7 @@ TEST(AVXTest, MinScalarLess) {
         float min         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::min(COUNT, data, min, result.data());
+        nn::_math_simd::min<nn::simd::m256>(COUNT, data, min, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2627,7 +2629,7 @@ TEST(AVXTest, MinScalarMore) {
         float min         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::min(COUNT, data, min, result.data());
+        nn::_math_simd::min<nn::simd::m256>(COUNT, data, min, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2646,7 +2648,7 @@ TEST(AVX512Test, MinScalarPrecise) {
         float min         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::min(COUNT, data, min, result.data());
+        nn::_math_simd::min<nn::simd::m512>(COUNT, data, min, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2665,7 +2667,7 @@ TEST(AVX512Test, MinScalarLess) {
         float min         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::min(COUNT, data, min, result.data());
+        nn::_math_simd::min<nn::simd::m512>(COUNT, data, min, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2684,7 +2686,7 @@ TEST(AVX512Test, MinScalarMore) {
         float min         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::min(COUNT, data, min, result.data());
+        nn::_math_simd::min<nn::simd::m512>(COUNT, data, min, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2702,7 +2704,7 @@ TEST(CudaTest, MinScalar) {
         float min   = 3.0f;
 
         nn::vector result(COUNT);
-        nn::_math<nn::MATH_CUDA>::min(
+        nn::_math_cuda::min(
                 COUNT, data.view(nn::buf::DEVICE),
                 min, result.data(nn::buf::DEVICE, true), 0);
 
@@ -2721,7 +2723,7 @@ TEST(MathTest, MaxScalar) {
         float max         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_NORMAL>::max(COUNT, data, max, result.data());
+        nn::_math_normal::max(COUNT, data, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2741,7 +2743,7 @@ TEST(SSETest, MaxScalarPrecise) {
         float max         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::max(COUNT, data, max, result.data());
+        nn::_math_simd::max<nn::simd::m128>(COUNT, data, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2760,7 +2762,7 @@ TEST(SSETest, MaxScalarLess) {
         float max         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::max(COUNT, data, max, result.data());
+        nn::_math_simd::max<nn::simd::m128>(COUNT, data, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2779,7 +2781,7 @@ TEST(SSETest, MaxScalarMore) {
         float max         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::max(COUNT, data, max, result.data());
+        nn::_math_simd::max<nn::simd::m128>(COUNT, data, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2798,7 +2800,7 @@ TEST(AVXTest, MaxScalarPrecise) {
         float max         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::max(COUNT, data, max, result.data());
+        nn::_math_simd::max<nn::simd::m256>(COUNT, data, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2817,7 +2819,7 @@ TEST(AVXTest, MaxScalarLess) {
         float max         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::max(COUNT, data, max, result.data());
+        nn::_math_simd::max<nn::simd::m256>(COUNT, data, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2836,7 +2838,7 @@ TEST(AVXTest, MaxScalarMore) {
         float max         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::max(COUNT, data, max, result.data());
+        nn::_math_simd::max<nn::simd::m256>(COUNT, data, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2855,7 +2857,7 @@ TEST(AVX512Test, MaxScalarPrecise) {
         float max         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::max(COUNT, data, max, result.data());
+        nn::_math_simd::max<nn::simd::m512>(COUNT, data, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2874,7 +2876,7 @@ TEST(AVX512Test, MaxScalarLess) {
         float max         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::max(COUNT, data, max, result.data());
+        nn::_math_simd::max<nn::simd::m512>(COUNT, data, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2893,7 +2895,7 @@ TEST(AVX512Test, MaxScalarMore) {
         float max         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::max(COUNT, data, max, result.data());
+        nn::_math_simd::max<nn::simd::m512>(COUNT, data, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2911,7 +2913,7 @@ TEST(CudaTest, MaxScalar) {
         float max   = 3.0f;
 
         nn::vector result(COUNT);
-        nn::_math<nn::MATH_CUDA>::max(
+        nn::_math_cuda::max(
                 COUNT, data.view(nn::buf::DEVICE),
                 max, result.data(nn::buf::DEVICE, true), 0);
 
@@ -2931,7 +2933,7 @@ TEST(MathTest, ClampScalar) {
         float max         = 4.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_NORMAL>::clamp(COUNT, data, min, max, result.data());
+        nn::_math_normal::clamp(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2952,7 +2954,7 @@ TEST(SSETest, ClampScalarPrecise) {
         float max         = 4.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::clamp(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<nn::simd::m128>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2972,7 +2974,7 @@ TEST(SSETest, ClampScalarLess) {
         float max         = 4.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::clamp(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<nn::simd::m128>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2992,7 +2994,7 @@ TEST(SSETest, ClampScalarMore) {
         float max         = 4.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::clamp(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<nn::simd::m128>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3012,7 +3014,7 @@ TEST(AVXTest, ClampScalarPrecise) {
         float max         = 4.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::clamp(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<nn::simd::m256>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3032,7 +3034,7 @@ TEST(AVXTest, ClampScalarLess) {
         float max         = 4.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::clamp(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<nn::simd::m256>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3052,7 +3054,7 @@ TEST(AVXTest, ClampScalarMore) {
         float max         = 4.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::clamp(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<nn::simd::m256>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3072,7 +3074,7 @@ TEST(AVX512Test, ClampScalarPrecise) {
         float max         = 4.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::clamp(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<nn::simd::m512>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3092,7 +3094,7 @@ TEST(AVX512Test, ClampScalarLess) {
         float max         = 4.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::clamp(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<nn::simd::m512>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3112,7 +3114,7 @@ TEST(AVX512Test, ClampScalarMore) {
         float max         = 4.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::clamp(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<nn::simd::m512>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3131,7 +3133,7 @@ TEST(CudaTest, ClampScalar) {
         float max   = 4.0f;
 
         nn::vector result(COUNT);
-        nn::_math<nn::MATH_CUDA>::clamp(
+        nn::_math_cuda::clamp(
                 COUNT, data.view(nn::buf::DEVICE),
                 min, max, result.data(nn::buf::DEVICE, true), 0);
 
@@ -3150,7 +3152,7 @@ TEST(MathTest, Min) {
         float v2[COUNT] = { 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_NORMAL>::min(COUNT, v1, v2, result.data());
+        nn::_math_normal::min(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3170,7 +3172,7 @@ TEST(SSETest, MinPrecise) {
         float v2[COUNT] = { 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::min(COUNT, v1, v2, result.data());
+        nn::_math_simd::min<nn::simd::m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3189,7 +3191,7 @@ TEST(SSETest, MinLess) {
         float v2[COUNT] = { 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::min(COUNT, v1, v2, result.data());
+        nn::_math_simd::min<nn::simd::m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3208,7 +3210,7 @@ TEST(SSETest, MinMore) {
         float v2[COUNT] = { 7, 6, 5, 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::min(COUNT, v1, v2, result.data());
+        nn::_math_simd::min<nn::simd::m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3227,7 +3229,7 @@ TEST(AVXTest, MinPrecise) {
         float v2[COUNT] = { 4, 3, 2, 1, 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::min(COUNT, v1, v2, result.data());
+        nn::_math_simd::min<nn::simd::m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3246,7 +3248,7 @@ TEST(AVXTest, MinLess) {
         float v2[COUNT] = { 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::min(COUNT, v1, v2, result.data());
+        nn::_math_simd::min<nn::simd::m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3265,7 +3267,7 @@ TEST(AVXTest, MinMore) {
         float v2[COUNT] = { 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::min(COUNT, v1, v2, result.data());
+        nn::_math_simd::min<nn::simd::m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3284,7 +3286,7 @@ TEST(AVX512Test, MinPrecise) {
         float v2[COUNT] = { 8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::min(COUNT, v1, v2, result.data());
+        nn::_math_simd::min<nn::simd::m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3303,7 +3305,7 @@ TEST(AVX512Test, MinLess) {
         float v2[COUNT] = { 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::min(COUNT, v1, v2, result.data());
+        nn::_math_simd::min<nn::simd::m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3322,7 +3324,7 @@ TEST(AVX512Test, MinMore) {
         float v2[COUNT] = { 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::min(COUNT, v1, v2, result.data());
+        nn::_math_simd::min<nn::simd::m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3340,7 +3342,7 @@ TEST(CudaTest, Min) {
         nn::vector v2 = { 8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1 };
 
         nn::vector result(COUNT);
-        nn::_math<nn::MATH_CUDA>::min(
+        nn::_math_cuda::min(
                 COUNT, v1.view(nn::buf::DEVICE),
                 v2.view(nn::buf::DEVICE),
                 result.data(nn::buf::DEVICE, true), 0);
@@ -3360,7 +3362,7 @@ TEST(MathTest, Max) {
         float v2[COUNT] = { 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_NORMAL>::max(COUNT, v1, v2, result.data());
+        nn::_math_normal::max(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3380,7 +3382,7 @@ TEST(SSETest, MaxPrecise) {
         float v2[COUNT] = { 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::max(COUNT, v1, v2, result.data());
+        nn::_math_simd::max<nn::simd::m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3399,7 +3401,7 @@ TEST(SSETest, MaxLess) {
         float v2[COUNT] = { 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::max(COUNT, v1, v2, result.data());
+        nn::_math_simd::max<nn::simd::m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3418,7 +3420,7 @@ TEST(SSETest, MaxMore) {
         float v2[COUNT] = { 7, 6, 5, 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::max(COUNT, v1, v2, result.data());
+        nn::_math_simd::max<nn::simd::m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3437,7 +3439,7 @@ TEST(AVXTest, MaxPrecise) {
         float v2[COUNT] = { 4, 3, 2, 1, 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::max(COUNT, v1, v2, result.data());
+        nn::_math_simd::max<nn::simd::m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3456,7 +3458,7 @@ TEST(AVXTest, MaxLess) {
         float v2[COUNT] = { 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::max(COUNT, v1, v2, result.data());
+        nn::_math_simd::max<nn::simd::m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3475,7 +3477,7 @@ TEST(AVXTest, MaxMore) {
         float v2[COUNT] = { 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::max(COUNT, v1, v2, result.data());
+        nn::_math_simd::max<nn::simd::m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3494,7 +3496,7 @@ TEST(AVX512Test, MaxPrecise) {
         float v2[COUNT] = { 8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::max(COUNT, v1, v2, result.data());
+        nn::_math_simd::max<nn::simd::m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3513,7 +3515,7 @@ TEST(AVX512Test, MaxLess) {
         float v2[COUNT] = { 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::max(COUNT, v1, v2, result.data());
+        nn::_math_simd::max<nn::simd::m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3532,7 +3534,7 @@ TEST(AVX512Test, MaxMore) {
         float v2[COUNT] = { 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::max(COUNT, v1, v2, result.data());
+        nn::_math_simd::max<nn::simd::m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3550,7 +3552,7 @@ TEST(CudaTest, Max) {
         nn::vector v2 = { 8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1 };
 
         nn::vector result(COUNT);
-        nn::_math<nn::MATH_CUDA>::max(
+        nn::_math_cuda::max(
                 COUNT, v1.view(nn::buf::DEVICE),
                 v2.view(nn::buf::DEVICE),
                 result.data(nn::buf::DEVICE, true), 0);
@@ -3571,7 +3573,7 @@ TEST(MathTest, Clamp) {
         float max[COUNT]  = { 4, 3, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_NORMAL>::clamp(COUNT, data, min, max, result.data());
+        nn::_math_normal::clamp(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3592,7 +3594,7 @@ TEST(SSETest, ClampPrecise) {
         float max[COUNT]  = { 4, 3, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::clamp(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<nn::simd::m128>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3612,7 +3614,7 @@ TEST(SSETest, ClampLess) {
         float max[COUNT]  = { 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::clamp(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<nn::simd::m128>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3632,7 +3634,7 @@ TEST(SSETest, ClampMore) {
         float max[COUNT]  = { 7, 6, 5, 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_SSE3>::clamp(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<nn::simd::m128>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3652,7 +3654,7 @@ TEST(AVXTest, ClampPrecise) {
         float max[COUNT]  = { 4, 3, 3, 4, 4, 3, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::clamp(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<nn::simd::m256>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3672,7 +3674,7 @@ TEST(AVXTest, ClampLess) {
         float max[COUNT]  = { 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::clamp(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<nn::simd::m256>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3692,7 +3694,7 @@ TEST(AVXTest, ClampMore) {
         float max[COUNT]  = { 4, 3, 3, 4, 4, 3, 3, 4, 4, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX>::clamp(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<nn::simd::m256>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3712,7 +3714,7 @@ TEST(AVX512Test, ClampPrecise) {
         float max[COUNT]  = { 4, 3, 3, 4, 3, 3, 4, 4, 3, 3, 4, 4, 3, 3, 4, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::clamp(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<nn::simd::m512>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3732,7 +3734,7 @@ TEST(AVX512Test, ClampLess) {
         float max[COUNT]  = { 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::clamp(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<nn::simd::m512>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3752,7 +3754,7 @@ TEST(AVX512Test, ClampMore) {
         float max[COUNT]  = { 4, 3, 3, 4, 4, 3, 3, 4, 4, 3, 4, 4, 3, 3, 4, 4, 3, 3, 4, 4, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math<nn::MATH_AVX512>::clamp(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<nn::simd::m512>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3771,7 +3773,7 @@ TEST(CudaTest, Clamp) {
         nn::vector max  = { 4, 3, 3, 4, 3, 3, 4, 4, 3, 3, 4, 4, 3, 3, 4, 3 };
 
         nn::vector result(COUNT);
-        nn::_math<nn::MATH_CUDA>::clamp(
+        nn::_math_cuda::clamp(
                 COUNT, data.view(nn::buf::DEVICE), min.view(nn::buf::DEVICE),
                 max.view(nn::buf::DEVICE), result.data(nn::buf::DEVICE, true), 0);
 
@@ -3790,7 +3792,7 @@ TEST(MathTest, CompareTrue) {
         float second[COUNT] = { 1, 2, 3, 4 };
 
         bool ans;
-        nn::_math<nn::MATH_NORMAL>::compare(COUNT, first, second, &ans);
+        nn::_math_normal::compare(COUNT, first, second, &ans);
 
         EXPECT_TRUE(ans);
 }
@@ -3802,7 +3804,7 @@ TEST(MathTest, CompareFalse) {
         float second[COUNT] = { 1, 5, 3, 4 };
 
         bool ans;
-        nn::_math<nn::MATH_NORMAL>::compare(COUNT, first, second, &ans);
+        nn::_math_normal::compare(COUNT, first, second, &ans);
 
         EXPECT_FALSE(ans);
 }
@@ -3818,7 +3820,7 @@ TEST(SSETest, CompareTruePrecise) {
         float second[COUNT] = { 1, 2, 3, 4 };
 
         bool ans;
-        nn::_math<nn::MATH_SSE3>::compare(COUNT, first, second, &ans);
+        nn::_math_simd::compare<nn::simd::m128>(COUNT, first, second, &ans);
 
         EXPECT_TRUE(ans);
 }
@@ -3833,7 +3835,7 @@ TEST(SSETest, CompareFalsePrecise) {
         float second[COUNT] = { 1, 5, 3, 4 };
 
         bool ans;
-        nn::_math<nn::MATH_SSE3>::compare(COUNT, first, second, &ans);
+        nn::_math_simd::compare<nn::simd::m128>(COUNT, first, second, &ans);
 
         EXPECT_FALSE(ans);
 }
@@ -3848,7 +3850,7 @@ TEST(SSETest, CompareTrueLess) {
         float second[COUNT] = { 1, 2, 3 };
 
         bool ans;
-        nn::_math<nn::MATH_SSE3>::compare(COUNT, first, second, &ans);
+        nn::_math_simd::compare<nn::simd::m128>(COUNT, first, second, &ans);
 
         EXPECT_TRUE(ans);
 }
@@ -3863,7 +3865,7 @@ TEST(SSETest, CompareFalseLess) {
         float second[COUNT] = { 1, 5, 3 };
 
         bool ans;
-        nn::_math<nn::MATH_SSE3>::compare(COUNT, first, second, &ans);
+        nn::_math_simd::compare<nn::simd::m128>(COUNT, first, second, &ans);
 
         EXPECT_FALSE(ans);
 }
@@ -3878,7 +3880,7 @@ TEST(SSETest, CompareTrueMore) {
         float second[COUNT] = { 1, 2, 3, 4, 5 };
 
         bool ans;
-        nn::_math<nn::MATH_SSE3>::compare(COUNT, first, second, &ans);
+        nn::_math_simd::compare<nn::simd::m128>(COUNT, first, second, &ans);
 
         EXPECT_TRUE(ans);
 }
@@ -3893,7 +3895,7 @@ TEST(SSETest, CompareFalseMore) {
         float second[COUNT] = { 1, 5, 3, 4, 5 };
 
         bool ans;
-        nn::_math<nn::MATH_SSE3>::compare(COUNT, first, second, &ans);
+        nn::_math_simd::compare<nn::simd::m128>(COUNT, first, second, &ans);
 
         EXPECT_FALSE(ans);
 }
@@ -3908,7 +3910,7 @@ TEST(AVXTest, CompareTruePrecise) {
         float second[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8 };
 
         bool ans;
-        nn::_math<nn::MATH_AVX>::compare(COUNT, first, second, &ans);
+        nn::_math_simd::compare<nn::simd::m256>(COUNT, first, second, &ans);
 
         EXPECT_TRUE(ans);
 }
@@ -3923,7 +3925,7 @@ TEST(AVXTest, CompareFalsePrecise) {
         float second[COUNT] = { 1, 2, 3, 4, 5, 7, 7, 8 };
 
         bool ans;
-        nn::_math<nn::MATH_AVX>::compare(COUNT, first, second, &ans);
+        nn::_math_simd::compare<nn::simd::m256>(COUNT, first, second, &ans);
 
         EXPECT_FALSE(ans);
 }
@@ -3938,7 +3940,7 @@ TEST(AVXTest, CompareTrueLess) {
         float second[COUNT] = { 1, 2, 3 };
 
         bool ans;
-        nn::_math<nn::MATH_AVX>::compare(COUNT, first, second, &ans);
+        nn::_math_simd::compare<nn::simd::m256>(COUNT, first, second, &ans);
 
         EXPECT_TRUE(ans);
 }
@@ -3953,7 +3955,7 @@ TEST(AVXTest, CompareFalseLess) {
         float second[COUNT] = { 1, 5, 3 };
 
         bool ans;
-        nn::_math<nn::MATH_AVX>::compare(COUNT, first, second, &ans);
+        nn::_math_simd::compare<nn::simd::m256>(COUNT, first, second, &ans);
 
         EXPECT_FALSE(ans);
 }
@@ -3968,7 +3970,7 @@ TEST(AVXTest, CompareTrueMore) {
         float second[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
         bool ans;
-        nn::_math<nn::MATH_AVX>::compare(COUNT, first, second, &ans);
+        nn::_math_simd::compare<nn::simd::m256>(COUNT, first, second, &ans);
 
         EXPECT_TRUE(ans);
 }
@@ -3983,7 +3985,7 @@ TEST(AVXTest, CompareFalseMore) {
         float second[COUNT] = { 1, 2, 3, 4, 5, 7, 7, 8, 9 };
 
         bool ans;
-        nn::_math<nn::MATH_AVX>::compare(COUNT, first, second, &ans);
+        nn::_math_simd::compare<nn::simd::m256>(COUNT, first, second, &ans);
 
         EXPECT_FALSE(ans);
 }
@@ -3998,7 +4000,7 @@ TEST(AVX512Test, CompareTruePrecise) {
         float second[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
         bool ans;
-        nn::_math<nn::MATH_AVX512>::compare(COUNT, first, second, &ans);
+        nn::_math_simd::compare<nn::simd::m512>(COUNT, first, second, &ans);
 
         EXPECT_TRUE(ans);
 }
@@ -4013,7 +4015,7 @@ TEST(AVX512Test, CompareFalsePrecise) {
         float second[COUNT] = { 1, 2, 3, 4, 5, 7, 7, 8, 9, 10, 11, 12, 14, 14, 15 };
 
         bool ans;
-        nn::_math<nn::MATH_AVX512>::compare(COUNT, first, second, &ans);
+        nn::_math_simd::compare<nn::simd::m512>(COUNT, first, second, &ans);
 
         EXPECT_FALSE(ans);
 }
@@ -4028,7 +4030,7 @@ TEST(AVX512Test, CompareTrueLess) {
         float second[COUNT] = { 1, 2, 3 };
 
         bool ans;
-        nn::_math<nn::MATH_AVX512>::compare(COUNT, first, second, &ans);
+        nn::_math_simd::compare<nn::simd::m512>(COUNT, first, second, &ans);
 
         EXPECT_TRUE(ans);
 }
@@ -4043,7 +4045,7 @@ TEST(AVX512Test, CompareFalseLess) {
         float second[COUNT] = { 1, 5, 3 };
 
         bool ans;
-        nn::_math<nn::MATH_AVX512>::compare(COUNT, first, second, &ans);
+        nn::_math_simd::compare<nn::simd::m512>(COUNT, first, second, &ans);
 
         EXPECT_FALSE(ans);
 }
@@ -4058,7 +4060,7 @@ TEST(AVX512Test, CompareTrueMore) {
         float second[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 };
 
         bool ans;
-        nn::_math<nn::MATH_AVX512>::compare(COUNT, first, second, &ans);
+        nn::_math_simd::compare<nn::simd::m512>(COUNT, first, second, &ans);
 
         EXPECT_TRUE(ans);
 }
@@ -4073,7 +4075,7 @@ TEST(AVX512Test, CompareFalseMore) {
         float second[COUNT] = { 1, 2, 3, 4, 5, 7, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 20, 21 };
 
         bool ans;
-        nn::_math<nn::MATH_AVX512>::compare(COUNT, first, second, &ans);
+        nn::_math_simd::compare<nn::simd::m512>(COUNT, first, second, &ans);
 
         EXPECT_FALSE(ans);
 }
@@ -4087,7 +4089,7 @@ TEST(CudaTest, CompareTrue) {
         nn::vector second = { 1, 2, 3, 4 };
 
         bool ans;
-        nn::_math<nn::MATH_CUDA>::compare(
+        nn::_math_cuda::compare(
                 COUNT, first.view(nn::buf::DEVICE),
                 second.view(nn::buf::DEVICE), &ans, 0);
 
@@ -4101,7 +4103,7 @@ TEST(CudaTest, CompareFalse) {
         nn::vector second = { 1, 5, 3, 4 };
 
         bool ans;
-        nn::_math<nn::MATH_CUDA>::compare(
+        nn::_math_cuda::compare(
                 COUNT, first.view(nn::buf::DEVICE),
                 second.view(nn::buf::DEVICE), &ans, 0);
 
@@ -4118,7 +4120,7 @@ TEST(MathTest, MatrixVectorMul) {
         nn::vector v = { 2, 6, 0, 4, 7 };
 
         nn::vector result(m.height());
-        nn::_math<nn::MATH_NORMAL>::matvec_mul(
+        nn::_math_normal::matvec_mul(
                 m.width(), m.height(), m.view(nn::buf::HOST),
                 v.view(nn::buf::HOST), result.data(nn::buf::HOST, true));
 
@@ -4138,7 +4140,7 @@ TEST(SSETest, MatrixVectorMul) {
         nn::vector v = { 2, 6, 0, 4, 7 };
 
         nn::vector result(m.height());
-        nn::_math<nn::MATH_SSE3>::matvec_mul(
+        nn::_math_simd::matvec_mul<nn::simd::m128>(
                 m.width(), m.height(), m.view(nn::buf::HOST),
                 v.view(nn::buf::HOST), result.data(nn::buf::HOST, true));
 
@@ -4158,7 +4160,7 @@ TEST(AVXTest, MatrixVectorMul) {
         nn::vector v = { 2, 6, 0, 4, 7, 6, 1, 2, 9 };
 
         nn::vector result(m.height());
-        nn::_math<nn::MATH_AVX>::matvec_mul(
+        nn::_math_simd::matvec_mul<nn::simd::m256>(
                 m.width(), m.height(), m.view(nn::buf::HOST),
                 v.view(nn::buf::HOST), result.data(nn::buf::HOST, true));
 
@@ -4178,7 +4180,7 @@ TEST(AVX512Test, MatrixVectorMul) {
         nn::vector v = { 2, 6, 0, 4, 7, 6, 1, 2, 9, 7, 1, 1, 0, 1, 2, 1, 4, 3 };
 
         nn::vector result(m.height());
-        nn::_math<nn::MATH_AVX512>::matvec_mul(
+        nn::_math_simd::matvec_mul<nn::simd::m512>(
                 m.width(), m.height(), m.view(nn::buf::HOST),
                 v.view(nn::buf::HOST), result.data(nn::buf::HOST, true));
 
@@ -4192,7 +4194,7 @@ TEST(CudaTest, MatrixVectorMul) {
         nn::vector v = { 2, 6, 1, 1 };
 
         nn::vector result(m.height());
-        nn::_math<nn::MATH_CUDA>::matvec_mul(
+        nn::_math_cuda::matvec_mul(
                 m.width(), m.height(), m.view(nn::buf::DEVICE),
                 v.view(nn::buf::DEVICE), result.data(nn::buf::DEVICE, true), 0);
 

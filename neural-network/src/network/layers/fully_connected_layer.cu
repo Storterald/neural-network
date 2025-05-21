@@ -1,9 +1,10 @@
 #include <neural-network/network/layers/fully_connected_layer.h>
 
-#include <cuda_runtime.h>
+#include <host_defines.h> // __global__
 
 #include <cstdint>
 
+#include <neural-network/utils/cuda.h>
 #include <neural-network/types/buf.h>
 #include <neural-network/cuda_base.h>
 
@@ -47,8 +48,7 @@ void fully_connected_layer::_d_backward(
                 m_w.width(), m_w.height(), input,
                 m_w.view(nn::buf::DEVICE), dw, db, result);
 
-        CUDA_CHECK_ERROR(cudaGetLastError(), "backward kernel launch failed.");
-        CUDA_CHECK_ERROR(cudaDeviceSynchronize(), "Error synchronizing in fully_connected_layer::_d_backward.");
+        cuda::check_last_error("backward kernel launch failed.");
 }
 
 } // namespace nn

@@ -12,7 +12,7 @@ TEST(IntrinsicTest, CpuSIMDSupportIsCorrectlyDetected) {
         constexpr int EBX = 1;
         constexpr int ECX = 2;
 
-        const nn::simd support = []() -> nn::simd {
+        const nn::simd_support support = []() -> nn::simd_support {
                 int regs[4]{};
                 __cpuid(regs, 7);
                 if (regs[EBX] & 0b1000000000000000)

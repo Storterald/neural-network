@@ -1,9 +1,8 @@
 #pragma once
 
-#include <string_view>
 #include <filesystem>
-#include <exception>
 #include <fstream>
+#include <cstdint>
 #include <string>
 
 namespace nn {
@@ -26,20 +25,24 @@ public:
                 return log;
         }
 
-        static std::string pref(log_type type, std::string_view file, int line);
+        static std::string pref(log_type type);
 
         logger &set_directory(const std::filesystem::path &path);
         logger &set_print_on_fatal(bool value);
 
-        struct fatal_error final : std::exception {
-                explicit fatal_error(const std::string &message);
-        };
-
         template<typename T>
         std::ofstream &operator<< (const T &value)
         {
+                static uint32_t c = 0;
+
                 _update_file();
                 m_file << value;
+
+                if (c++ == 50) {
+                        c = 0;
+                        m_file.flush();
+                }
+
                 return m_file;
         }
 
@@ -55,9 +58,7 @@ private:
 
         void _update_file();
 
+        friend struct fatal_error;
 }; // class logger
 
 } // namespace nn
-
-#define LOGGER_PREF(type) (::nn::logger::pref(::nn::LOG_##type, __FILE__, __LINE__))
-#define LOGGER_EX(msg)    (::nn::logger::fatal_error(LOGGER_PREF(FATAL) + msg))

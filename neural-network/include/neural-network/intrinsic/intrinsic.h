@@ -4,7 +4,7 @@
 
 namespace nn {
 
-enum simd {
+enum simd_support {
         SIMD_UNSUPPORTED,
         SIMD_SSE3,
         SIMD_AVX,
@@ -15,13 +15,13 @@ enum simd {
 namespace intrinsic {
 
 #if IS_X86_64BIT
-        extern "C" simd _get_simd_support();
+        extern "C" simd_support _get_simd_support();
 #endif // IS_X86_64BIT
 
-        [[nodiscard]] inline simd support()
+        [[nodiscard]] inline simd_support support()
         {
 #if IS_X86_64BIT
-                const static simd support = _get_simd_support();
+                const static simd_support support = _get_simd_support();
                 return support;
 #else // IS_X86_64BIT
                 return SIMD_UNSUPPORTED;

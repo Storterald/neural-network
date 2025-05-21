@@ -1,12 +1,10 @@
 #pragma once
 
-#include <cuda_runtime.h>
-
 #include <type_traits>
 #include <cstddef> // ptrdiff_t
 
-#include <neural-network/utils/logger.h>
-#include <neural-network/cuda_base.h>
+#include <neural-network/utils/exceptions.h>
+#include <neural-network/utils/cuda.h>
 #include <neural-network/base.h>
 
 namespace nn {
@@ -39,9 +37,9 @@ public:
         using const_value_type = std::add_const_t<T>;
         using difference_type = ptrdiff_t;
 
-        inline ptr() noexcept : m_pointer(nullptr), m_stream(0), m_device(false) {}
+        inline ptr() noexcept : m_pointer(nullptr), m_stream(invalid_stream), m_device(false) {}
 
-        ptr(T *ptr, bool device, cudaStream_t stream = 0) noexcept :
+        ptr(T *ptr, bool device, cudaStream_t stream = invalid_stream) noexcept :
                 m_pointer(ptr), m_stream(stream), m_device(device) {}
 
         ptr(const ptr &other) noexcept :
@@ -109,7 +107,7 @@ public:
         {
 #ifdef DEBUG_MODE_ENABLED
                 if (!m_pointer)
-                        throw LOGGER_EX("Cannot dereference null pointer.");
+                        throw fatal_error("Cannot dereference null pointer.");
 #endif // DEBUG_MODE_ENABLED
 
                 return { m_pointer, m_device, m_stream };
@@ -119,7 +117,7 @@ public:
         {
 #ifdef DEBUG_MODE_ENABLED
                 if (!m_pointer)
-                        throw LOGGER_EX("Cannot index null pointer.");
+                        throw fatal_error("Cannot index null pointer.");
 #endif // DEBUG_MODE_ENABLED
 
                 return { m_pointer + i, m_device, m_stream };
@@ -223,11 +221,11 @@ public:
         using value_type = T;
         using const_value_type = std::add_const_t<T>;
 
-        ref(T *pValue, bool device, cudaStream_t stream = 0) :
+        ref(T *pValue, bool device, cudaStream_t stream = invalid_stream) :
                 m_ptr(pValue, device, stream) {
 
                 if (!pValue)
-                        throw LOGGER_EX("Cannot create null reference.");
+                        throw fatal_error("Cannot create null reference.");
         }
 
         ref(const ref &other) : m_ptr(other.m_ptr) {}
@@ -283,8 +281,8 @@ protected:
                         return *m_ptr.m_pointer;
 
                 raw_type value;
-                CUDA_CHECK_ERROR(cudaMemcpyAsync(&value, m_ptr.m_pointer, sizeof(T),
-                        cudaMemcpyDeviceToHost, m_ptr.m_stream), "Failed to copy data from the GPU.");
+                cuda::memcpy(&value, m_ptr.m_pointer, sizeof(T),
+                        cudaMemcpyDeviceToHost, m_ptr.m_stream);
                 _sync();
                 return value;
         }
@@ -294,14 +292,13 @@ protected:
                 if (!m_ptr.m_device)
                         *m_ptr.m_pointer = value;
                 else
-                        CUDA_CHECK_ERROR(cudaMemcpyAsync(m_ptr.m_pointer, &value, sizeof(T),
-                                cudaMemcpyHostToDevice, m_ptr.m_stream), "Failed to copy data to the GPU.");
+                        cuda::memcpy(m_ptr.m_pointer, &value, sizeof(T),
+                                cudaMemcpyHostToDevice, m_ptr.m_stream);
         }
 
         void _sync() const
         {
-                CUDA_CHECK_ERROR(cudaStreamSynchronize(m_ptr.m_stream),
-                        "Error synchronizing in ref<T>.");
+                cuda::sync(m_ptr.m_stream);
         }
 
 }; // class ref
@@ -317,7 +314,7 @@ protected:
  */
 template<typename T>
 class span {
-        using raw_type = std::remove_const_t<T>;
+        using raw_type = std::remove_cvref_t<T>;
 
 public:
         using value_type = T;
@@ -329,7 +326,7 @@ public:
                 T                   *const src,
                 bool                srcDevice,
                 bool                updateOnDestruction = false,
-                cudaStream_t        stream = 0) :
+                cudaStream_t        stream = invalid_stream) :
 
                 m_src(src), m_ptr(nullptr), m_device(device), m_stream(stream),
                 m_size(size), m_owning(false), m_updateOnDestruction(updateOnDestruction) {
@@ -344,18 +341,17 @@ public:
                 if (!m_device) {
                         m_ptr = new raw_type[m_size]();
 
-                        CUDA_CHECK_ERROR(cudaMemcpyAsync((raw_type *)m_ptr, src, m_size * sizeof(raw_type),
-                                cudaMemcpyDeviceToHost, m_stream), "Failed to copy data from the GPU.");
+                        cuda::memcpy((raw_type *)m_ptr, src, m_size * sizeof(raw_type),
+                                cudaMemcpyDeviceToHost, m_stream);
 
                         // Ensure CPU buffer is ready before returning.
                         _sync();
                         return;
                 }
 
-                CUDA_CHECK_ERROR(cudaMallocAsync(&m_ptr, m_size * sizeof(raw_type), m_stream),
-                        "Failed to allocate memory in the GPU.");
-                CUDA_CHECK_ERROR(cudaMemcpyAsync((raw_type *)m_ptr, src, m_size * sizeof(raw_type),
-                        cudaMemcpyHostToDevice, m_stream), "Failed to copy data to the GPU.");
+                m_ptr = cuda::alloc<raw_type>(m_size, m_stream);
+                cuda::memcpy((raw_type *)m_ptr, src, m_size * sizeof(raw_type),
+                        cudaMemcpyHostToDevice, m_stream);
         }
 
         ~span()
@@ -476,11 +472,11 @@ public:
                         return;
 
                 if (!m_device)
-                        CUDA_CHECK_ERROR(cudaMemcpyAsync(m_src, m_ptr, m_size * sizeof(value_type),
-                                cudaMemcpyHostToDevice, m_stream), "Failed to copy data to the GPU.");
+                        cuda::memcpy(m_src, m_ptr, m_size * sizeof(value_type),
+                                cudaMemcpyHostToDevice, m_stream);
                 else
-                        CUDA_CHECK_ERROR(cudaMemcpyAsync(m_src, m_ptr, m_size * sizeof(value_type),
-                                cudaMemcpyDeviceToHost, m_stream), "Failed to copy data from the GPU.");
+                        cuda::memcpy(m_src, m_ptr, m_size * sizeof(value_type),
+                                cudaMemcpyDeviceToHost, m_stream);
 
                 _sync();
         }
@@ -504,14 +500,12 @@ private:
                 if (!m_device)
                         delete[] m_ptr;
                 else
-                        CUDA_CHECK_ERROR(cudaFreeAsync((raw_type *)m_ptr, m_stream),
-                                "Failed to free GPU memory.");
+                        cuda::free((raw_type *)m_ptr, m_stream);
         }
 
         void _sync() const
         {
-                CUDA_CHECK_ERROR(cudaStreamSynchronize(m_stream),
-                        "Error synchronizing in span<T>.");
+                cuda::sync(m_stream);
         }
 
 }; // class span

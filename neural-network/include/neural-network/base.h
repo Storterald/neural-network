@@ -17,10 +17,11 @@
 namespace nn {
 
 #ifdef BUILD_CUDA_SUPPORT
-        using stream = cudaStream_t;
+using stream = cudaStream_t;
 #else // BUILD_CUDA_SUPPORT
-        using stream = void *;
+using stream = void *;
 #endif // BUILD_CUDA_SUPPORT
+constexpr stream invalid_stream = stream{};
 
 constexpr float EPSILON       = 1e-8f;
 constexpr float LEARNING_RATE = 5e-5f;

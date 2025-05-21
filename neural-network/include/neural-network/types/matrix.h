@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef BUILD_CUDA_SUPPORT
-#include <driver_types.h> // cudaStream_t
-#endif // BUILD_CUDA_SUPPORT
-
 #include <initializer_list>
 #include <cstdint>
 
@@ -27,9 +23,8 @@ public:
         };
 
         matrix() = default;
-        matrix(uint32_t width, uint32_t height, loc_type location = KEEP);
-        matrix(std::initializer_list<std::initializer_list<value_type>> values, loc_type location = KEEP);
-        matrix(uint32_t width, uint32_t height, nn::stream stream);
+        matrix(uint32_t width, uint32_t height, nn::stream stream = invalid_stream);
+        matrix(std::initializer_list<std::initializer_list<value_type>> values, nn::stream stream = invalid_stream);
 
         [[nodiscard]] pointer operator[] (uint32_t row);
         [[nodiscard]] const_pointer operator[] (uint32_t row) const;

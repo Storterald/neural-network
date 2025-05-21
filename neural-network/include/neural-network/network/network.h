@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef BUILD_CUDA_SUPPORT
-#include <driver_types.h> // cudaStream_t
-#endif // BUILD_CUDA_SUPPORT
-
 #include <string_view>
 #include <filesystem>
 #include <cstdint>
@@ -15,6 +11,7 @@
 #include <neural-network/network/PPO/environment.h>
 #include <neural-network/network/layer.h>
 #include <neural-network/types/vector.h>
+#include <neural-network/base.h>
 
 namespace nn {
 
@@ -39,9 +36,9 @@ public:
                 const layer_create_info            *infosEnd,
                 const std::filesystem::path        &path = "");
 
-        [[nodiscard]] vector forward(vector input) const;
+        [[nodiscard]] vector forward(const vector &input) const;
         void backward(const vector &input, const vector &cost);
-        void backward(vector cost, const vector activationValues[]);
+        void backward(const vector &cost, const vector activationValues[]);
 
         void train_supervised(
                 uint32_t           samplesCount,
@@ -79,17 +76,22 @@ public:
         ~network();
 
 private:
-#ifdef BUILD_CUDA_SUPPORT
-        cudaStream_t                  m_stream;
-#endif // BUILD_CUDA_SUPPORT
-        uint32_t                      m_layerCount;
-        uint32_t                      m_inputSize;
-        uint32_t                      m_outputSize;
-        std::unique_ptr<layer>        *m_L;  // [m_layerCount - 1]
-        uint32_t                      *m_n;  // [m_layerCount]
+        using chunk = std::ranges::subrange<std::span<const float>::iterator>;
+
+        uint32_t                       m_layerCount;
 
 #ifdef BUILD_CUDA_SUPPORT
-        [[nodiscard]] cudaStream_t _create_stream() const;
+        stream                         m_stream;
+#else
+        static constexpr stream        m_stream = invalid_stream;
+#endif // BUILD_CUDA_SUPPORT
+        uint32_t                       m_inputSize;
+        uint32_t                       m_outputSize;
+        std::unique_ptr<layer>         *m_L;  // [m_layerCount - 1]
+        uint32_t                       *m_n;  // [m_layerCount]
+
+#ifdef BUILD_CUDA_SUPPORT
+        [[nodiscard]] stream _create_stream(const layer_create_info *infos) const;
 #endif // BUILD_CUDA_SUPPORT
 
         [[nodiscard]] std::unique_ptr<layer> *_create_layers(
@@ -103,9 +105,11 @@ private:
                 const layer_create_info        *infos) const;
 
         [[nodiscard]] std::future<void> _get_supervised_future(
-                uint32_t           sampleSize,
-                const float        inputs[],
-                const float        outputs[]);
+                const chunk        &inputs,
+                const chunk        &outputs);
+
+        vector _forward_impl(vector aL) const;
+        void _backward_impl(vector dC, const vector a[]);
 
         void _train_ppo(
                 network            &valueNetwork,

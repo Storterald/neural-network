@@ -4,105 +4,103 @@
 
 #include <neural-network/base.h>
 
-namespace nn {
-
-class _math_cuda {
-public:
-        static void sum(
+namespace nn::_math_cuda {
+        
+        void sum(
                 uint32_t           size,
                 const float        first[],
                 const float        second[],
                 float              result[],
                 stream             stream);
 
-        static void sub(
+        void sub(
                 uint32_t           size,
                 const float        first[],
                 const float        second[],
                 float              result[],
                 stream             stream);
 
-        static void mul(
+        void mul(
                 uint32_t           size,
                 const float        first[],
                 const float        second[],
                 float              result[],
                 stream             stream);
 
-        static void div(
+        void div(
                 uint32_t           size,
                 const float        first[],
                 const float        second[],
                 float              result[],
                 stream             stream);
 
-        static void sum(
+        void sum(
                 uint32_t           size,
                 const float        data[],
                 float              scalar,
                 float              result[],
                 stream             stream);
 
-        static void sub(
+        void sub(
                 uint32_t           size,
                 const float        data[],
                 float              scalar,
                 float              result[],
                 stream             stream);
 
-        static void mul(
+        void mul(
                 uint32_t           size,
                 const float        data[],
                 float              scalar,
                 float              result[],
                 stream             stream);
 
-        static void div(
+        void div(
                 uint32_t           size,
                 const float        data[],
                 float              scalar,
                 float              result[],
                 stream             stream);
 
-        static void tanh(
+        void tanh(
                 uint32_t           size,
                 const float        data[],
                 float              result[],
                 stream             stream);
 
-        static void tanh_derivative(
+        void tanh_derivative(
                 uint32_t           size,
                 const float        data[],
                 float              result[],
                 stream             stream);
 
-        static void ReLU(
+        void ReLU(
                 uint32_t           size,
                 const float        data[],
                 float              result[],
                 stream             stream);
 
-        static void ReLU_derivative(
+        void ReLU_derivative(
                 uint32_t           size,
                 const float        data[],
                 float              result[],
                 stream             stream);
 
-        static void min(
+        void min(
                 uint32_t           size,
                 const float        data[],
                 float              min,
                 float              result[],
                 stream             stream);
 
-        static void max(
+        void max(
                 uint32_t           size,
                 const float        data[],
                 float              max,
                 float              result[],
                 stream             stream);
 
-        static void clamp(
+        void clamp(
                 uint32_t           size,
                 const float        data[],
                 float              min,
@@ -110,21 +108,21 @@ public:
                 float              result[],
                 stream             stream);
 
-        static void min(
+        void min(
                 uint32_t           size,
                 const float        first[],
                 const float        second[],
                 float              result[],
                 stream             stream);
 
-        static void max(
+        void max(
                 uint32_t           size,
                 const float        first[],
                 const float        second[],
                 float              result[],
                 stream             stream);
 
-        static void clamp(
+        void clamp(
                 uint32_t           size,
                 const float        data[],
                 const float        min[],
@@ -132,20 +130,19 @@ public:
                 float              result[],
                 stream             stream);
 
-        static void compare(
+        void compare(
                 uint32_t           size,
                 const float        first[],
                 const float        second[],
                 bool               *result,
                 stream             stream);
 
-        static void matvec_mul(
+        void matvec_mul(
                 uint32_t           width,
                 uint32_t           height,
                 const float        matrix[],
                 const float        vector[],
                 float              result[],
                 stream             stream);
-};
 
-} // namespace nn
+} // namespace nn::_math_cuda
