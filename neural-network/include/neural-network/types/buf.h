@@ -99,11 +99,14 @@ protected:
         nn::stream                         m_stream = invalid_stream;
         bool                               m_device = false;
 #else // BUILD_CUDA_SUPPORT
-        static constexpr nn::stream        m_stream = 0;
+        static constexpr nn::stream        m_stream = invalid_stream;
         static constexpr bool              m_device = false;
 #endif // BUILD_CUDA_SUPPORT
 
         size_type                          m_size = 0;
+
+private:
+        void _free();
 
 }; // class buf
 

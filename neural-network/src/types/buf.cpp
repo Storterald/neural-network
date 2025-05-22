@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstring> // std::memcpy
 
+#include <neural-network/utils/alloc.h>
 #include <neural-network/math/math.h>
 #include <neural-network/base.h>
 
@@ -22,7 +23,7 @@ buf::buf(uint32_t size, [[maybe_unused]] nn::stream stream) :
                 return;
 
         if (!m_device) {
-                m_data = new float[m_size]();
+                m_data = memory::calloc<float>(m_size);
                 return;
         }
 
@@ -42,7 +43,7 @@ buf::buf(const buf &other) :
                 return;
 
         if (!m_device) {
-                m_data = new float[m_size];
+                m_data = memory::alloc<float>(m_size);
                 std::memcpy(m_data, other.m_data, m_size * sizeof(float));
                 return;
         }
@@ -66,16 +67,7 @@ buf::buf(buf &&other) noexcept : m_data(other.m_data),
 
 buf::~buf()
 {
-        if (!m_data)
-                return;
-
-        if (!m_device)
-                delete [] m_data;
-#ifdef BUILD_CUDA_SUPPORT
-        else
-                cuda::free(m_data, m_stream);
-#endif // BUILD_CUDA_SUPPORT
-
+        _free();
         m_data = nullptr;
         m_size = 0;
 }
@@ -89,11 +81,8 @@ buf &buf::operator= (const buf &other)
         m_stream = other.m_stream;
 #endif // BUILD_CUDA_SUPPORT
 
-        // The buffer must be destroyed and remade either if the buffer size is different
-        // or the data is in different places.
         if (m_size != other.m_size || m_device != other.m_device) {
-                // If size doesn't match, overwrite m_size and delete old buffer.
-                this->~buf();
+                _free();
 
                 m_size   = other.m_size;
 #ifdef BUILD_CUDA_SUPPORT
@@ -101,7 +90,7 @@ buf &buf::operator= (const buf &other)
 #endif // BUILD_CUDA_SUPPORT
 
                 if (!m_device)
-                        m_data = new float[m_size];
+                        m_data = memory::alloc<float>(m_size);
 #ifdef BUILD_CUDA_SUPPORT
                 else
                         m_data = cuda::alloc<float>(m_size, m_stream);
@@ -159,7 +148,7 @@ void buf::move([[maybe_unused]] loc_type location, [[maybe_unused]] ::nn::stream
 
         float *data;
         if (m_device) {
-                data = new float[m_size];
+                data = memory::alloc<float>(m_size);
                 cuda::memcpy(data, m_data, m_size * sizeof(float),
                         cudaMemcpyDeviceToHost, m_stream);
                 cuda::free(m_data, m_stream);
@@ -172,12 +161,25 @@ void buf::move([[maybe_unused]] loc_type location, [[maybe_unused]] ::nn::stream
                 data = cuda::alloc<float>(m_size, m_stream);
                 cuda::memcpy(data, m_data, m_size * sizeof(float),
                         cudaMemcpyHostToDevice, m_stream);
-                delete [] m_data;
+                memory::free(m_data);
         }
 
         m_device = location == DEVICE;
         m_stream = stream;
         m_data   = data;
+#endif // BUILD_CUDA_SUPPORT
+}
+
+void buf::_free()
+{
+        if (!m_data)
+                return;
+
+        if (!m_device)
+                memory::free(m_data);
+#ifdef BUILD_CUDA_SUPPORT
+        else
+                cuda::free(m_data, m_stream);
 #endif // BUILD_CUDA_SUPPORT
 }
 
