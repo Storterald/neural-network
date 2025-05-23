@@ -1,9 +1,8 @@
 #include <neural-network/types/buf.h>
 
 #include <cstdint>
-#include <cstring> // std::memcpy
+#include <cstring>  // std::memcpy
 
-#include <neural-network/utils/alloc.h>
 #include <neural-network/math/math.h>
 #include <neural-network/base.h>
 
@@ -23,13 +22,13 @@ buf::buf(uint32_t size, [[maybe_unused]] nn::stream stream) :
                 return;
 
         if (!m_device) {
-                m_data = memory::calloc<float>(m_size);
+                m_data = new value_type[m_size]();
                 return;
         }
 
 #ifdef BUILD_CUDA_SUPPORT
-        m_data = cuda::alloc<float>(m_size, m_stream);
-        cuda::memset(m_data, 0, m_size * sizeof(float), m_stream);
+        m_data = cuda::alloc<value_type>(m_size, m_stream);
+        cuda::memset(m_data, 0, m_size * sizeof(value_type), m_stream);
 #endif // BUILD_CUDA_SUPPORT
 }
 
@@ -43,14 +42,14 @@ buf::buf(const buf &other) :
                 return;
 
         if (!m_device) {
-                m_data = memory::alloc<float>(m_size);
-                std::memcpy(m_data, other.m_data, m_size * sizeof(float));
+                m_data = new value_type[m_size];
+                std::memcpy(m_data, other.m_data, m_size * sizeof(value_type));
                 return;
         }
 
 #ifdef BUILD_CUDA_SUPPORT
-        m_data = cuda::alloc<float>(m_size, m_stream);
-        cuda::memcpy(m_data, other.m_data, m_size * sizeof(float),
+        m_data = cuda::alloc<value_type>(m_size, m_stream);
+        cuda::memcpy(m_data, other.m_data, m_size * sizeof(value_type),
                 cudaMemcpyDeviceToDevice, m_stream);
 #endif // BUILD_CUDA_SUPPORT
 }
@@ -90,18 +89,18 @@ buf &buf::operator= (const buf &other)
 #endif // BUILD_CUDA_SUPPORT
 
                 if (!m_device)
-                        m_data = memory::alloc<float>(m_size);
+                        m_data = new value_type[m_size];
 #ifdef BUILD_CUDA_SUPPORT
                 else
-                        m_data = cuda::alloc<float>(m_size, m_stream);
+                        m_data = cuda::alloc<value_type>(m_size, m_stream);
 #endif // BUILD_CUDA_SUPPORT
         }
 
         if (!m_device)
-                std::memcpy(m_data, other.m_data, m_size * sizeof(float));
+                std::memcpy(m_data, other.m_data, m_size * sizeof(value_type));
 #ifdef BUILD_CUDA_SUPPORT
         else
-                cuda::memcpy(m_data, other.m_data, m_size * sizeof(float),
+                cuda::memcpy(m_data, other.m_data, m_size * sizeof(value_type),
                         cudaMemcpyDeviceToDevice, m_stream);
 #endif // BUILD_CUDA_SUPPORT
 
@@ -113,7 +112,7 @@ buf &buf::operator= (buf &&other) noexcept
         if (this == &other)
                 return *this;
 
-        this->~buf();
+        _free();
 
         m_size   = other.m_size;
         m_data   = other.m_data;
@@ -131,7 +130,6 @@ buf &buf::operator= (buf &&other) noexcept
 
 bool buf::operator== (const buf &other) const
 {
-        // Check if sizes match, if not don't check individual values
         if (m_size != other.m_size)
                 return false;
 
@@ -146,10 +144,10 @@ void buf::move([[maybe_unused]] loc_type location, [[maybe_unused]] ::nn::stream
         if (location == (m_device ? DEVICE : HOST))
                 return;
 
-        float *data;
+        value_type *data;
         if (m_device) {
-                data = memory::alloc<float>(m_size);
-                cuda::memcpy(data, m_data, m_size * sizeof(float),
+                data = new value_type[m_size];
+                cuda::memcpy(data, m_data, m_size * sizeof(value_type),
                         cudaMemcpyDeviceToHost, m_stream);
                 cuda::free(m_data, m_stream);
                 cuda::sync(m_stream);
@@ -158,10 +156,10 @@ void buf::move([[maybe_unused]] loc_type location, [[maybe_unused]] ::nn::stream
         } else {
                 m_stream = stream;
 
-                data = cuda::alloc<float>(m_size, m_stream);
-                cuda::memcpy(data, m_data, m_size * sizeof(float),
+                data = cuda::alloc<value_type>(m_size, m_stream);
+                cuda::memcpy(data, m_data, m_size * sizeof(value_type),
                         cudaMemcpyHostToDevice, m_stream);
-                memory::free(m_data);
+                delete [] m_data;
         }
 
         m_device = location == DEVICE;
@@ -170,13 +168,13 @@ void buf::move([[maybe_unused]] loc_type location, [[maybe_unused]] ::nn::stream
 #endif // BUILD_CUDA_SUPPORT
 }
 
-void buf::_free()
+void buf::_free() noexcept
 {
         if (!m_data)
                 return;
 
         if (!m_device)
-                memory::free(m_data);
+                delete [] m_data;
 #ifdef BUILD_CUDA_SUPPORT
         else
                 cuda::free(m_data, m_stream);

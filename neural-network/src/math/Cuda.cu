@@ -4,7 +4,7 @@
 #include <cuda/std/__algorithm/max.h>
 #include <cuda/std/__algorithm/min.h>
 #include <cuda/std/cmath>
-#include <host_defines.h> // __global__, __device__
+#include <cuda_runtime.h>
 
 #include <cstdint>
 

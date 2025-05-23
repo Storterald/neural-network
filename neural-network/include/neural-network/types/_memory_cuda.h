@@ -33,9 +33,9 @@ public:
                 "Ptr<T> requires T to be trivially copiable. "
                 "https://en.cppreference.com/w/cpp/named_req/TriviallyCopyable");
 
-        using value_type = T;
+        using value_type       = T;
         using const_value_type = std::add_const_t<T>;
-        using difference_type = ptrdiff_t;
+        using difference_type  = ptrdiff_t;
 
         inline ptr() noexcept : m_pointer(nullptr), m_stream(invalid_stream), m_device(false) {}
 
@@ -218,7 +218,7 @@ class ref {
         using arg_type = std::conditional_t<sizeof(raw_type) <= 8, raw_type, const raw_type &>;
 
 public:
-        using value_type = T;
+        using value_type       = T;
         using const_value_type = std::add_const_t<T>;
 
         ref(T *pValue, bool device, cudaStream_t stream = invalid_stream) :
@@ -317,7 +317,7 @@ class span {
         using raw_type = std::remove_cvref_t<T>;
 
 public:
-        using value_type = T;
+        using value_type       = T;
         using const_value_type = std::add_const_t<T>;
 
         span(
@@ -328,8 +328,8 @@ public:
                 bool                updateOnDestruction = false,
                 cudaStream_t        stream = invalid_stream) :
 
-                m_src(src), m_ptr(nullptr), m_device(device), m_stream(stream),
-                m_size(size), m_owning(false), m_updateOnDestruction(updateOnDestruction) {
+                m_src(src), m_ptr(nullptr), m_stream(stream), m_size(size), m_device(device),
+                m_owning(false), m_updateOnDestruction(updateOnDestruction) {
 
                 if (device == srcDevice) {
                         m_ptr = src;
@@ -339,7 +339,7 @@ public:
 
                 m_owning = true;
                 if (!m_device) {
-                        m_ptr = new raw_type[m_size]();
+                        m_ptr = new raw_type[m_size];
 
                         cuda::memcpy((raw_type *)m_ptr, src, m_size * sizeof(raw_type),
                                 cudaMemcpyDeviceToHost, m_stream);
@@ -492,7 +492,7 @@ private:
         bool                m_owning;
         bool                m_updateOnDestruction;
 
-        void _clear()
+        void _clear() noexcept
         {
                 if (!m_owning || !m_ptr)
                         return;

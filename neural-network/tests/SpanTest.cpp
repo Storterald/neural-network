@@ -48,13 +48,13 @@ TEST(SpanTest, SpanConstructorAllocatesMemoryIfSourceIsOnHostAndSpanOnDevice) {
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(SpanTest, SpanConstructorAllocatesMemoryIfSourceIsOnDeviceAndSpanOnHost) {
-        float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-        float *d_arr = nn::cuda::alloc<float>(10);
+        constexpr float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+        float *d_arr            = nn::cuda::alloc<float>(10);
         nn::cuda::memcpy(d_arr, arr, 10 * sizeof(float), cudaMemcpyHostToDevice);
 
         nn::span s(10, false, d_arr, true);
 
-        EXPECT_NO_FATAL_FAILURE(nn::ref<float> v = s[9]);
+        EXPECT_NO_FATAL_FAILURE([[maybe_unused]] nn::ref<float> v = s[9]);
         for (uint32_t i = 0; i < 10; ++i)
                 EXPECT_EQ(s[i], 1);
 
@@ -102,7 +102,7 @@ TEST(SpanTest, ImplicitTypePointerCastReturnsPointerToCorrectLocationWhenCreated
         float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
         nn::span s(10, true, arr, false);
 
-        float *p = s;
+        const float *p = s;
         EXPECT_NO_FATAL_FAILURE(helper::access_values(1, p));
         // While this expectation should be correct, it is not guaranteed to work.
         // EXPECT_DEATH(float value = *p, "");
@@ -120,7 +120,7 @@ TEST(SpanTest, IndexerReturnsValidReference) {
 }
 
 TEST(SpanTest, IndexerOnConstSpanReturnsReferenceToConst) {
-        float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+        constexpr float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
         const nn::span s(10, true, arr, false);
         const nn::ref r = s[3];
 
@@ -128,14 +128,14 @@ TEST(SpanTest, IndexerOnConstSpanReturnsReferenceToConst) {
 }
 
 TEST(SpanTest, SizeReturnsCorrectValue) {
-        float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+        constexpr float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
         const nn::span s(10, true, arr, false);
 
         EXPECT_EQ(s.size(), 10);
 }
 
 TEST(SpanTest, IsOwningReturnsFalseValueWhenOnSourceAndSpanOnHost) {
-        float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+        constexpr float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
         const nn::span s(10, false, arr, false);
 
         EXPECT_FALSE(s.is_owning());
@@ -154,7 +154,7 @@ TEST(SpanTest, IsOwningReturnsFalseValueWhenOnSourceAndSpanOnDevice) {
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(SpanTest, IsOwningReturnsFalseValueWhenOnSourceIsOnHostAndSpanOnDevice) {
-        float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+        constexpr float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
         const nn::span s(10, true, arr, false);
 
         EXPECT_TRUE(s.is_owning());

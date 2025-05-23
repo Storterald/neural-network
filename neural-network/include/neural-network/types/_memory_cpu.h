@@ -33,9 +33,9 @@ public:
                 "Ptr<T> requires T to be trivially copiable. "
                 "https://en.cppreference.com/w/cpp/named_req/TriviallyCopyable");
 
-        using value_type = T;
+        using value_type       = T;
         using const_value_type = std::add_const_t<T>;
-        using difference_type = ptrdiff_t;
+        using difference_type  = ptrdiff_t;
 
         inline ptr() noexcept : m_pointer(nullptr) {}
 
@@ -175,7 +175,7 @@ class ref {
         using arg_type = std::conditional_t<sizeof(T) <= 8, T, const T &>;
 
 public:
-        using value_type = T;
+        using value_type       = T;
         using const_value_type = std::add_const_t<T>;
 
         ref(T *pValue, bool, stream = invalid_stream) : m_ptr(pValue, false) {
@@ -244,7 +244,7 @@ class span {
         using raw_type = std::remove_const_t<T>;
 
 public:
-        using value_type = T;
+        using value_type       = T;
         using const_value_type = std::add_const_t<T>;
 
         span(uint32_t size, bool, T *src, bool, bool = false, stream = invalid_stream) noexcept :

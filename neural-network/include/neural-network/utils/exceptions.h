@@ -17,7 +17,7 @@ struct cuda_error : fatal_error {
         cuda_error(const char *message, cudaError_t error);
 };
 
-struct cuda_bad_alloc : cuda_error {
+struct cuda_bad_alloc final : cuda_error {
         explicit cuda_bad_alloc(cudaError_t error);
 };
 #endif // BUILD_CUDA_SUPPORT

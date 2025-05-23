@@ -106,7 +106,7 @@ protected:
         size_type                          m_size = 0;
 
 private:
-        void _free();
+        void _free() noexcept;
 
 }; // class buf
 

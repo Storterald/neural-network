@@ -7,16 +7,16 @@
 #include <neural-network/base.h>
 
 TEST(MatrixTest, DefaultConstructorInitializesEmptyData) {
-        nn::matrix m{};
+        const nn::matrix m{};
 
-        EXPECT_EQ(m.data(), nullptr);
+        EXPECT_EQ(m.view(), nullptr);
         EXPECT_EQ(m.size(), 0);
 }
 
 TEST(MatrixTest, SizesConstructorAllocatesData) {
-        nn::matrix m(10, 10);
+        const nn::matrix m(10, 10);
 
-        EXPECT_NE(m.data(), nullptr);
+        EXPECT_NE(m.view(), nullptr);
         EXPECT_EQ(m.size(), 100);
         EXPECT_EQ(m.width(), 10);
         EXPECT_EQ(m.height(), 10);
@@ -24,10 +24,13 @@ TEST(MatrixTest, SizesConstructorAllocatesData) {
 }
 
 TEST(MatrixTest, ConstructorWithInitializerListWorks) {
-        std::initializer_list<std::initializer_list<float>> values = { { 1, 2, 3 }, { 4, 5, 6 } };
-        nn::matrix m(values);
+        const std::initializer_list<std::initializer_list<float>> values = {
+                { 1, 2, 3 },
+                { 4, 5, 6 }
+        };
+        const nn::matrix m(values);
 
-        EXPECT_NE(m.data(), nullptr);
+        EXPECT_NE(m.view(), nullptr);
         EXPECT_EQ(m.height(), values.size());
         EXPECT_EQ(m.width(), values.begin()->size());
         for (uint32_t i = 0; i < m.height(); ++i)
@@ -37,7 +40,10 @@ TEST(MatrixTest, ConstructorWithInitializerListWorks) {
 
 #ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, ConstructorWithInitializerListThrowsIfSizesDontMatch) {
-        const std::initializer_list<std::initializer_list<float>> values = { { 1, 2, 3, 4 }, { 5, 6, 7 } };
+        const std::initializer_list<std::initializer_list<float>> values = {
+                { 1, 2, 3, 4 },
+                { 5, 6, 7 }
+        };
         EXPECT_THROW(nn::matrix m(values), nn::fatal_error);
 }
 #endif // DEBUG_MODE_ENABLED
@@ -51,8 +57,8 @@ TEST(MatrixTest, AccessOperator) {
 
 #ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, AccessOperatorThrowsIfIndexOutOfBounds) {
-        nn::matrix m(10, 10);
-        EXPECT_THROW([[maybe_unused]] nn::ptr<float> value = m[10], nn::fatal_error);
+        const nn::matrix m(10, 10);
+        EXPECT_THROW([[maybe_unused]] auto value = m[10], nn::fatal_error);
 }
 #endif // DEBUG_MODE_ENABLED
 
@@ -72,12 +78,12 @@ TEST(MatrixTest, PairAccessOperatorMatchesAccessOperator) {
 
 #ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, PairAccessOperatorThrowsIfRowIndexOutOfBounds) {
-        nn::matrix m(10, 10);
+        const nn::matrix m(10, 10);
         EXPECT_THROW([[maybe_unused]] float value = m[nn::matrix::indexer(10, 9)], nn::fatal_error);
 }
 
 TEST(MatrixTestDebug, PairAccessOperatorThrowsIfHeightIndexOutOfBounds) {
-        nn::matrix m(10, 10);
+        const nn::matrix m(10, 10);
         EXPECT_THROW([[maybe_unused]] float value = m[nn::matrix::indexer(9, 10)], nn::fatal_error);
 }
 #endif // DEBUG_MODE_ENABLED
@@ -250,7 +256,10 @@ TEST(MatrixTest, ScalarDivisionOperator) {
 
 #ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, ScalarDivisionOperatorThrowsIfValueIs0) {
-        nn::matrix m = { { 6, 8 }, { 10, 12 } };
+        const nn::matrix m = {
+                { 6, 8 },
+                { 10, 12 }
+        };
         EXPECT_THROW(nn::matrix value = m / 0, nn::fatal_error);
 }
 #endif // DEBUG_MODE_ENABLED

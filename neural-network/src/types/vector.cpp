@@ -11,7 +11,7 @@
 #include <neural-network/base.h>
 
 #ifdef DEBUG_MODE_ENABLED
-#include <algorithm> // std::ranges::any_of
+#include <algorithm>  // std::ranges::any_of
 #endif // DEBUG_MODE_ENABLED
 
 #ifdef BUILD_CUDA_SUPPORT

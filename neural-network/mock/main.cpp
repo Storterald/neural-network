@@ -15,7 +15,7 @@ namespace fs = std::filesystem;
 namespace ch = std::chrono;
 
 #define MNIST_TRAINING
-#define MAX_ITERATIONS 1000
+static constexpr uint32_t MAX_ITERATIONS = 1000;
 
 #if defined(MNIST_TRAINING) && defined(PPO_TRAINING)
 #error "Only one training mode can be selected at a time."
@@ -102,7 +102,7 @@ static void _test(
         std::vector<float> inputs, outputs;
         _get_inputs("mnist_test.nntv", sampleCount, inputs, outputs);
 
-        nn::network network(args..., fs::exists(encoded) ? encoded : "");
+        const nn::network network(args..., fs::exists(encoded) ? encoded : "");
 
         long long us = 0;
 
@@ -135,11 +135,11 @@ static void _user_image(
         const fs::path &encoded,
         Args           &&...args) {
 
-        std::vector<float> in = _get_image(path.string().c_str());
-        nn::network network(args..., fs::exists(encoded) ? encoded : "");
+        const std::vector<float> in = _get_image(path.string().c_str());
+        const nn::network network(args..., fs::exists(encoded) ? encoded : "");
 
-        nn::vector out  = network.forward(nn::vector(784, in.data()));
-        uint32_t output = (uint32_t)std::distance(out.begin(), std::ranges::max_element(out));
+        const nn::vector out  = network.forward(nn::vector(784, in.data()));
+        const uint32_t output = (uint32_t)std::distance(out.begin(), std::ranges::max_element(out));
 
         std::cout << "The network thinks the number in the image is: " << output
                   << ", with " << out[output] << " certainty.\n";
@@ -216,7 +216,7 @@ int main(int argc, const char *argv[])
                 .set_print_on_fatal(true);
 
 #ifdef MNIST_TRAINING
-        constexpr std::array<nn::layer_create_info, 2> INFOS = {
+        constexpr std::array INFOS = {
                 nn::layer_create_info {
                         .type         = nn::FULLY_CONNECTED,
                         .functionType = nn::TANH,

@@ -1,6 +1,6 @@
 #include <neural-network/network/layers/fully_connected_layer.h>
 
-#include <host_defines.h> // __global__
+#include <cuda_runtime.h>  // __global__
 
 #include <cstdint>
 
@@ -44,9 +44,9 @@ void fully_connected_layer::_d_backward(
         float              result[]) const {
 
         const uint32_t BLOCKS_COUNT = (m_w.width() + CUDA_THREADS - 1) / CUDA_THREADS;
-        kernels::backward<<<BLOCKS_COUNT, CUDA_THREADS>>>(
+        kernels::backward<<<BLOCKS_COUNT, CUDA_THREADS, 0, m_stream>>>(
                 m_w.width(), m_w.height(), input,
-                m_w.view(nn::buf::DEVICE), dw, db, result);
+                m_w.begin().get(), dw, db, result);
 
         cuda::check_last_error("backward kernel launch failed.");
 }

@@ -17,18 +17,18 @@ TEST(RefTest, TypeAliasesAreCorrectlyInitialized) {
 }
 
 TEST(RefTest, ConstructorThrowsWithNullptrOnHost) {
-        EXPECT_THROW(nn::ref<float> r(nullptr, false), nn::fatal_error);
+        EXPECT_THROW([[maybe_unused]] nn::ref<float> r(nullptr, false), nn::fatal_error);
 }
 
 TEST(RefTest, ConstructorThrowsWithNullptrOnDevice) {
-        EXPECT_THROW(nn::ref<float> r(nullptr, true), nn::fatal_error);
+        EXPECT_THROW([[maybe_unused]] nn::ref<float> r(nullptr, true), nn::fatal_error);
 }
 
 TEST(RefTest, ConstructorDoesNotThrowWithValidPointerOnHost) {
         float v;
-        EXPECT_NO_THROW(nn::ref r(&v, false));
+        EXPECT_NO_THROW([[maybe_unused]] nn::ref r(&v, false));
 
-        nn::ref r(&v, false);
+        const nn::ref r(&v, false);
         EXPECT_EQ(&r, &v);
 }
 
@@ -36,9 +36,9 @@ TEST(RefTest, ConstructorDoesNotThrowWithValidPointerOnHost) {
 TEST(RefTest, ConstructorDoesNotThrowWithValidPointerOnDevice) {
         float *d_v = nn::cuda::alloc<float>();
 
-        EXPECT_NO_THROW(nn::ref r(d_v, true));
+        EXPECT_NO_THROW([[maybe_unused]] nn::ref r(d_v, true));
 
-        nn::ref r(d_v, true);
+        const nn::ref r(d_v, true);
         EXPECT_EQ(&r, d_v);
 
         nn::cuda::free(d_v);
@@ -50,7 +50,7 @@ TEST(RefTest, CopyAssignmentOperatorOnlyChangesValue) {
         nn::ref r1(&v1, false);
 
         float v2 = 12;
-        nn::ref r2(&v2, false);
+        const nn::ref r2(&v2, false);
 
         EXPECT_NO_THROW(r1 = r2);
         EXPECT_EQ(r1, 12);
@@ -102,8 +102,8 @@ TEST(RefTest, AssignmentOperatorCorrectlySetsValueInTheDevice) {
 
 TEST(RefTest, ComparisonOperatorReturnsTrueWhenBothReferTheSameValue) {
         float v1 = 13;
-        nn::ref r1(&v1, false);
-        nn::ref r2(&v1, false);
+        const nn::ref r1(&v1, false);
+        const nn::ref r2(&v1, false);
 
         EXPECT_TRUE(r1 == r2);
         EXPECT_FALSE(r1 != r2);
@@ -111,10 +111,10 @@ TEST(RefTest, ComparisonOperatorReturnsTrueWhenBothReferTheSameValue) {
 
 TEST(RefTest, ComparisonOperatorReturnsTrueWhenReferredValuesAreEqual) {
         float v1 = 13;
-        nn::ref r1(&v1, false);
+        const nn::ref r1(&v1, false);
 
         float v2 = 13;
-        nn::ref r2(&v2, false);
+        const nn::ref r2(&v2, false);
 
         EXPECT_TRUE(r1 == r2);
         EXPECT_FALSE(r1 != r2);
@@ -122,10 +122,10 @@ TEST(RefTest, ComparisonOperatorReturnsTrueWhenReferredValuesAreEqual) {
 
 TEST(RefTest, ComparisonOperatorReturnsFalseWhenReferredValuesAreNotEqual) {
         float v1 = 13;
-        nn::ref r1(&v1, false);
+        const nn::ref r1(&v1, false);
 
         float v2 = 12;
-        nn::ref r2(&v2, false);
+        const nn::ref r2(&v2, false);
 
         EXPECT_FALSE(r1 == r2);
         EXPECT_TRUE(r1 != r2);

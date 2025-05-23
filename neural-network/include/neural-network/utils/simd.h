@@ -76,11 +76,12 @@ private:
 
 class m512 {
 public:
-        static constexpr uint32_t width = 16;
-        using mask = mask16;
+        static constexpr uint32_t alignment = 16;
+        static constexpr uint32_t width     = 16;
+        using mask                          = mask16;
 
         inline m512() : data(_mm512_setzero_ps()) {}
-        inline m512(const float *values) : data(_mm512_load_ps(values)) {}
+        inline m512(const float *values) : data(_mm512_loadu_ps(values)) {}
         inline m512(float scalar) : data(_mm512_set1_ps(scalar)) {}
         inline m512(const __m512 &reg) : data(reg) {}
         inline operator __m512() const { return data; }
@@ -123,11 +124,12 @@ private:
 
 class m256 {
 public:
-        static constexpr uint32_t width = 8;
-        using mask = mask8;
+        static constexpr uint32_t alignment = 32;
+        static constexpr uint32_t width     = 8;
+        using mask                          = mask8;
 
         inline m256() : data(_mm256_setzero_ps()) {}
-        inline m256(const float *values) : data(_mm256_load_ps(values)) {}
+        inline m256(const float *values) : data(_mm256_loadu_ps(values)) {}
         inline m256(float scalar) : data(_mm256_set1_ps(scalar)) {}
         inline m256(const __m256 &reg) : data(reg) {}
         inline operator __m256() const { return data; }
@@ -170,11 +172,12 @@ private:
 
 class m128 {
 public:
-        static constexpr uint32_t width = 4;
-        using mask = mask4;
+        static constexpr uint32_t alignment = 16;
+        static constexpr uint32_t width     = 4;
+        using mask                          = mask4;
 
         inline m128() : data(_mm_setzero_ps()) {}
-        inline m128(const float *values) : data(_mm_load_ps(values)) {}
+        inline m128(const float *values) : data(_mm_loadu_ps(values)) {}
         inline m128(float scalar) : data(_mm_set1_ps(scalar)) {}
         inline m128(const __m128 &reg) : data(reg) {}
         inline operator __m128() const { return data; }
@@ -642,6 +645,7 @@ inline m128 mask4::blend(const m128 &first, const m128 &second) const
 template<typename T>
 concept simd = requires(T v)
 {
+        T::alignment;
         T::width;
         typename T::mask;
         T::mask::ones;
@@ -680,7 +684,3 @@ concept simd = requires(T v)
 };
 
 } // namespace nn::simd
-
-static_assert(nn::simd::simd<nn::simd::m512>);
-static_assert(nn::simd::simd<nn::simd::m256>);
-static_assert(nn::simd::simd<nn::simd::m128>);

@@ -11,7 +11,7 @@
 #include <neural-network/base.h>
 
 #ifdef DEBUG_MODE_ENABLED
-#include <algorithm> // std::ranges::any_of
+#include <algorithm>  // std::ranges::any_of
 #endif // DEBUG_MODE_ENABLED
 
 #ifdef BUILD_CUDA_SUPPORT
@@ -36,18 +36,19 @@ matrix::matrix(std::initializer_list<std::initializer_list<value_type>> values, 
 #endif // DEBUG_MODE_ENABLED
 
         if (!m_device) {
-                for (uint32_t i = 0; i < m_height; ++i)
-                        std::memcpy(
-                                this->operator[](i).get(),
-                                std::data(std::data(values)[i]),
-                                m_width * sizeof(value_type));
+                const size_t copySize = m_width * sizeof(value_type);
+                for (uint32_t i = 0; i < m_height; ++i) {
+                        value_type *dst       = (*this)[i].get();
+                        const_value_type *src = std::data(std::data(values)[i]);
+                        std::memcpy(dst, src, copySize);
+                }
                 return;
         }
 
 #ifdef BUILD_CUDA_SUPPORT
         const size_t copySize = m_width * sizeof(value_type);
         for (uint32_t i = 0; i < m_height; ++i) {
-                value_type *dst = (*this)[i].get();
+                value_type *dst       = (*this)[i].get();
                 const_value_type *src = std::data(std::data(values)[i]);
                 cuda::memcpy(dst, src, copySize, cudaMemcpyHostToDevice, m_stream);
         }
@@ -148,7 +149,7 @@ matrix matrix::operator- (const matrix &other) const
 }
 
 void matrix::operator+= (const matrix &other)
-        {
+{
 #ifdef DEBUG_MODE_ENABLED
         if (m_width != other.m_width || m_height != other.m_height)
                 throw fatal_error("Matrix dimensions must match for addition.");
@@ -158,7 +159,7 @@ void matrix::operator+= (const matrix &other)
 }
 
 void matrix::operator-= (const matrix &other)
-        {
+{
 #ifdef DEBUG_MODE_ENABLED
         if (m_width != other.m_width || m_height != other.m_height)
                 throw fatal_error("Matrix dimensions must match for subtraction.");

@@ -108,7 +108,7 @@ private:
                 const chunk        &inputs,
                 const chunk        &outputs);
 
-        vector _forward_impl(vector aL) const;
+        [[nodiscard]] vector _forward_impl(vector aL) const;
         void _backward_impl(vector dC, const vector a[]);
 
         void _train_ppo(

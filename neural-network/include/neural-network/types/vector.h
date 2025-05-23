@@ -6,11 +6,6 @@
 #include <neural-network/types/buf.h>
 #include <neural-network/base.h>
 
-#ifdef DEBUG_MODE_ENABLED
-#include <ostream>
-#include <string>
-#endif // DEBUG_MODE_ENABLED
-
 namespace nn {
 
 class vector : public buf {
@@ -71,15 +66,3 @@ public:
 [[nodiscard]] inline nn::vector operator/ (float scalar, const nn::vector &vec) {
         return vec / scalar;
 }
-
-#ifdef DEBUG_MODE_ENABLED
-inline std::ostream &operator<< (std::ostream &os, const nn::vector &vec)
-{
-        std::string str;
-        for (uint32_t i = 0; i < vec.size() - 1; ++i)
-                str += std::to_string(vec.at(i)) + ", ";
-
-        os << "[" << str << vec.at(vec.size() - 1) << "]";
-        return os;
-}
-#endif // DEBUG_MODE_ENABLED

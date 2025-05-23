@@ -48,16 +48,16 @@ inline T *alloc(size_t count, cudaStream_t stream)
         return (T *)malloc(count * sizeof(T), stream);
 }
 
-inline void free(void *ptr)
+inline void free(void *ptr) noexcept
 {
-        if (const cudaError_t code = cudaFree(ptr); code != cudaSuccess)
-                throw cuda_error("Could not free memory in the GPU.", code);
+        // Error codes won't be validated on buffer destruction. This results
+        // in undefined behaviour like a failure on delete.
+        cudaFree(ptr);
 }
 
-inline void free(void *ptr, cudaStream_t stream)
+inline void free(void *ptr, cudaStream_t stream) noexcept
 {
-        if (const cudaError_t code = cudaFreeAsync(ptr, stream); code != cudaSuccess)
-                throw cuda_error("Could not free memory in the GPU.", code);
+        cudaFreeAsync(ptr, stream);
 }
 
 inline void memcpy(void *dst, const void *src, size_t size, cudaMemcpyKind kind)

@@ -58,12 +58,13 @@ fully_connected_layer::fully_connected_layer(
         function_type        functionType,
         stream               stream) :
 
+#ifdef BUILD_CUDA_SUPPORT
+        m_stream(stream),
+#endif // BUILD_CUDA_SUPPORT
         m_w(previousLayerSize, layerSize, stream),
         m_b(layerSize, stream),
-        m_functionType(functionType)
-#ifdef BUILD_CUDA_SUPPORT
-        , m_stream(stream)
-#endif // BUILD_CUDA_SUPPORT
+        m_functionType(functionType),
+        m_mutex()
 {
 
         std::random_device rd;
@@ -83,12 +84,13 @@ fully_connected_layer::fully_connected_layer(
         std::istream         &encodedData,
         stream               stream) :
 
+#ifdef BUILD_CUDA_SUPPORT
+        m_stream(stream),
+#endif // BUILD_CUDA_SUPPORT
         m_w(previousLayerSize, layerSize, stream),
         m_b(layerSize, stream),
-        m_functionType(functionType)
-#ifdef BUILD_CUDA_SUPPORT
-        , m_stream(stream)
-#endif // BUILD_CUDA_SUPPORT
+        m_functionType(functionType),
+        m_mutex()
 {
 
         uint32_t sizes[4]{};
@@ -118,10 +120,10 @@ vector fully_connected_layer::forward(const vector &input) const
 
 vector fully_connected_layer::backward(const vector &cost, const vector &input)
 {
-        //  ∂Ce      ∂zjL   ∂ajL   ∂Ce
+        //  ∂Ce      ∂zjL  ∂ajL   ∂Ce
         // ⎯⎯⎯⎯⎯ = ⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯ = 1 * AFoo'(z) * Lcost
-        //  ∂bL      ∂bL    ∂zjL   ∂ajL
-        vector db = _activation_derivative(m_functionType, m_w * input + m_b) * cost;
+        //  ∂bL      ∂bL   ∂zjL   ∂ajL
+        const vector db = _activation_derivative(m_functionType, m_w * input + m_b) * cost;
 
         //  ∂Ce      ∂zjL    ∂ajL   ∂Ce
         // ⎯⎯⎯⎯⎯ = ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯ = input * AFoo'(z) * Lcost

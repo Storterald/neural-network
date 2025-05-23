@@ -141,7 +141,7 @@ void network::encode(const std::filesystem::path &path) const
 #ifdef BUILD_CUDA_SUPPORT
 stream network::_create_stream(const layer_create_info *infos) const
 {
-        static std::array<stream, 16> streams = []() {
+        static std::array<stream, 16> streams = [] {
                 std::array<stream, 16> ret{};
                 for (stream &str : ret)
                         str = cuda::create_stream();
@@ -150,13 +150,13 @@ stream network::_create_stream(const layer_create_info *infos) const
         }();
         static uint32_t usedStreams = 0;
 
-        uint32_t neurons = m_inputSize * infos[0].neuronCount;
+        uint32_t ops = m_inputSize * infos[0].neuronCount;
         for (uint32_t i = 1; i < m_layerCount - 1; ++i)
-                neurons += infos[i - 1].neuronCount * infos[i].neuronCount;
+                ops += infos[i - 1].neuronCount * infos[i].neuronCount;
 
-        if (neurons >= CUDA_MINIMUM) {
-                stream str  = streams[usedStreams];
-                usedStreams = (usedStreams + 1) % streams.size();
+        if (ops >= CUDA_MINIMUM) {
+                const stream str = streams[usedStreams];
+                usedStreams      = (usedStreams + 1) % streams.size();
                 return str;
         }
 

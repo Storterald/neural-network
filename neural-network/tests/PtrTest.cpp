@@ -18,7 +18,7 @@ TEST(PtrTest, TypeAliasesAreCorrectlyInitialized) {
 }
 
 TEST(PtrTest, ConstructorWorksWithNullptrOnHost) {
-        EXPECT_NO_THROW(nn::ptr<float> p(nullptr, false));
+        EXPECT_NO_THROW([[maybe_unused]] nn::ptr<float> p(nullptr, false));
 
         const nn::ptr<float> p(nullptr, false);
         EXPECT_EQ(p, nullptr);
@@ -28,7 +28,7 @@ TEST(PtrTest, ConstructorWorksWithNullptrOnHost) {
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, ConstructorWorksWithNullptrOnDevice) {
-        EXPECT_NO_THROW(nn::ptr<float> p(nullptr, true));
+        EXPECT_NO_THROW([[maybe_unused]] nn::ptr<float> p(nullptr, true));
 
         const nn::ptr<float> p(nullptr, true);
         EXPECT_EQ(p, nullptr);
@@ -40,7 +40,7 @@ TEST(PtrTest, ConstructorWorksWithNullptrOnDevice) {
 TEST(PtrTest, ConstructorWorksWithValidPointerOnHost) {
         float v = 13;
 
-        EXPECT_NO_THROW(nn::ptr p(&v, false));
+        EXPECT_NO_THROW([[maybe_unused]] nn::ptr p(&v, false));
 
         const nn::ptr p(&v, false);
         EXPECT_EQ(p, &v);
@@ -52,7 +52,7 @@ TEST(PtrTest, ConstructorWorksWithValidPointerOnHost) {
 TEST(PtrTest, ConstructorWorksWithValidPointerOnDevice) {
         float *d_v = nn::cuda::alloc<float>();
 
-        EXPECT_NO_THROW(nn::ptr p(d_v, true));
+        EXPECT_NO_THROW([[maybe_unused]] nn::ptr p(d_v, true));
 
         const nn::ptr p(d_v, true);
         EXPECT_EQ(p, d_v);
@@ -71,8 +71,8 @@ TEST(PtrTest, ConstructorSavesValueOnHostWithPointerOnHost) {
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, ConstructorSavesValueOnHostWithPointerOnDevice) {
-        float v = 13;
-        float *d_v = nn::cuda::alloc<float>();
+        constexpr float v = 13;
+        float *d_v        = nn::cuda::alloc<float>();
         nn::cuda::memcpy(d_v, &v, sizeof(float), cudaMemcpyHostToDevice);
 
         const nn::ptr p(d_v, true);
@@ -91,7 +91,7 @@ TEST(PtrTest, ConstPtrRetainsOriginalType) {
 TEST(PtrTest, CopyConstructorWorksWithNullptrOnHost) {
         const nn::ptr<float> p(nullptr, false);
 
-        EXPECT_NO_THROW(nn::ptr copy(p));
+        EXPECT_NO_THROW([[maybe_unused]] nn::ptr copy(p));
 
         const nn::ptr copy(p);
         EXPECT_EQ(copy, nullptr);
@@ -102,7 +102,7 @@ TEST(PtrTest, CopyConstructorWorksWithNullptrOnHost) {
 TEST(PtrTest, CopyConstructorWorksWithNullptrOnDevice) {
         const nn::ptr<float> p(nullptr, true);
 
-        EXPECT_NO_THROW(nn::ptr copy(p));
+        EXPECT_NO_THROW([[maybe_unused]] nn::ptr copy(p));
 
         const nn::ptr copy(p);
         EXPECT_EQ(copy, nullptr);
@@ -114,7 +114,7 @@ TEST(PtrTest, CopyConstructorWorksWithValidPointerOnHost) {
         float v = 13;
         const nn::ptr p(&v, false);
 
-        EXPECT_NO_THROW(nn::ptr copy(p));
+        EXPECT_NO_THROW([[maybe_unused]] nn::ptr copy(p));
 
         const nn::ptr copy(p);
         EXPECT_EQ(copy, &v);
@@ -124,13 +124,13 @@ TEST(PtrTest, CopyConstructorWorksWithValidPointerOnHost) {
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, CopyConstructorWorksWithValidPointerOnDevice) {
-        float v = 13;
-        float *d_v = nn::cuda::alloc<float>();
+        constexpr float v = 13;
+        float *d_v        = nn::cuda::alloc<float>();
         nn::cuda::memcpy(d_v, &v, sizeof(float), cudaMemcpyHostToDevice);
 
         const nn::ptr p(d_v, true);
 
-        EXPECT_NO_THROW(nn::ptr copy(p));
+        EXPECT_NO_THROW([[maybe_unused]] nn::ptr copy(p));
 
         const nn::ptr copy(p);
         EXPECT_EQ(copy, d_v);
@@ -142,7 +142,7 @@ TEST(PtrTest, CopyConstructorWorksWithValidPointerOnDevice) {
 #endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, MoveConstructorWorksWithNullptrOnHost) {
-        EXPECT_NO_THROW(nn::ptr p(nn::ptr<float>(nullptr, false)));
+        EXPECT_NO_THROW([[maybe_unused]] nn::ptr p(nn::ptr<float>(nullptr, false)));
 
         const nn::ptr p(nn::ptr<float>(nullptr, false));
         EXPECT_EQ(p, nullptr);
@@ -151,7 +151,7 @@ TEST(PtrTest, MoveConstructorWorksWithNullptrOnHost) {
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, MoveConstructorWorksWithNullptrOnDevice) {
-        EXPECT_NO_THROW(nn::ptr p(nn::ptr<float>(nullptr, true)));
+        EXPECT_NO_THROW([[maybe_unused]] nn::ptr p(nn::ptr<float>(nullptr, true)));
 
         const nn::ptr p(nn::ptr<float>(nullptr, true));
         EXPECT_EQ(p, nullptr);
@@ -161,7 +161,7 @@ TEST(PtrTest, MoveConstructorWorksWithNullptrOnDevice) {
 
 TEST(PtrTest, MoveConstructorWorksWithValidPointerOnHost) {
         float v = 13;
-        EXPECT_NO_THROW(nn::ptr p(nn::ptr(&v, false)));
+        EXPECT_NO_THROW([[maybe_unused]] nn::ptr p(nn::ptr(&v, false)));
 
         const nn::ptr p(nn::ptr(&v, false));
         EXPECT_EQ(p, &v);
@@ -171,11 +171,11 @@ TEST(PtrTest, MoveConstructorWorksWithValidPointerOnHost) {
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, MoveConstructorWorksWithValidPointerOnDevice) {
-        float v = 13;
-        float *d_v = nn::cuda::alloc<float>();
+        constexpr float v = 13;
+        float *d_v        = nn::cuda::alloc<float>();
         nn::cuda::memcpy(d_v, &v, sizeof(float), cudaMemcpyHostToDevice);
 
-        EXPECT_NO_THROW(nn::ptr p(nn::ptr(d_v, true)));
+        EXPECT_NO_THROW([[maybe_unused]] nn::ptr p(nn::ptr(d_v, true)));
 
         const nn::ptr p(nn::ptr(d_v, true));
         EXPECT_EQ(p, d_v);
@@ -220,8 +220,8 @@ TEST(PtrTest, CopyAssignmentOperatorWorksWithValidPointerOnHost) {
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, CopyAssignmentOperatorWorksWithValidPointerOnDevice) {
-        float v = 13;
-        float *d_v = nn::cuda::alloc<float>();
+        constexpr float v = 13;
+        float *d_v        = nn::cuda::alloc<float>();
         nn::cuda::memcpy(d_v, &v, sizeof(float), cudaMemcpyHostToDevice);
 
         const nn::ptr p(d_v, true);
@@ -441,7 +441,7 @@ TEST(PtrTest, IndexerOperatorReturnsValidRefWithValidPointer) {
 
         EXPECT_NO_THROW([[maybe_unused]] nn::ref r = ptr[0]);
 
-        nn::ref r = ptr[0];
+        const nn::ref r = ptr[0];
         EXPECT_EQ(ptr, &r);
 }
 
@@ -456,7 +456,7 @@ TEST(PtrTest, SumOperatorReturnsNewValidPointer) {
         const nn::ptr a(&v[0], false);
         EXPECT_NO_THROW([[maybe_unused]] nn::ptr b = a + 2);
 
-        nn::ptr b = a + 2;
+        const nn::ptr b = a + 2;
         EXPECT_EQ(b, &v[0] + 2);
         EXPECT_EQ(b, &v[2]);
         EXPECT_EQ(*b, v[2]);
@@ -468,7 +468,7 @@ TEST(PtrTest, SubOperatorReturnsNewValidPointer) {
         const nn::ptr a(&v[2], false);
         EXPECT_NO_THROW([[maybe_unused]] nn::ptr b = a - 2);
 
-        nn::ptr b = a - 2;
+        const nn::ptr b = a - 2;
         EXPECT_EQ(b, &v[2] - 2);
         EXPECT_EQ(b, &v[0]);
         EXPECT_EQ(*b, v[0]);
@@ -502,7 +502,7 @@ TEST(PtrTest, IncreaseOperatorReturnsNewValidPointer) {
         nn::ptr a(&v[0], false);
         EXPECT_NO_THROW([[maybe_unused]] nn::ptr b = a++);
 
-        nn::ptr b = a;
+        const nn::ptr b = a;
         EXPECT_EQ(b, &v[0] + 1);
         EXPECT_EQ(b, &v[1]);
         EXPECT_EQ(*b, v[1]);
@@ -514,7 +514,7 @@ TEST(PtrTest, DecreaseOperatorReturnsNewValidPointer) {
         nn::ptr a(&v[2], false);
         EXPECT_NO_THROW([[maybe_unused]] nn::ptr b = a--);
 
-        nn::ptr b = a;
+        const nn::ptr b = a;
         EXPECT_EQ(b, &v[2] - 1);
         EXPECT_EQ(b, &v[1]);
         EXPECT_EQ(*b, v[1]);

@@ -9,13 +9,13 @@ enum LayerType : uint32_t {
 
 }; // enum LayerType
 
-void writeVector(
+static void _write_vector(
         const char           *name,
         uint32_t             count,
         const float          *values,
         std::ofstream        &outFile) {
 
-        outFile << "        std::vector<float> " << name << " /* " << count << " */ {"
+        outFile << "        inline std::vector<float> " << name << " /* " << count << " */ {"
                    "\n                ";
 
         for (uint32_t i { 0 }; i < count - 1; i++) {
@@ -36,7 +36,7 @@ void writeVector(
                    "\n";
 }
 
-void decodeFullyConnectedLayer(
+static void _decode_fully_connected(
         const uint32_t        infos[4],
         std::ifstream         &inFile,
         std::ofstream         &outFile) {
@@ -44,15 +44,15 @@ void decodeFullyConnectedLayer(
         const uint32_t wCount = infos[2] * infos[3];
         const auto w = new float[wCount];
 
-        inFile.read((char *)w, wCount * sizeof(float));
-        writeVector("weights", wCount, w, outFile);
+        inFile.read((char *)w, std::streamsize(wCount * sizeof(float)));
+        _write_vector("weights", wCount, w, outFile);
         delete [] w;
 
         const uint32_t bCount = infos[3];
         const auto b = new float[bCount];
 
-        inFile.read((char *)b, bCount * sizeof(float));
-        writeVector("biases", bCount, b, outFile);
+        inFile.read((char *)b, std::streamsize(bCount * sizeof(float)));
+        _write_vector("biases", bCount, b, outFile);
         delete [] b;
 }
 
@@ -68,7 +68,6 @@ int main()
         if (!outFile)
                 return EXIT_FAILURE;
 
-        // Decoded file gotta be pretty
         outFile << std::fixed << std::setprecision(6);
 
         outFile << "#pragma once\n"
@@ -93,7 +92,7 @@ int main()
 
                 switch ((LayerType)infos[0]) {
                         case FULLY_CONNECTED:
-                                decodeFullyConnectedLayer(infos, inFile, outFile);
+                                _decode_fully_connected(infos, inFile, outFile);
                                 break;
                         default:
                                 throw std::runtime_error("Layer type not recognized.");
@@ -102,7 +101,7 @@ int main()
                 outFile << "}\n"
                            "\n";
 
-                layerIndex++;
+                ++layerIndex;
         }
 
         inFile.close();
