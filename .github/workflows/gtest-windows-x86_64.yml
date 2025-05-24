@@ -6,8 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-test:
-    runs-on: windows-latest
+  CI:
     strategy:
       matrix:
         include:
@@ -15,13 +14,30 @@ jobs:
             preset: "msvc-debug"
             exe_path: "build/msvc-debug/neural-network/tests/Debug/NeuralNetworkTest.exe"
             setup_action: "msvc"
+            cuda: false
+          - name: "MSVC-CUDA"
+            preset: "msvc-cuda-debug"
+            exe_path: "build/msvc-debug/neural-network/tests/Debug/NeuralNetworkTest.exe"
+            setup_action: "msvc"
+            cuda: true
           - name: "MinGW"
             preset: "mingw-debug"
             exe_path: "build/mingw-debug/neural-network/tests/NeuralNetworkTest.exe"
             setup_action: "msys2"
+            cuda: false
+
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Setup CUDA
+      if: matrix.cuda
+      uses: Jimver/cuda-toolkit@v0.2.23
+      with:
+        cuda: '12.8.1'
+        method: 'network'
+        sub-packages: '["nvcc", "cudart"]'
 
     - name: Set up MSVC
       if: matrix.setup_action == 'msvc'
@@ -40,14 +56,14 @@ jobs:
           git
         msystem: MINGW64
 
-    - name: Configure and Build
+    - name: Configure and Build with MSVC
       if: matrix.setup_action == 'msvc'
       shell: pwsh
       run: |
         cmake --preset ${{ matrix.preset }}
         cmake --build --preset ${{ matrix.preset }}-build --target NeuralNetworkTest
 
-    - name: Configure and Build
+    - name: Configure and Build with MinGW
       if: matrix.setup_action == 'msys2'
       shell: msys2 {0}
       run: |

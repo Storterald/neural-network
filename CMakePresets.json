@@ -47,9 +47,6 @@
       "hidden": true,
       "inherits": "common",
       "generator": "Ninja",
-      "cacheVariables": {
-        "BUILD_CUDA_SUPPORT": false
-      },
       "vendor": {
         "jetbrains.com/clion": {
           "toolchain": "MinGW"
@@ -64,12 +61,30 @@
       "displayName": "MSVC Debug",
       "inherits": "msvc",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_CUDA_SUPPORT": false
       }
     },
     {
       "name": "msvc-release",
       "displayName": "MSVC Release",
+      "inherits": "msvc",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_CUDA_SUPPORT": false
+      }
+    },
+    {
+      "name": "msvc-cuda-debug",
+      "displayName": "MSVC + CUDA Debug",
+      "inherits": "msvc",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "msvc-cuda-release",
+      "displayName": "MSVC + CUDA Release",
       "inherits": "msvc",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
@@ -80,7 +95,8 @@
       "displayName": "MINGW Debug",
       "inherits": "mingw",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_CUDA_SUPPORT": false
       }
     },
     {
@@ -88,7 +104,8 @@
       "displayName": "MINGW Release",
       "inherits": "mingw",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_CUDA_SUPPORT": false
       }
     }
   ],
@@ -103,6 +120,18 @@
       "name": "msvc-release-build",
       "displayName": "MSVC Release Build",
       "configurePreset": "msvc-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "msvc-cuda-debug-build",
+      "displayName": "MSVC + CUDA Debug Build",
+      "configurePreset": "msvc-cuda-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "msvc-cuda-release-build",
+      "displayName": "MSVC + CUDA Release Build",
+      "configurePreset": "msvc-cuda-release",
       "configuration": "Release"
     },
     {
