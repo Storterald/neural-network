@@ -38,6 +38,7 @@ jobs:
         cuda: '12.8.1'
         method: 'network'
         sub-packages: '["nvcc", "cudart"]'
+        use-github-cache: false
 
     - name: Set up MSVC
       if: matrix.setup_action == 'msvc'
@@ -74,4 +75,3 @@ jobs:
       shell: pwsh
       run: |
         ${{ matrix.exe_path }}
-        exit $LASTEXITCODE
