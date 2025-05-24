@@ -37,7 +37,6 @@ jobs:
       with:
         cuda: '12.8.1'
         method: 'network'
-        sub-packages: '["nvcc", "cudart"]'
         use-github-cache: false
 
     - name: Setup MSVC
