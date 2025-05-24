@@ -14,12 +14,10 @@ jobs:
           - name: "MSVC"
             preset: "msvc-debug"
             exe_path: "build/msvc-debug/neural-network/tests/Debug/NeuralNetworkTest.exe"
-            shell: "pwsh"
             setup_action: "msvc"
           - name: "MinGW"
             preset: "mingw-debug"
             exe_path: "build/mingw-debug/neural-network/tests/NeuralNetworkTest.exe"
-            shell: "msys2 {0}"
             setup_action: "msys2"
 
     steps:
@@ -43,7 +41,15 @@ jobs:
         msystem: MINGW64
 
     - name: Configure and Build
-      shell: ${{ matrix.shell }}
+      if: matrix.setup_action == 'msvc'
+      shell: pwsh
+      run: |
+        cmake --preset ${{ matrix.preset }}
+        cmake --build --preset ${{ matrix.preset }}-build --target NeuralNetworkTest
+
+    - name: Configure and Build
+      if: matrix.setup_action == 'msys2'
+      shell: msys2 {0}
       run: |
         cmake --preset ${{ matrix.preset }}
         cmake --build --preset ${{ matrix.preset }}-build --target NeuralNetworkTest
