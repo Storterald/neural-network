@@ -60,7 +60,7 @@ int main()
 {
         const fs::path dir = fs::path(__FILE__).parent_path();
 
-        std::ifstream inFile(dir / ".." / "mock" / "Encoded.nnv", std::ios::binary);
+        std::ifstream inFile(dir / ".." / "neural-network" / "mock" / "Encoded.nnv", std::ios::binary);
         if (!inFile)
                 return EXIT_FAILURE;
 

@@ -8,20 +8,48 @@ on:
 jobs:
   build-and-test:
     runs-on: windows-latest
-      
+    strategy:
+      matrix:
+        include:
+          - name: "MSVC"
+            preset: "msvc-debug"
+            exe_path: "build/msvc-debug/neural-network/tests/Debug/NeuralNetworkTest.exe"
+            shell: "pwsh"
+            setup_action: "msvc"
+          - name: "MinGW"
+            preset: "mingw-debug"
+            exe_path: "build/mingw-debug/neural-network/tests/NeuralNetworkTest.exe"
+            shell: "msys2 {0}"
+            setup_action: "msys2"
+
     steps:
     - uses: actions/checkout@v4
-      
-    - name: Set up MSVC Developer Command Prompt
+
+    - name: Set up MSVC
+      if: matrix.setup_action == 'msvc'
       uses: ilammy/msvc-dev-cmd@v1
-      
+
+    - name: Set up MSYS2
+      if: matrix.setup_action == 'msys2'
+      uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: >
+          mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-cmake
+          mingw-w64-x86_64-ninja
+          mingw-w64-x86_64-nasm
+          git
+        msystem: MINGW64
+
     - name: Configure and Build
+      shell: ${{ matrix.shell }}
       run: |
-        cmake --preset msvc-debug
-        cmake --build --preset msvc-debug-build --target NeuralNetworkTest
-      
+        cmake --preset ${{ matrix.preset }}
+        cmake --build --preset ${{ matrix.preset }}-build --target NeuralNetworkTest
+
     - name: Run Tests
       shell: pwsh
       run: |
-        build/msvc-debug/neural-network/tests/Debug/NeuralNetworkTest.exe
+        ${{ matrix.exe_path }}
         exit $LASTEXITCODE
