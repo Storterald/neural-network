@@ -1,4 +1,4 @@
-name: Run Tests Windows x86_64
+name: CI
 
 on:
   push:
@@ -58,7 +58,7 @@ jobs:
           git
         msystem: MINGW64
 
-    - name: Configure, Build and Run with MSVC
+    - name: Configure and Build with MSVC
       if: matrix.setup_action == 'msvc'
       shell: pwsh
       run: |
@@ -66,10 +66,21 @@ jobs:
         cmake --build --preset ${{ matrix.preset }}-build --target NeuralNetworkTest
         build/${{ matrix.preset }}/neural-network/tests/${{ matrix.exe_path }}
 
-    - name: Configure, Build and Run with MinGW
+    - name: Configure and Build with MinGW
       if: matrix.setup_action == 'msys2'
       shell: msys2 {0}
       run: |
         cmake --preset ${{ matrix.preset }}
         cmake --build --preset ${{ matrix.preset }}-build --target NeuralNetworkTest
+
+    - name: Run with MSVC
+      if: matrix.setup_action == 'msvc' && !matrix.cuda
+      shell: pwsh
+      run: |
+        build/${{ matrix.preset }}/neural-network/tests/${{ matrix.exe_path }}
+
+    - name: Run with MinGW
+      if: matrix.setup_action == 'msys2'
+      shell: msys2 {0}
+      run: |
         build/${{ matrix.preset }}/neural-network/tests/${{ matrix.exe_path }}
