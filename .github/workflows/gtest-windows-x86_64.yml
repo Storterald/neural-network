@@ -16,17 +16,17 @@ jobs:
         include:
           - name: "MSVC"
             preset: "msvc-debug"
-            exe_path: "build/msvc-debug/neural-network/tests/Debug/NeuralNetworkTest.exe"
+            exe_path: "Debug/NeuralNetworkTest.exe"
             setup_action: "msvc"
             cuda: false
           - name: "MSVC-CUDA"
             preset: "msvc-cuda-debug"
-            exe_path: "build/msvc-debug/neural-network/tests/Debug/NeuralNetworkTest.exe"
+            exe_path: "Debug/NeuralNetworkTest.exe"
             setup_action: "msvc"
             cuda: true
           - name: "MinGW"
             preset: "mingw-debug"
-            exe_path: "build/mingw-debug/neural-network/tests/NeuralNetworkTest.exe"
+            exe_path: "NeuralNetworkTest.exe"
             setup_action: "msys2"
             cuda: false
 
@@ -82,4 +82,4 @@ jobs:
       if: matrix.setup_action == 'msys2'
       shell: msys2 {0}
       run: |
-        ${{ matrix.exe_path }}
+        build/${{ matrix.preset }}/neural-network/tests/${{ matrix.exe_path }}
