@@ -1,15 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 project(NeuralNetworkLib LANGUAGES CXX)
 
-if (MSVC)
-        enable_language(ASM_MASM)
-        set(ASM_EXT "asm")
-else ()
-        enable_language(ASM_NASM)
-        set(CMAKE_ASM_NASM_COMPILER "nasm")
-        set(ASM_EXT "nasm")
-endif ()
-
 # ------------------------------------------------------------------------------
 # FLAGS
 # ------------------------------------------------------------------------------
@@ -25,11 +16,13 @@ else ()
         set(CMAKE_CXX_FLAGS_RELEASE     "-O3 -static")
 endif ()
 
-# ASM
-set(CMAKE_ASM_MASM_FLAGS_INIT  "/c /nologo")
-set(CMAKE_ASM_MASM_FLAGS_DEBUG "/Zi")
-set(CMAKE_ASM_NASM_FLAGS_INIT  "")
-set(CMAKE_ASM_NASM_FLAGS_DEBUG "-g")
+# ASM x86
+if (IS_X86_64)
+        set(CMAKE_ASM_MASM_FLAGS_INIT  "/c /nologo")
+        set(CMAKE_ASM_MASM_FLAGS_DEBUG "/Zi")
+        set(CMAKE_ASM_NASM_FLAGS_INIT  "")
+        set(CMAKE_ASM_NASM_FLAGS_DEBUG "-g")
+endif ()
 
 # Cuda
 if (BUILD_CUDA_SUPPORT)
@@ -56,12 +49,27 @@ target_include_directories(NeuralNetworkHeaders INTERFACE ${INCLUDE_DIR})
 add_library(NeuralNetwork::Headers ALIAS NeuralNetworkHeaders)
 
 file(GLOB_RECURSE SOURCES
-        "${SRC_DIR}/*.cpp"
-        "${SRC_DIR}/*.${ASM_EXT}")
+        "${SRC_DIR}/*.cpp")
 
 add_library(NeuralNetworkLib STATIC ${SOURCES} ${CUDA_SOURCES})
 target_link_libraries(NeuralNetworkLib PRIVATE NeuralNetwork::Headers)
 add_library(NeuralNetwork::Lib ALIAS NeuralNetworkLib)
+
+if (IS_X86_64)
+        if (MSVC)
+                enable_language(ASM_MASM)
+                set(ASM_EXT "asm")
+        else ()
+                enable_language(ASM_NASM)
+                set(CMAKE_ASM_NASM_COMPILER "nasm")
+                set(ASM_EXT "nasm")
+        endif ()
+
+        file(GLOB_RECURSE ASM_SOURCES
+                "${SRC_DIR}/*.${ASM_EXT}")
+        target_sources(NeuralNetworkLib
+                PUBLIC ${ASM_SOURCES})
+endif ()
 
 if (BUILD_CUDA_SUPPORT)
         enable_language(CUDA)

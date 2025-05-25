@@ -14,18 +14,18 @@ enum simd_support {
 
 namespace intrinsic {
 
-#if IS_X86_64BIT
+#if TARGET_X86_64
         extern "C" simd_support _get_simd_support();
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
         [[nodiscard]] inline simd_support support()
         {
-#if IS_X86_64BIT
+#if TARGET_X86_64
                 const static simd_support support = _get_simd_support();
                 return support;
-#else // IS_X86_64BIT
+#else // TARGET_X86_64
                 return SIMD_UNSUPPORTED;
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
         }
 
 } // namespace intrinsic

@@ -1,5 +1,9 @@
 #pragma once
 
+#ifndef TARGET_X86_64
+#error cannot be included if the architecture is not x86_64
+#endif // !TARGET_X86_64
+
 #include <cstdint>
 
 #include <neural-network/utils/simd.h>

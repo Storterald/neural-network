@@ -1,6 +1,6 @@
 #include <neural-network/network/layer.h>
 
-#include <iostream> // std::istream
+#include <istream>
 #include <cstdint>
 #include <memory>
 

@@ -27,6 +27,12 @@ if (NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
         add_compile_definitions(NDEBUG)
 endif ()
 
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/check_x86_64.cmake")
+check_x86_64(IS_X86_64)
+if (IS_X86_64)
+        add_compile_definitions(TARGET_X86_64)
+endif ()
+
 # ------------------------------------------------------------------------------
 # FLAGS
 # ------------------------------------------------------------------------------

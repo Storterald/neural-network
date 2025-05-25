@@ -1,5 +1,9 @@
 #pragma once
 
+#ifndef BUILD_CUDA_SUPPORT
+#error math/_math_cuda.h cannot be included without BUILD_CUDA_SUPPORT
+#endif // !BUILD_CUDA_SUPPORT
+
 #include <cstdint>
 
 #include <neural-network/base.h>

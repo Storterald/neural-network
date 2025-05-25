@@ -7,8 +7,14 @@
 #include <neural-network/utils/macros.h>
 #include <neural-network/types/buf.h>
 #include "_math_normal.h"
+
+#ifdef TARGET_X86_64
 #include "_math_simd.h"
+#endif // TARGET_X86_64
+
+#ifdef BUILD_CUDA_SUPPORT
 #include "_math_cuda.h"
+#endif // BUILD_CUDA_SUPPORT
 
 template<typename T>
 static constexpr decltype(auto) _get(T &&v, nn::buf::loc_type location)
@@ -41,6 +47,7 @@ if ((__first__).location() == buf::DEVICE)                                      
 #define CHECK_IF_CUDA_MINIMUM(...)
 #endif // BUILD_CUDA_SUPPORT
 
+#ifdef TARGET_X86_64
 #define SIMD_SWITCH(__name__, ...)                                                              \
 do {                                                                                            \
         switch (intrinsic::support()) {                                                         \
@@ -54,6 +61,9 @@ do {                                                                            
                 return _math_normal:: __name__ (GET_ALL(buf::HOST, __VA_ARGS__));               \
         }                                                                                       \
 } while (false)
+#else // TARGET_X86_64
+#define SIMD_SWITCH(__name__, ...) return _math_normal:: __name__ (GET_ALL(buf::HOST, __VA_ARGS__));
+#endif // TARGET_X86_64
 
 #define DECLARE_MATH_FUNCTION(__name__, __size__, __stream__, ...)                              \
 void math:: __name__ (GET_ARGS(__VA_ARGS__))                                                    \

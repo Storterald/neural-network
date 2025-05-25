@@ -4,15 +4,22 @@
 #include <vector>
 #include <cmath>
 
-#include <neural-network/intrinsic/intrinsic.h>
 #include <neural-network/types/matrix.h>
 #include <neural-network/types/vector.h>
-#include <neural-network/utils/simd.h>
 #include "../src/math/_math_normal.h"
+
+#ifdef TARGET_X86_64
+#include <neural-network/intrinsic/intrinsic.h>
+#include <neural-network/utils/simd.h>
 #include "../src/math/_math_simd.h"
-#include "../src/math/_math_cuda.h"
 
 namespace simd = nn::simd;
+#endif // TARGET_X86_64
+
+#ifdef BUILD_CUDA_SUPPORT
+#include "../src/math/_math_cuda.h"
+#endif // BUILD_CUDA_SUPPORT
+
 
 #define EXPECT_EQ_FLOAT_VEC(expected, actual, thresh)                   \
 do {                                                                    \
@@ -36,10 +43,12 @@ TEST(MathTest, Sum) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
 TEST(SSETest, SumPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 4;
 
@@ -57,8 +66,10 @@ TEST(SSETest, SumPrecise) {
 }
 
 TEST(SSETest, SumLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -76,8 +87,10 @@ TEST(SSETest, SumLess) {
 }
 
 TEST(SSETest, SumMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 7;
 
@@ -95,8 +108,10 @@ TEST(SSETest, SumMore) {
 }
 
 TEST(AVXTest, SumPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 8;
 
@@ -114,8 +129,10 @@ TEST(AVXTest, SumPrecise) {
 }
 
 TEST(AVXTest, SumLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -133,8 +150,10 @@ TEST(AVXTest, SumLess) {
 }
 
 TEST(AVXTest, SumMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 11;
 
@@ -152,8 +171,10 @@ TEST(AVXTest, SumMore) {
 }
 
 TEST(AVX512Test, SumPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 16;
 
@@ -171,8 +192,10 @@ TEST(AVX512Test, SumPrecise) {
 }
 
 TEST(AVX512Test, SumLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -190,8 +213,10 @@ TEST(AVX512Test, SumLess) {
 }
 
 TEST(AVX512Test, SumMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 22;
 
@@ -207,7 +232,7 @@ TEST(AVX512Test, SumMore) {
 
         EXPECT_EQ(result, expected);
 }
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Sum) {
@@ -246,10 +271,12 @@ TEST(MathTest, Sub) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
 TEST(SSETest, SubPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 4;
 
@@ -267,8 +294,10 @@ TEST(SSETest, SubPrecise) {
 }
 
 TEST(SSETest, SubLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -286,8 +315,10 @@ TEST(SSETest, SubLess) {
 }
 
 TEST(SSETest, SubMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 7;
 
@@ -305,8 +336,10 @@ TEST(SSETest, SubMore) {
 }
 
 TEST(AVXTest, SubPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 8;
 
@@ -324,8 +357,10 @@ TEST(AVXTest, SubPrecise) {
 }
 
 TEST(AVXTest, SubLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -343,8 +378,10 @@ TEST(AVXTest, SubLess) {
 }
 
 TEST(AVXTest, SubMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 11;
 
@@ -362,8 +399,10 @@ TEST(AVXTest, SubMore) {
 }
 
 TEST(AVX512Test, SubPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 16;
 
@@ -381,8 +420,10 @@ TEST(AVX512Test, SubPrecise) {
 }
 
 TEST(AVX512Test, SubLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -400,8 +441,10 @@ TEST(AVX512Test, SubLess) {
 }
 
 TEST(AVX512Test, SubMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 22;
 
@@ -417,7 +460,7 @@ TEST(AVX512Test, SubMore) {
 
         EXPECT_EQ(result, expected);
 }
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Sub) {
@@ -456,10 +499,12 @@ TEST(MathTest, Mul) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
 TEST(SSETest, MulPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 4;
 
@@ -477,8 +522,10 @@ TEST(SSETest, MulPrecise) {
 }
 
 TEST(SSETest, MulLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -496,8 +543,10 @@ TEST(SSETest, MulLess) {
 }
 
 TEST(SSETest, MulMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 7;
 
@@ -515,8 +564,10 @@ TEST(SSETest, MulMore) {
 }
 
 TEST(AVXTest, MulPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 8;
 
@@ -534,8 +585,10 @@ TEST(AVXTest, MulPrecise) {
 }
 
 TEST(AVXTest, MulLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -553,8 +606,10 @@ TEST(AVXTest, MulLess) {
 }
 
 TEST(AVXTest, MulMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 11;
 
@@ -572,8 +627,10 @@ TEST(AVXTest, MulMore) {
 }
 
 TEST(AVX512Test, MulPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 16;
 
@@ -591,8 +648,10 @@ TEST(AVX512Test, MulPrecise) {
 }
 
 TEST(AVX512Test, MulLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -610,8 +669,10 @@ TEST(AVX512Test, MulLess) {
 }
 
 TEST(AVX512Test, MulMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 22;
 
@@ -627,7 +688,7 @@ TEST(AVX512Test, MulMore) {
 
         EXPECT_EQ(result, expected);
 }
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Mul) {
@@ -666,10 +727,12 @@ TEST(MathTest, Div) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
 TEST(SSETest, DivPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 4;
 
@@ -687,8 +750,10 @@ TEST(SSETest, DivPrecise) {
 }
 
 TEST(SSETest, DivLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -706,8 +771,10 @@ TEST(SSETest, DivLess) {
 }
 
 TEST(SSETest, DivMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 7;
 
@@ -725,8 +792,10 @@ TEST(SSETest, DivMore) {
 }
 
 TEST(AVXTest, DivPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 8;
 
@@ -744,8 +813,10 @@ TEST(AVXTest, DivPrecise) {
 }
 
 TEST(AVXTest, DivLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -763,8 +834,10 @@ TEST(AVXTest, DivLess) {
 }
 
 TEST(AVXTest, DivMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 11;
 
@@ -782,8 +855,10 @@ TEST(AVXTest, DivMore) {
 }
 
 TEST(AVX512Test, DivPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 16;
 
@@ -801,8 +876,10 @@ TEST(AVX512Test, DivPrecise) {
 }
 
 TEST(AVX512Test, DivLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -820,8 +897,10 @@ TEST(AVX512Test, DivLess) {
 }
 
 TEST(AVX512Test, DivMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 22;
 
@@ -837,7 +916,7 @@ TEST(AVX512Test, DivMore) {
 
         EXPECT_EQ(result, expected);
 }
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Div) {
@@ -876,10 +955,12 @@ TEST(MathTest, SumScalar) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
 TEST(SSETest, SumScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 4;
 
@@ -897,8 +978,10 @@ TEST(SSETest, SumScalarPrecise) {
 }
 
 TEST(SSETest, SumScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -916,8 +999,10 @@ TEST(SSETest, SumScalarLess) {
 }
 
 TEST(SSETest, SumScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 7;
 
@@ -935,8 +1020,10 @@ TEST(SSETest, SumScalarMore) {
 }
 
 TEST(AVXTest, SumScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 8;
 
@@ -954,8 +1041,10 @@ TEST(AVXTest, SumScalarPrecise) {
 }
 
 TEST(AVXTest, SumScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -973,8 +1062,10 @@ TEST(AVXTest, SumScalarLess) {
 }
 
 TEST(AVXTest, SumScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 11;
 
@@ -992,8 +1083,10 @@ TEST(AVXTest, SumScalarMore) {
 }
 
 TEST(AVX512Test, SumScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 16;
 
@@ -1011,8 +1104,10 @@ TEST(AVX512Test, SumScalarPrecise) {
 }
 
 TEST(AVX512Test, SumScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -1030,8 +1125,10 @@ TEST(AVX512Test, SumScalarLess) {
 }
 
 TEST(AVX512Test, SumScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 22;
 
@@ -1047,7 +1144,7 @@ TEST(AVX512Test, SumScalarMore) {
 
         EXPECT_EQ(result, expected);
 }
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, SumScalar) {
@@ -1085,10 +1182,12 @@ TEST(MathTest, SubScalar) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
 TEST(SSETest, SubScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 4;
 
@@ -1106,8 +1205,10 @@ TEST(SSETest, SubScalarPrecise) {
 }
 
 TEST(SSETest, SubScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -1125,8 +1226,10 @@ TEST(SSETest, SubScalarLess) {
 }
 
 TEST(SSETest, SubScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 7;
 
@@ -1144,8 +1247,10 @@ TEST(SSETest, SubScalarMore) {
 }
 
 TEST(AVXTest, SubScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 8;
 
@@ -1163,8 +1268,10 @@ TEST(AVXTest, SubScalarPrecise) {
 }
 
 TEST(AVXTest, SubScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -1182,8 +1289,10 @@ TEST(AVXTest, SubScalarLess) {
 }
 
 TEST(AVXTest, SubScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 11;
 
@@ -1201,8 +1310,10 @@ TEST(AVXTest, SubScalarMore) {
 }
 
 TEST(AVX512Test, SubScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 16;
 
@@ -1220,8 +1331,10 @@ TEST(AVX512Test, SubScalarPrecise) {
 }
 
 TEST(AVX512Test, SubScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -1239,8 +1352,10 @@ TEST(AVX512Test, SubScalarLess) {
 }
 
 TEST(AVX512Test, SubScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 22;
 
@@ -1256,7 +1371,7 @@ TEST(AVX512Test, SubScalarMore) {
 
         EXPECT_EQ(result, expected);
 }
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, SubScalar) {
@@ -1294,10 +1409,12 @@ TEST(MathTest, MulScalar) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
 TEST(SSETest, MulScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 4;
 
@@ -1315,8 +1432,10 @@ TEST(SSETest, MulScalarPrecise) {
 }
 
 TEST(SSETest, MulScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -1334,8 +1453,10 @@ TEST(SSETest, MulScalarLess) {
 }
 
 TEST(SSETest, MulScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 7;
 
@@ -1353,8 +1474,10 @@ TEST(SSETest, MulScalarMore) {
 }
 
 TEST(AVXTest, MulScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 8;
 
@@ -1372,8 +1495,10 @@ TEST(AVXTest, MulScalarPrecise) {
 }
 
 TEST(AVXTest, MulScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -1391,8 +1516,10 @@ TEST(AVXTest, MulScalarLess) {
 }
 
 TEST(AVXTest, MulScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 11;
 
@@ -1410,8 +1537,10 @@ TEST(AVXTest, MulScalarMore) {
 }
 
 TEST(AVX512Test, MulScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 16;
 
@@ -1429,8 +1558,10 @@ TEST(AVX512Test, MulScalarPrecise) {
 }
 
 TEST(AVX512Test, MulScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -1448,8 +1579,10 @@ TEST(AVX512Test, MulScalarLess) {
 }
 
 TEST(AVX512Test, MulScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 22;
 
@@ -1465,7 +1598,7 @@ TEST(AVX512Test, MulScalarMore) {
 
         EXPECT_EQ(result, expected);
 }
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, MulScalar) {
@@ -1503,10 +1636,12 @@ TEST(MathTest, DivScalar) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
 TEST(SSETest, DivScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 4;
 
@@ -1524,8 +1659,10 @@ TEST(SSETest, DivScalarPrecise) {
 }
 
 TEST(SSETest, DivScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -1543,8 +1680,10 @@ TEST(SSETest, DivScalarLess) {
 }
 
 TEST(SSETest, DivScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 7;
 
@@ -1562,8 +1701,10 @@ TEST(SSETest, DivScalarMore) {
 }
 
 TEST(AVXTest, DivScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 8;
 
@@ -1581,8 +1722,10 @@ TEST(AVXTest, DivScalarPrecise) {
 }
 
 TEST(AVXTest, DivScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -1600,8 +1743,10 @@ TEST(AVXTest, DivScalarLess) {
 }
 
 TEST(AVXTest, DivScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 11;
 
@@ -1619,8 +1764,10 @@ TEST(AVXTest, DivScalarMore) {
 }
 
 TEST(AVX512Test, DivScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 16;
 
@@ -1638,8 +1785,10 @@ TEST(AVX512Test, DivScalarPrecise) {
 }
 
 TEST(AVX512Test, DivScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -1657,8 +1806,10 @@ TEST(AVX512Test, DivScalarLess) {
 }
 
 TEST(AVX512Test, DivScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 22;
 
@@ -1674,7 +1825,7 @@ TEST(AVX512Test, DivScalarMore) {
 
         EXPECT_EQ(result, expected);
 }
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, DivScalar) {
@@ -1711,10 +1862,12 @@ TEST(MathTest, Tanh) {
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
 }
 
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
 TEST(SSETest, TanhPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 4;
 
@@ -1731,8 +1884,10 @@ TEST(SSETest, TanhPrecise) {
 }
 
 TEST(SSETest, TanhLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -1749,8 +1904,10 @@ TEST(SSETest, TanhLess) {
 }
 
 TEST(SSETest, TanhMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 7;
 
@@ -1767,8 +1924,10 @@ TEST(SSETest, TanhMore) {
 }
 
 TEST(AVXTest, TanhPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 8;
 
@@ -1785,8 +1944,10 @@ TEST(AVXTest, TanhPrecise) {
 }
 
 TEST(AVXTest, TanhLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -1803,8 +1964,10 @@ TEST(AVXTest, TanhLess) {
 }
 
 TEST(AVXTest, TanhMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 11;
 
@@ -1821,8 +1984,10 @@ TEST(AVXTest, TanhMore) {
 }
 
 TEST(AVX512Test, TanhPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 16;
 
@@ -1839,8 +2004,10 @@ TEST(AVX512Test, TanhPrecise) {
 }
 
 TEST(AVX512Test, TanhLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -1857,8 +2024,10 @@ TEST(AVX512Test, TanhLess) {
 }
 
 TEST(AVX512Test, TanhMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 22;
 
@@ -1873,7 +2042,7 @@ TEST(AVX512Test, TanhMore) {
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
 }
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Tanh) {
@@ -1911,10 +2080,12 @@ TEST(MathTest, TanhDerivative) {
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
 }
 
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
 TEST(SSETest, TanhDerivativePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 4;
 
@@ -1933,8 +2104,10 @@ TEST(SSETest, TanhDerivativePrecise) {
 }
 
 TEST(SSETest, TanhDerivativeLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -1953,8 +2126,10 @@ TEST(SSETest, TanhDerivativeLess) {
 }
 
 TEST(SSETest, TanhDerivativeMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 7;
 
@@ -1973,8 +2148,10 @@ TEST(SSETest, TanhDerivativeMore) {
 }
 
 TEST(AVXTest, TanhDerivativePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 8;
 
@@ -1993,8 +2170,10 @@ TEST(AVXTest, TanhDerivativePrecise) {
 }
 
 TEST(AVXTest, TanhDerivativeLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -2013,8 +2192,10 @@ TEST(AVXTest, TanhDerivativeLess) {
 }
 
 TEST(AVXTest, TanhDerivativeMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 11;
 
@@ -2033,8 +2214,10 @@ TEST(AVXTest, TanhDerivativeMore) {
 }
 
 TEST(AVX512Test, TanhDerivativePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 16;
 
@@ -2053,8 +2236,10 @@ TEST(AVX512Test, TanhDerivativePrecise) {
 }
 
 TEST(AVX512Test, TanhDerivativeLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -2073,8 +2258,10 @@ TEST(AVX512Test, TanhDerivativeLess) {
 }
 
 TEST(AVX512Test, TanhDerivativeMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 22;
 
@@ -2091,7 +2278,7 @@ TEST(AVX512Test, TanhDerivativeMore) {
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
 }
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, TanhDerivative) {
@@ -2129,10 +2316,12 @@ TEST(MathTest, ReLU) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
 TEST(SSETest, ReLUPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 4;
 
@@ -2149,8 +2338,10 @@ TEST(SSETest, ReLUPrecise) {
 }
 
 TEST(SSETest, ReLULess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -2167,8 +2358,10 @@ TEST(SSETest, ReLULess) {
 }
 
 TEST(SSETest, ReLUMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 7;
 
@@ -2185,8 +2378,10 @@ TEST(SSETest, ReLUMore) {
 }
 
 TEST(AVXTest, ReLUPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 8;
 
@@ -2203,8 +2398,10 @@ TEST(AVXTest, ReLUPrecise) {
 }
 
 TEST(AVXTest, ReLULess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -2221,8 +2418,10 @@ TEST(AVXTest, ReLULess) {
 }
 
 TEST(AVXTest, ReLUMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 11;
 
@@ -2239,8 +2438,10 @@ TEST(AVXTest, ReLUMore) {
 }
 
 TEST(AVX512Test, ReLUPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 16;
 
@@ -2257,8 +2458,10 @@ TEST(AVX512Test, ReLUPrecise) {
 }
 
 TEST(AVX512Test, ReLULess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -2275,8 +2478,10 @@ TEST(AVX512Test, ReLULess) {
 }
 
 TEST(AVX512Test, ReLUMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 22;
 
@@ -2291,7 +2496,7 @@ TEST(AVX512Test, ReLUMore) {
 
         EXPECT_EQ(result, expected);
 }
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, ReLU) {
@@ -2327,10 +2532,12 @@ TEST(MathTest, ReLUDerivative) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
 TEST(SSETest, ReLUDerivativePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 4;
 
@@ -2347,8 +2554,10 @@ TEST(SSETest, ReLUDerivativePrecise) {
 }
 
 TEST(SSETest, ReLUDerivativeLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -2365,8 +2574,10 @@ TEST(SSETest, ReLUDerivativeLess) {
 }
 
 TEST(SSETest, ReLUDerivativeMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 7;
 
@@ -2383,8 +2594,10 @@ TEST(SSETest, ReLUDerivativeMore) {
 }
 
 TEST(AVXTest, ReLUDerivativePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 8;
 
@@ -2401,8 +2614,10 @@ TEST(AVXTest, ReLUDerivativePrecise) {
 }
 
 TEST(AVXTest, ReLUDerivativeLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -2419,8 +2634,10 @@ TEST(AVXTest, ReLUDerivativeLess) {
 }
 
 TEST(AVXTest, ReLUDerivativeMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 11;
 
@@ -2437,8 +2654,10 @@ TEST(AVXTest, ReLUDerivativeMore) {
 }
 
 TEST(AVX512Test, ReLUDerivativePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 16;
 
@@ -2455,8 +2674,10 @@ TEST(AVX512Test, ReLUDerivativePrecise) {
 }
 
 TEST(AVX512Test, ReLUDerivativeLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -2473,8 +2694,10 @@ TEST(AVX512Test, ReLUDerivativeLess) {
 }
 
 TEST(AVX512Test, ReLUDerivativeMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 22;
 
@@ -2489,7 +2712,7 @@ TEST(AVX512Test, ReLUDerivativeMore) {
 
         EXPECT_EQ(result, expected);
 }
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, ReLUDerivative) {
@@ -2526,10 +2749,12 @@ TEST(MathTest, MinScalar) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
 TEST(SSETest, MinScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 4;
 
@@ -2547,8 +2772,10 @@ TEST(SSETest, MinScalarPrecise) {
 }
 
 TEST(SSETest, MinScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -2566,8 +2793,10 @@ TEST(SSETest, MinScalarLess) {
 }
 
 TEST(SSETest, MinScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 7;
 
@@ -2585,8 +2814,10 @@ TEST(SSETest, MinScalarMore) {
 }
 
 TEST(AVXTest, MinScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 8;
 
@@ -2604,8 +2835,10 @@ TEST(AVXTest, MinScalarPrecise) {
 }
 
 TEST(AVXTest, MinScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -2623,8 +2856,10 @@ TEST(AVXTest, MinScalarLess) {
 }
 
 TEST(AVXTest, MinScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 11;
 
@@ -2642,8 +2877,10 @@ TEST(AVXTest, MinScalarMore) {
 }
 
 TEST(AVX512Test, MinScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 16;
 
@@ -2661,8 +2898,10 @@ TEST(AVX512Test, MinScalarPrecise) {
 }
 
 TEST(AVX512Test, MinScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -2680,8 +2919,10 @@ TEST(AVX512Test, MinScalarLess) {
 }
 
 TEST(AVX512Test, MinScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 22;
 
@@ -2697,7 +2938,7 @@ TEST(AVX512Test, MinScalarMore) {
 
         EXPECT_EQ(result, expected);
 }
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, MinScalar) {
@@ -2735,10 +2976,12 @@ TEST(MathTest, MaxScalar) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
 TEST(SSETest, MaxScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 4;
 
@@ -2756,8 +2999,10 @@ TEST(SSETest, MaxScalarPrecise) {
 }
 
 TEST(SSETest, MaxScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -2775,8 +3020,10 @@ TEST(SSETest, MaxScalarLess) {
 }
 
 TEST(SSETest, MaxScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 7;
 
@@ -2794,8 +3041,10 @@ TEST(SSETest, MaxScalarMore) {
 }
 
 TEST(AVXTest, MaxScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 8;
 
@@ -2813,8 +3062,10 @@ TEST(AVXTest, MaxScalarPrecise) {
 }
 
 TEST(AVXTest, MaxScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -2832,8 +3083,10 @@ TEST(AVXTest, MaxScalarLess) {
 }
 
 TEST(AVXTest, MaxScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 11;
 
@@ -2851,8 +3104,10 @@ TEST(AVXTest, MaxScalarMore) {
 }
 
 TEST(AVX512Test, MaxScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 16;
 
@@ -2870,8 +3125,10 @@ TEST(AVX512Test, MaxScalarPrecise) {
 }
 
 TEST(AVX512Test, MaxScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -2889,8 +3146,10 @@ TEST(AVX512Test, MaxScalarLess) {
 }
 
 TEST(AVX512Test, MaxScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 22;
 
@@ -2906,7 +3165,7 @@ TEST(AVX512Test, MaxScalarMore) {
 
         EXPECT_EQ(result, expected);
 }
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, MaxScalar) {
@@ -2945,10 +3204,12 @@ TEST(MathTest, ClampScalar) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
 TEST(SSETest, ClampScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 4;
 
@@ -2967,8 +3228,10 @@ TEST(SSETest, ClampScalarPrecise) {
 }
 
 TEST(SSETest, ClampScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -2987,8 +3250,10 @@ TEST(SSETest, ClampScalarLess) {
 }
 
 TEST(SSETest, ClampScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 7;
 
@@ -3007,8 +3272,10 @@ TEST(SSETest, ClampScalarMore) {
 }
 
 TEST(AVXTest, ClampScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 8;
 
@@ -3027,8 +3294,10 @@ TEST(AVXTest, ClampScalarPrecise) {
 }
 
 TEST(AVXTest, ClampScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -3047,8 +3316,10 @@ TEST(AVXTest, ClampScalarLess) {
 }
 
 TEST(AVXTest, ClampScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 11;
 
@@ -3067,8 +3338,10 @@ TEST(AVXTest, ClampScalarMore) {
 }
 
 TEST(AVX512Test, ClampScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 16;
 
@@ -3087,8 +3360,10 @@ TEST(AVX512Test, ClampScalarPrecise) {
 }
 
 TEST(AVX512Test, ClampScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -3107,8 +3382,10 @@ TEST(AVX512Test, ClampScalarLess) {
 }
 
 TEST(AVX512Test, ClampScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 22;
 
@@ -3125,7 +3402,7 @@ TEST(AVX512Test, ClampScalarMore) {
 
         EXPECT_EQ(result, expected);
 }
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, ClampScalar) {
@@ -3164,10 +3441,12 @@ TEST(MathTest, Min) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
 TEST(SSETest, MinPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 4;
 
@@ -3185,8 +3464,10 @@ TEST(SSETest, MinPrecise) {
 }
 
 TEST(SSETest, MinLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -3204,8 +3485,10 @@ TEST(SSETest, MinLess) {
 }
 
 TEST(SSETest, MinMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 7;
 
@@ -3223,8 +3506,10 @@ TEST(SSETest, MinMore) {
 }
 
 TEST(AVXTest, MinPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 8;
 
@@ -3242,8 +3527,10 @@ TEST(AVXTest, MinPrecise) {
 }
 
 TEST(AVXTest, MinLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -3261,8 +3548,10 @@ TEST(AVXTest, MinLess) {
 }
 
 TEST(AVXTest, MinMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 11;
 
@@ -3280,8 +3569,10 @@ TEST(AVXTest, MinMore) {
 }
 
 TEST(AVX512Test, MinPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 16;
 
@@ -3299,8 +3590,10 @@ TEST(AVX512Test, MinPrecise) {
 }
 
 TEST(AVX512Test, MinLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -3318,8 +3611,10 @@ TEST(AVX512Test, MinLess) {
 }
 
 TEST(AVX512Test, MinMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 22;
 
@@ -3335,7 +3630,7 @@ TEST(AVX512Test, MinMore) {
 
         EXPECT_EQ(result, expected);
 }
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Min) {
@@ -3374,10 +3669,12 @@ TEST(MathTest, Max) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
 TEST(SSETest, MaxPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 4;
 
@@ -3395,8 +3692,10 @@ TEST(SSETest, MaxPrecise) {
 }
 
 TEST(SSETest, MaxLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -3414,8 +3713,10 @@ TEST(SSETest, MaxLess) {
 }
 
 TEST(SSETest, MaxMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 7;
 
@@ -3433,8 +3734,10 @@ TEST(SSETest, MaxMore) {
 }
 
 TEST(AVXTest, MaxPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 8;
 
@@ -3452,8 +3755,10 @@ TEST(AVXTest, MaxPrecise) {
 }
 
 TEST(AVXTest, MaxLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -3471,8 +3776,10 @@ TEST(AVXTest, MaxLess) {
 }
 
 TEST(AVXTest, MaxMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 11;
 
@@ -3490,8 +3797,10 @@ TEST(AVXTest, MaxMore) {
 }
 
 TEST(AVX512Test, MaxPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 16;
 
@@ -3509,8 +3818,10 @@ TEST(AVX512Test, MaxPrecise) {
 }
 
 TEST(AVX512Test, MaxLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -3528,8 +3839,10 @@ TEST(AVX512Test, MaxLess) {
 }
 
 TEST(AVX512Test, MaxMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 22;
 
@@ -3545,7 +3858,7 @@ TEST(AVX512Test, MaxMore) {
 
         EXPECT_EQ(result, expected);
 }
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Max) {
@@ -3585,10 +3898,12 @@ TEST(MathTest, Clamp) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
 TEST(SSETest, ClampPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 4;
 
@@ -3607,8 +3922,10 @@ TEST(SSETest, ClampPrecise) {
 }
 
 TEST(SSETest, ClampLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -3627,8 +3944,10 @@ TEST(SSETest, ClampLess) {
 }
 
 TEST(SSETest, ClampMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 7;
 
@@ -3647,8 +3966,10 @@ TEST(SSETest, ClampMore) {
 }
 
 TEST(AVXTest, ClampPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 8;
 
@@ -3667,8 +3988,10 @@ TEST(AVXTest, ClampPrecise) {
 }
 
 TEST(AVXTest, ClampLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -3687,8 +4010,10 @@ TEST(AVXTest, ClampLess) {
 }
 
 TEST(AVXTest, ClampMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 11;
 
@@ -3707,8 +4032,10 @@ TEST(AVXTest, ClampMore) {
 }
 
 TEST(AVX512Test, ClampPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 16;
 
@@ -3727,8 +4054,10 @@ TEST(AVX512Test, ClampPrecise) {
 }
 
 TEST(AVX512Test, ClampLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -3747,8 +4076,10 @@ TEST(AVX512Test, ClampLess) {
 }
 
 TEST(AVX512Test, ClampMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 22;
 
@@ -3765,7 +4096,7 @@ TEST(AVX512Test, ClampMore) {
 
         EXPECT_EQ(result, expected);
 }
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Clamp) {
@@ -3812,10 +4143,12 @@ TEST(MathTest, CompareFalse) {
         EXPECT_FALSE(ans);
 }
 
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
 TEST(SSETest, CompareTruePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 4;
 
@@ -3829,8 +4162,10 @@ TEST(SSETest, CompareTruePrecise) {
 }
 
 TEST(SSETest, CompareFalsePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 4;
 
@@ -3844,8 +4179,10 @@ TEST(SSETest, CompareFalsePrecise) {
 }
 
 TEST(SSETest, CompareTrueLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -3859,8 +4196,10 @@ TEST(SSETest, CompareTrueLess) {
 }
 
 TEST(SSETest, CompareFalseLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -3874,8 +4213,10 @@ TEST(SSETest, CompareFalseLess) {
 }
 
 TEST(SSETest, CompareTrueMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 5;
 
@@ -3889,8 +4230,10 @@ TEST(SSETest, CompareTrueMore) {
 }
 
 TEST(SSETest, CompareFalseMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 5;
 
@@ -3904,8 +4247,10 @@ TEST(SSETest, CompareFalseMore) {
 }
 
 TEST(AVXTest, CompareTruePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 8;
 
@@ -3919,8 +4264,10 @@ TEST(AVXTest, CompareTruePrecise) {
 }
 
 TEST(AVXTest, CompareFalsePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 8;
 
@@ -3934,8 +4281,10 @@ TEST(AVXTest, CompareFalsePrecise) {
 }
 
 TEST(AVXTest, CompareTrueLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -3949,8 +4298,10 @@ TEST(AVXTest, CompareTrueLess) {
 }
 
 TEST(AVXTest, CompareFalseLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -3964,8 +4315,10 @@ TEST(AVXTest, CompareFalseLess) {
 }
 
 TEST(AVXTest, CompareTrueMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 9;
 
@@ -3979,8 +4332,10 @@ TEST(AVXTest, CompareTrueMore) {
 }
 
 TEST(AVXTest, CompareFalseMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 9;
 
@@ -3994,8 +4349,10 @@ TEST(AVXTest, CompareFalseMore) {
 }
 
 TEST(AVX512Test, CompareTruePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 16;
 
@@ -4009,8 +4366,10 @@ TEST(AVX512Test, CompareTruePrecise) {
 }
 
 TEST(AVX512Test, CompareFalsePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 16;
 
@@ -4024,8 +4383,10 @@ TEST(AVX512Test, CompareFalsePrecise) {
 }
 
 TEST(AVX512Test, CompareTrueLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -4039,8 +4400,10 @@ TEST(AVX512Test, CompareTrueLess) {
 }
 
 TEST(AVX512Test, CompareFalseLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 3;
 
@@ -4054,8 +4417,10 @@ TEST(AVX512Test, CompareFalseLess) {
 }
 
 TEST(AVX512Test, CompareTrueMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 22;
 
@@ -4069,8 +4434,10 @@ TEST(AVX512Test, CompareTrueMore) {
 }
 
 TEST(AVX512Test, CompareFalseMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         constexpr uint32_t COUNT = 22;
 
@@ -4082,7 +4449,7 @@ TEST(AVX512Test, CompareFalseMore) {
 
         EXPECT_FALSE(ans);
 }
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, CompareTrue) {
@@ -4130,10 +4497,12 @@ TEST(MathTest, MatrixVectorMul) {
         EXPECT_EQ(result, nn::vector({ 53, 89, 47 }));
 }
 
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
 TEST(SSETest, MatrixVectorMul) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3)
+        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
+                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
                 return;
+        }
 
         const nn::matrix mat = {
                 { 1, 2, 4, 1, 5 },
@@ -4151,8 +4520,10 @@ TEST(SSETest, MatrixVectorMul) {
 }
 
 TEST(AVXTest, MatrixVectorMul) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX)
+        if (nn::intrinsic::support() < nn::SIMD_AVX) {
+                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
                 return;
+        }
 
         const nn::matrix mat = {
                 { 1, 2, 4, 1, 5, 4, 1, 2, 8 },
@@ -4171,8 +4542,10 @@ TEST(AVXTest, MatrixVectorMul) {
 }
 
 TEST(AVX512Test, MatrixVectorMul) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512)
+        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
+                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
                 return;
+        }
 
         const nn::matrix mat = {
                 { 1, 2, 4, 1, 5, 4, 1, 2, 8, 1, 2, 1, 4, 1, 9, 1, 5, 3 },
@@ -4189,7 +4562,7 @@ TEST(AVX512Test, MatrixVectorMul) {
 
         EXPECT_EQ(result, nn::vector({ 213, 232, 122, 230 }));
 }
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
 #ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, MatrixVectorMul) {

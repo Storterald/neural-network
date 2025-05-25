@@ -4,12 +4,6 @@
 #define DEBUG_MODE_ENABLED
 #endif // !NDEBUG && !DEBUG_MODE_ENABLED
 
-#if (defined(__x86_64__) || defined(_M_X64))
-#define IS_X86_64BIT 1
-#else // __x86_64__ || _M_X64
-#define IS_X86_64BIT 0
-#endif // __x86_64__ || _M_X64
-
 #ifdef BUILD_CUDA_SUPPORT
 #include <driver_types.h> // cudaStream_t
 #endif // BUILD_CUDA_SUPPORT

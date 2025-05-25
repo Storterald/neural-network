@@ -1,9 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <neural-network/intrinsic/intrinsic.h>
-#include <neural-network/base.h>
 
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
 #ifdef _MSC_VER
 #include <intrin.h>
 #else // _MSC_VER
@@ -29,7 +28,7 @@ static nn::simd_support _compiler_cpuid_simd_support() {
                 return nn::SIMD_SSE3;
 
         return nn::SIMD_UNSUPPORTED;
-#else
+#else // _MSC_VER
         uint32_t eax, ebx, ecx, edx;
         __cpuid_count(7, 0, eax, ebx, ecx, edx);
         if (ebx & bit_AVX512DQ)
@@ -45,13 +44,13 @@ static nn::simd_support _compiler_cpuid_simd_support() {
         return nn::SIMD_UNSUPPORTED;
 #endif // _MSC_VER
 }
-#endif // IS_X86_64BIT
+#endif // TARGET_X86_64
 
 TEST(IntrinsicTest, CpuSIMDSupportIsCorrectlyDetected) {
-#ifdef IS_X86_64BIT
+#ifdef TARGET_X86_64
         const nn::simd_support support = _compiler_cpuid_simd_support();
-#else // IS_X86_64BIT
+#else // TARGET_X86_64
         constexpr nn::simd_support support = nn::SIMD_UNSUPPORTED;
-#endif // IS_X86_64BIT
-        EXPECT_EQ(nn::intrinsic::_get_simd_support(), support);
+#endif // TARGET_X86_64
+        EXPECT_EQ(nn::intrinsic::support(), support);
 }

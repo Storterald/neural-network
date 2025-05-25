@@ -7,28 +7,33 @@ on:
 
 jobs:
   CI:
-    runs-on: windows-latest
-    continue-on-error: true
-
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: "MSVC"
-            preset: "msvc-debug"
-            exe_path: "Debug/NeuralNetworkTest.exe"
+          - name: "MSVC x86_64"
+            os: "windows-latest"
+            preset: "msvc-debug-x86_64"
             setup_action: "msvc"
             cuda: false
-          - name: "MSVC-CUDA"
-            preset: "msvc-cuda-debug"
-            exe_path: "Debug/NeuralNetworkTest.exe"
+          - name: "MSVC-CUDA x86_64 x86_64"
+            os: "windows-latest"
+            preset: "msvc-cuda-debug-x86_64"
             setup_action: "msvc"
             cuda: true
-          - name: "MinGW"
+          - name: "MinGW x86_64"
+            os: "windows-latest"
             preset: "mingw-debug"
-            exe_path: "NeuralNetworkTest.exe"
             setup_action: "msys2"
             cuda: false
+          - name: "MSVC arm64"
+            os: "windows-11-arm"
+            preset: "msvc-debug-arm64"
+            setup_action: "msvc"
+            cuda: false
+
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
 
     steps:
     - uses: actions/checkout@v4
@@ -77,10 +82,10 @@ jobs:
       if: matrix.setup_action == 'msvc' && !matrix.cuda
       shell: pwsh
       run: |
-        build/${{ matrix.preset }}/neural-network/tests/${{ matrix.exe_path }}
+        build/${{ matrix.preset }}/neural-network/tests/Debug/NeuralNetworkTest.exe
 
     - name: Run with MinGW
       if: matrix.setup_action == 'msys2'
       shell: msys2 {0}
       run: |
-        build/${{ matrix.preset }}/neural-network/tests/${{ matrix.exe_path }}
+        build/${{ matrix.preset }}/neural-network/tests/NeuralNetworkTest.exe

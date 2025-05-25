@@ -1,5 +1,9 @@
 #pragma once
 
+#ifndef TARGET_X86_64
+#error utils/simd.h cannot be included if the architecture is not x86_64
+#endif // !TARGET_X86_64
+
 #include <xmmintrin.h> // SSE
 #include <emmintrin.h> // SSE2
 #include <pmmintrin.h> // SSE3

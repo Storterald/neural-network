@@ -20,10 +20,6 @@
       "hidden": true,
       "inherits": "common",
       "generator": "Visual Studio 17 2022",
-      "architecture": {
-        "value": "x64",
-        "strategy": "set"
-      },
       "toolset": {
         "value": "host=x64",
         "strategy": "set"
@@ -36,9 +32,34 @@
       "vendor": {
         "jetbrains.com/clion": {
           "toolchain": "Visual Studio"
-        },
+        }
+      }
+    },
+    {
+      "name": "msvc-x86_64",
+      "hidden": true,
+      "inherits": "msvc",
+      "architecture": {
+        "value": "x64",
+        "strategy": "set"
+      },
+      "vendor": {
         "microsoft.com/VisualStudioSettings/CMake/1.0": {
           "intelliSenseMode": "windows-msvc-x64"
+        }
+      }
+    },
+    {
+      "name": "msvc-arm64",
+      "hidden": true,
+      "inherits": "msvc",
+      "architecture": {
+        "value": "ARM64",
+        "strategy": "set"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "intelliSenseMode": "windows-msvc-arm64"
         }
       }
     },
@@ -57,37 +78,55 @@
       }
     },
     {
-      "name": "msvc-debug",
-      "displayName": "MSVC Debug",
-      "inherits": "msvc",
+      "name": "msvc-debug-x86_64",
+      "displayName": "MSVC Debug x86_64",
+      "inherits": "msvc-x86_64",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "BUILD_CUDA_SUPPORT": false
       }
     },
     {
-      "name": "msvc-release",
-      "displayName": "MSVC Release",
-      "inherits": "msvc",
+      "name": "msvc-release-x86_64",
+      "displayName": "MSVC Release x86_64",
+      "inherits": "msvc-x86_64",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "BUILD_CUDA_SUPPORT": false
       }
     },
     {
-      "name": "msvc-cuda-debug",
-      "displayName": "MSVC + CUDA Debug",
-      "inherits": "msvc",
+      "name": "msvc-cuda-debug-x86_64",
+      "displayName": "MSVC + CUDA Debug x86_64",
+      "inherits": "msvc-x86_64",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
-      "name": "msvc-cuda-release",
-      "displayName": "MSVC + CUDA Release",
-      "inherits": "msvc",
+      "name": "msvc-cuda-release-x86_64",
+      "displayName": "MSVC + CUDA Release x86_64",
+      "inherits": "msvc-x86_64",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "msvc-debug-arm64",
+      "displayName": "MSVC Debug arm64",
+      "inherits": "msvc-arm64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_CUDA_SUPPORT": false
+      }
+    },
+    {
+      "name": "msvc-release-arm64",
+      "displayName": "MSVC Release arm64",
+      "inherits": "msvc-arm64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_CUDA_SUPPORT": false
       }
     },
     {
@@ -111,27 +150,39 @@
   ],
   "buildPresets": [
     {
-      "name": "msvc-debug-build",
-      "displayName": "MSVC Debug Build",
-      "configurePreset": "msvc-debug",
+      "name": "msvc-debug-x86_64-build",
+      "displayName": "MSVC Debug Build x86_64",
+      "configurePreset": "msvc-debug-x86_64",
       "configuration": "Debug"
     },
     {
-      "name": "msvc-release-build",
-      "displayName": "MSVC Release Build",
-      "configurePreset": "msvc-release",
+      "name": "msvc-release-x86_64-build",
+      "displayName": "MSVC Release Build x86_64",
+      "configurePreset": "msvc-release-x86_64",
       "configuration": "Release"
     },
     {
-      "name": "msvc-cuda-debug-build",
-      "displayName": "MSVC + CUDA Debug Build",
-      "configurePreset": "msvc-cuda-debug",
+      "name": "msvc-cuda-debug-x86_64-build",
+      "displayName": "MSVC + CUDA Debug Build x86_64",
+      "configurePreset": "msvc-cuda-debug-x86_64",
       "configuration": "Debug"
     },
     {
-      "name": "msvc-cuda-release-build",
-      "displayName": "MSVC + CUDA Release Build",
-      "configurePreset": "msvc-cuda-release",
+      "name": "msvc-cuda-release-x86_64-build",
+      "displayName": "MSVC + CUDA Release Build x86_64",
+      "configurePreset": "msvc-cuda-release-x86_64",
+      "configuration": "Release"
+    },
+    {
+      "name": "msvc-debug-arm64-build",
+      "displayName": "MSVC Debug Build arm64",
+      "configurePreset": "msvc-debug-arm64",
+      "configuration": "Debug"
+    },
+    {
+      "name": "msvc-release-arm64-build",
+      "displayName": "MSVC Release Build arm64",
+      "configurePreset": "msvc-release-arm64",
       "configuration": "Release"
     },
     {
