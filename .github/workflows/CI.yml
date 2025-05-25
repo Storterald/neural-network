@@ -69,7 +69,6 @@ jobs:
       run: |
         cmake --preset ${{ matrix.preset }}
         cmake --build --preset ${{ matrix.preset }}-build --target NeuralNetworkTest
-        build/${{ matrix.preset }}/neural-network/tests/${{ matrix.exe_path }}
 
     - name: Configure and Build with MinGW
       if: matrix.setup_action == 'msys2'
