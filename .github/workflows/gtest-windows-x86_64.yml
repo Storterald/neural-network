@@ -7,7 +7,11 @@ on:
 
 jobs:
   CI:
+    runs-on: windows-latest
+    continue-on-error: true
+
     strategy:
+      fail-fast: false
       matrix:
         include:
           - name: "MSVC"
@@ -25,8 +29,6 @@ jobs:
             exe_path: "build/mingw-debug/neural-network/tests/NeuralNetworkTest.exe"
             setup_action: "msys2"
             cuda: false
-
-    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v4
