@@ -5,10 +5,12 @@
 namespace nn {
 
 enum simd_support {
-        SIMD_UNSUPPORTED,
-        SIMD_SSE3,
+        SIMD_UNSUPPORTED
+#if TARGET_X86_64
+        , SIMD_SSE3,
         SIMD_AVX,
         SIMD_AVX512
+#endif // TARGET_X86_64
 
 }; // enum simd
 
