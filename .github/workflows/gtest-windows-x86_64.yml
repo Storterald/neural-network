@@ -58,28 +58,18 @@ jobs:
           git
         msystem: MINGW64
 
-    - name: Configure and Build with MSVC
+    - name: Configure, Build and Run with MSVC
       if: matrix.setup_action == 'msvc'
       shell: pwsh
       run: |
         cmake --preset ${{ matrix.preset }}
         cmake --build --preset ${{ matrix.preset }}-build --target NeuralNetworkTest
+        build/${{ matrix.preset }}/neural-network/tests/${{ matrix.exe_path }}
 
-    - name: Configure and Build with MinGW
+    - name: Configure, Build and Run with MinGW
       if: matrix.setup_action == 'msys2'
       shell: msys2 {0}
       run: |
         cmake --preset ${{ matrix.preset }}
         cmake --build --preset ${{ matrix.preset }}-build --target NeuralNetworkTest
-
-    - name: Run Tests MSVC
-      if: matrix.setup_action == 'msvc'
-      shell: pwsh
-      run: |
-        ${{ matrix.exe_path }}
-
-    - name: Run Tests MSYS2
-      if: matrix.setup_action == 'msys2'
-      shell: msys2 {0}
-      run: |
         build/${{ matrix.preset }}/neural-network/tests/${{ matrix.exe_path }}
