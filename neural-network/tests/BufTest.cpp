@@ -2,14 +2,14 @@
 
 #include <neural-network/types/buf.h>
 
-TEST(DataTest, DefaultConstructorInitializesEmptyData) {
+TEST(BufTest, DefaultConstructorInitializesEmptyData) {
         const nn::buf buffer{};
 
         EXPECT_EQ(buffer.view(), nullptr);
         EXPECT_EQ(buffer.size(), 0);
 }
 
-TEST(DataTest, DataIsCorrectlyAllocatedOnCPU) {
+TEST(BufTest, DataIsCorrectlyAllocatedOnCPU) {
         const nn::buf buffer(10);
 
         EXPECT_NE(buffer.view(), nullptr);
@@ -19,7 +19,7 @@ TEST(DataTest, DataIsCorrectlyAllocatedOnCPU) {
         EXPECT_NO_FATAL_FAILURE([[maybe_unused]] float value = s[9]);
 }
 
-TEST(DataTest, CopyConstructorCorrectlyCopiesData) {
+TEST(BufTest, CopyConstructorCorrectlyCopiesData) {
         nn::buf buffer1(10);
         nn::span s1 = buffer1.data();
         for (uint32_t i = 0; i < 10; ++i)
@@ -36,7 +36,7 @@ TEST(DataTest, CopyConstructorCorrectlyCopiesData) {
                 EXPECT_EQ(s1[i], s2[i]);
 }
 
-TEST(DataTest, CopyAssignmentCorrectlyCopiesData) {
+TEST(BufTest, CopyAssignmentCorrectlyCopiesData) {
         nn::buf buffer1(10);
         nn::span s1 = buffer1.data();
         for (uint32_t i = 0; i < 10; ++i)
@@ -55,14 +55,14 @@ TEST(DataTest, CopyAssignmentCorrectlyCopiesData) {
                 EXPECT_EQ(s1[i], s2[i]);
 }
 
-TEST(DataTest, MoveConstructorCorrectlyCopiesData) {
+TEST(BufTest, MoveConstructorCorrectlyCopiesData) {
         const nn::buf buffer(nn::buf(10));
 
         EXPECT_NE(buffer.view(), nullptr);
         EXPECT_EQ(buffer.size(), 10);
 }
 
-TEST(DataTest, MoveAssignmentCorrectlyCopiesData) {
+TEST(BufTest, MoveAssignmentCorrectlyCopiesData) {
         nn::buf buffer(20);
 
         buffer = nn::buf(10);

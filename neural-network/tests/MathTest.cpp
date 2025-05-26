@@ -8,18 +8,26 @@
 #include <neural-network/types/vector.h>
 #include "../src/math/_math_normal.h"
 
-#ifdef TARGET_X86_64
-#include <neural-network/intrinsic/intrinsic.h>
-#include <neural-network/utils/simd.h>
-#include "../src/math/_math_simd.h"
+#if SIMD_SUPPORT_LEVEL   >= 1
+#include <neural-network/utils/_simd128.h>
+#endif // SIMD_SUPPORT_LEVEL >= 1
 
+#if SIMD_SUPPORT_LEVEL >= 2
+#include <neural-network/utils/_simd256.h>
+#endif // SIMD_SUPPORT_LEVEL >= 2
+
+#if SIMD_SUPPORT_LEVEL >= 3
+#include <neural-network/utils/_simd512.h>
+#endif // SIMD_SUPPORT_LEVEL >= 3
+
+#if TARGET_X86_64
+#include "../src/math/_math_simd.h"
 namespace simd = nn::simd;
 #endif // TARGET_X86_64
 
 #ifdef BUILD_CUDA_SUPPORT
 #include "../src/math/_math_cuda.h"
 #endif // BUILD_CUDA_SUPPORT
-
 
 #define EXPECT_EQ_FLOAT_VEC(expected, actual, thresh)                   \
 do {                                                                    \
@@ -43,199 +51,190 @@ TEST(MathTest, Sum) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef TARGET_X86_64
 TEST(SSETest, SumPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 4;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4 };
         constexpr float v2[COUNT] = { 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sum<simd::m128>(COUNT, v1, v2, result.data());
+        nn::_math_simd::sum<simd::_m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] + v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, SumLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sum<simd::m128>(COUNT, v1, v2, result.data());
+        nn::_math_simd::sum<simd::_m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] + v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, SumMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 7;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
         constexpr float v2[COUNT] = { 8, 9, 10, 11, 12, 13, 14 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sum<simd::m128>(COUNT, v1, v2, result.data());
+        nn::_math_simd::sum<simd::_m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] + v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(AVXTest, SumPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 8;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
         constexpr float v2[COUNT] = { 5, 6, 7, 8, 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sum<simd::m256>(COUNT, v1, v2, result.data());
+        nn::_math_simd::sum<simd::_m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] + v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, SumLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sum<simd::m256>(COUNT, v1, v2, result.data());
+        nn::_math_simd::sum<simd::_m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] + v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, SumMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 11;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float v2[COUNT] = { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sum<simd::m256>(COUNT, v1, v2, result.data());
+        nn::_math_simd::sum<simd::_m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] + v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVX512Test, SumPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 16;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
         constexpr float v2[COUNT] = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sum<simd::m512>(COUNT, v1, v2, result.data());
+        nn::_math_simd::sum<simd::_m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] + v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, SumLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sum<simd::m512>(COUNT, v1, v2, result.data());
+        nn::_math_simd::sum<simd::_m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] + v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, SumMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 22;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float v2[COUNT] = { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sum<simd::m512>(COUNT, v1, v2, result.data());
+        nn::_math_simd::sum<simd::_m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] + v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
-#endif // TARGET_X86_64
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Sum) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
         const nn::vector v1 = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -252,8 +251,8 @@ TEST(CudaTest, Sum) {
                 expected[i] = v1[i] + v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(MathTest, Sub) {
         constexpr uint32_t COUNT = 4;
@@ -271,199 +270,190 @@ TEST(MathTest, Sub) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef TARGET_X86_64
 TEST(SSETest, SubPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 4;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4 };
         constexpr float v2[COUNT] = { 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sub<simd::m128>(COUNT, v1, v2, result.data());
+        nn::_math_simd::sub<simd::_m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] - v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, SubLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sub<simd::m128>(COUNT, v1, v2, result.data());
+        nn::_math_simd::sub<simd::_m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] - v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, SubMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 7;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
         constexpr float v2[COUNT] = { 8, 9, 10, 11, 12, 13, 14 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sub<simd::m128>(COUNT, v1, v2, result.data());
+        nn::_math_simd::sub<simd::_m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] - v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(AVXTest, SubPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 8;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
         constexpr float v2[COUNT] = { 5, 6, 7, 8, 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sub<simd::m256>(COUNT, v1, v2, result.data());
+        nn::_math_simd::sub<simd::_m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] - v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, SubLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sub<simd::m256>(COUNT, v1, v2, result.data());
+        nn::_math_simd::sub<simd::_m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] - v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, SubMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 11;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float v2[COUNT] = { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sub<simd::m256>(COUNT, v1, v2, result.data());
+        nn::_math_simd::sub<simd::_m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] - v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVX512Test, SubPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 16;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
         constexpr float v2[COUNT] = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sub<simd::m512>(COUNT, v1, v2, result.data());
+        nn::_math_simd::sub<simd::_m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] - v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, SubLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sub<simd::m512>(COUNT, v1, v2, result.data());
+        nn::_math_simd::sub<simd::_m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] - v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, SubMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 22;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float v2[COUNT] = { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sub<simd::m512>(COUNT, v1, v2, result.data());
+        nn::_math_simd::sub<simd::_m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] - v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
-#endif // TARGET_X86_64
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Sub) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
         const nn::vector v1 = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -480,8 +470,8 @@ TEST(CudaTest, Sub) {
                 expected[i] = v1[i] - v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(MathTest, Mul) {
         constexpr uint32_t COUNT = 4;
@@ -499,199 +489,190 @@ TEST(MathTest, Mul) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef TARGET_X86_64
 TEST(SSETest, MulPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 4;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4 };
         constexpr float v2[COUNT] = { 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::mul<simd::m128>(COUNT, v1, v2, result.data());
+        nn::_math_simd::mul<simd::_m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] * v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, MulLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::mul<simd::m128>(COUNT, v1, v2, result.data());
+        nn::_math_simd::mul<simd::_m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] * v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, MulMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 7;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
         constexpr float v2[COUNT] = { 8, 9, 10, 11, 12, 13, 14 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::mul<simd::m128>(COUNT, v1, v2, result.data());
+        nn::_math_simd::mul<simd::_m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] * v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(AVXTest, MulPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 8;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
         constexpr float v2[COUNT] = { 5, 6, 7, 8, 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::mul<simd::m256>(COUNT, v1, v2, result.data());
+        nn::_math_simd::mul<simd::_m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] * v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, MulLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::mul<simd::m256>(COUNT, v1, v2, result.data());
+        nn::_math_simd::mul<simd::_m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] * v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, MulMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 11;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float v2[COUNT] = { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::mul<simd::m256>(COUNT, v1, v2, result.data());
+        nn::_math_simd::mul<simd::_m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] * v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVX512Test, MulPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 16;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
         constexpr float v2[COUNT] = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::mul<simd::m512>(COUNT, v1, v2, result.data());
+        nn::_math_simd::mul<simd::_m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] * v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, MulLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::mul<simd::m512>(COUNT, v1, v2, result.data());
+        nn::_math_simd::mul<simd::_m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] * v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, MulMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 22;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float v2[COUNT] = { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::mul<simd::m512>(COUNT, v1, v2, result.data());
+        nn::_math_simd::mul<simd::_m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] * v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
-#endif // TARGET_X86_64
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Mul) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
         const nn::vector v1 = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -708,8 +689,8 @@ TEST(CudaTest, Mul) {
                 expected[i] = v1[i] * v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(MathTest, Div) {
         constexpr uint32_t COUNT = 4;
@@ -727,199 +708,190 @@ TEST(MathTest, Div) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef TARGET_X86_64
 TEST(SSETest, DivPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 4;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4 };
         constexpr float v2[COUNT] = { 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::div<simd::m128>(COUNT, v1, v2, result.data());
+        nn::_math_simd::div<simd::_m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] / v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, DivLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::div<simd::m128>(COUNT, v1, v2, result.data());
+        nn::_math_simd::div<simd::_m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] / v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, DivMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 7;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
         constexpr float v2[COUNT] = { 8, 9, 10, 11, 12, 13, 14 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::div<simd::m128>(COUNT, v1, v2, result.data());
+        nn::_math_simd::div<simd::_m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] / v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(AVXTest, DivPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 8;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
         constexpr float v2[COUNT] = { 5, 6, 7, 8, 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::div<simd::m256>(COUNT, v1, v2, result.data());
+        nn::_math_simd::div<simd::_m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] / v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, DivLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::div<simd::m256>(COUNT, v1, v2, result.data());
+        nn::_math_simd::div<simd::_m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] / v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, DivMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 11;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float v2[COUNT] = { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::div<simd::m256>(COUNT, v1, v2, result.data());
+        nn::_math_simd::div<simd::_m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] / v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVX512Test, DivPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 16;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
         constexpr float v2[COUNT] = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::div<simd::m512>(COUNT, v1, v2, result.data());
+        nn::_math_simd::div<simd::_m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] / v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, DivLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 4, 5, 6 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::div<simd::m512>(COUNT, v1, v2, result.data());
+        nn::_math_simd::div<simd::_m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] / v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, DivMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 22;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float v2[COUNT] = { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::div<simd::m512>(COUNT, v1, v2, result.data());
+        nn::_math_simd::div<simd::_m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] / v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
-#endif // TARGET_X86_64
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Div) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
         const nn::vector v1 = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -936,8 +908,8 @@ TEST(CudaTest, Div) {
                 expected[i] = v1[i] / v2[i];
 
         EXPECT_EQ(result, expected);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(MathTest, SumScalar) {
         constexpr uint32_t COUNT = 4;
@@ -955,199 +927,190 @@ TEST(MathTest, SumScalar) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef TARGET_X86_64
 TEST(SSETest, SumScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 4;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sum<simd::m128>(COUNT, data, scalar, result.data());
+        nn::_math_simd::sum<simd::_m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] + scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, SumScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sum<simd::m128>(COUNT, data, scalar, result.data());
+        nn::_math_simd::sum<simd::_m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] + scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, SumScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 7;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sum<simd::m128>(COUNT, data, scalar, result.data());
+        nn::_math_simd::sum<simd::_m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] + scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(AVXTest, SumScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 8;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sum<simd::m256>(COUNT, data, scalar, result.data());
+        nn::_math_simd::sum<simd::_m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] + scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, SumScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sum<simd::m256>(COUNT, data, scalar, result.data());
+        nn::_math_simd::sum<simd::_m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] + scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, SumScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 11;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sum<simd::m256>(COUNT, data, scalar, result.data());
+        nn::_math_simd::sum<simd::_m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] + scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVX512Test, SumScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 16;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sum<simd::m512>(COUNT, data, scalar, result.data());
+        nn::_math_simd::sum<simd::_m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] + scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, SumScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sum<simd::m512>(COUNT, data, scalar, result.data());
+        nn::_math_simd::sum<simd::_m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] + scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, SumScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 22;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sum<simd::m512>(COUNT, data, scalar, result.data());
+        nn::_math_simd::sum<simd::_m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] + scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
-#endif // TARGET_X86_64
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, SumScalar) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
         const nn::vector data  = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -1163,8 +1126,8 @@ TEST(CudaTest, SumScalar) {
                 expected[i] = data[i] + scalar;
 
         EXPECT_EQ(result, expected);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(MathTest, SubScalar) {
         constexpr uint32_t COUNT = 4;
@@ -1182,199 +1145,190 @@ TEST(MathTest, SubScalar) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef TARGET_X86_64
 TEST(SSETest, SubScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 4;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sub<simd::m128>(COUNT, data, scalar, result.data());
+        nn::_math_simd::sub<simd::_m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] - scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, SubScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sub<simd::m128>(COUNT, data, scalar, result.data());
+        nn::_math_simd::sub<simd::_m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] - scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, SubScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 7;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sub<simd::m128>(COUNT, data, scalar, result.data());
+        nn::_math_simd::sub<simd::_m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] - scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(AVXTest, SubScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 8;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sub<simd::m256>(COUNT, data, scalar, result.data());
+        nn::_math_simd::sub<simd::_m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] - scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, SubScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sub<simd::m256>(COUNT, data, scalar, result.data());
+        nn::_math_simd::sub<simd::_m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] - scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, SubScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 11;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sub<simd::m256>(COUNT, data, scalar, result.data());
+        nn::_math_simd::sub<simd::_m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] - scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVX512Test, SubScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 16;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sub<simd::m512>(COUNT, data, scalar, result.data());
+        nn::_math_simd::sub<simd::_m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] - scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, SubScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sub<simd::m512>(COUNT, data, scalar, result.data());
+        nn::_math_simd::sub<simd::_m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] - scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, SubScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 22;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::sub<simd::m512>(COUNT, data, scalar, result.data());
+        nn::_math_simd::sub<simd::_m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] - scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
-#endif // TARGET_X86_64
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, SubScalar) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
         const nn::vector data  = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -1390,8 +1344,8 @@ TEST(CudaTest, SubScalar) {
                 expected[i] = data[i] - scalar;
 
         EXPECT_EQ(result, expected);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(MathTest, MulScalar) {
         constexpr uint32_t COUNT = 4;
@@ -1409,199 +1363,190 @@ TEST(MathTest, MulScalar) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef TARGET_X86_64
 TEST(SSETest, MulScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 4;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::mul<simd::m128>(COUNT, data, scalar, result.data());
+        nn::_math_simd::mul<simd::_m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] * scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, MulScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::mul<simd::m128>(COUNT, data, scalar, result.data());
+        nn::_math_simd::mul<simd::_m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] * scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, MulScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 7;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::mul<simd::m128>(COUNT, data, scalar, result.data());
+        nn::_math_simd::mul<simd::_m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] * scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(AVXTest, MulScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 8;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::mul<simd::m256>(COUNT, data, scalar, result.data());
+        nn::_math_simd::mul<simd::_m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] * scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, MulScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::mul<simd::m256>(COUNT, data, scalar, result.data());
+        nn::_math_simd::mul<simd::_m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] * scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, MulScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 11;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::mul<simd::m256>(COUNT, data, scalar, result.data());
+        nn::_math_simd::mul<simd::_m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] * scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVX512Test, MulScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 16;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::mul<simd::m512>(COUNT, data, scalar, result.data());
+        nn::_math_simd::mul<simd::_m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] * scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, MulScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::mul<simd::m512>(COUNT, data, scalar, result.data());
+        nn::_math_simd::mul<simd::_m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] * scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, MulScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 22;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::mul<simd::m512>(COUNT, data, scalar, result.data());
+        nn::_math_simd::mul<simd::_m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] * scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
-#endif // TARGET_X86_64
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, MulScalar) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
         const nn::vector data  = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -1617,8 +1562,8 @@ TEST(CudaTest, MulScalar) {
                 expected[i] = data[i] * scalar;
 
         EXPECT_EQ(result, expected);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(MathTest, DivScalar) {
         constexpr uint32_t COUNT = 4;
@@ -1636,199 +1581,190 @@ TEST(MathTest, DivScalar) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef TARGET_X86_64
 TEST(SSETest, DivScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 4;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::div<simd::m128>(COUNT, data, scalar, result.data());
+        nn::_math_simd::div<simd::_m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] / scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, DivScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::div<simd::m128>(COUNT, data, scalar, result.data());
+        nn::_math_simd::div<simd::_m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] / scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, DivScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 7;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::div<simd::m128>(COUNT, data, scalar, result.data());
+        nn::_math_simd::div<simd::_m128>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] / scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(AVXTest, DivScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 8;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::div<simd::m256>(COUNT, data, scalar, result.data());
+        nn::_math_simd::div<simd::_m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] / scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, DivScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::div<simd::m256>(COUNT, data, scalar, result.data());
+        nn::_math_simd::div<simd::_m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] / scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, DivScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 11;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::div<simd::m256>(COUNT, data, scalar, result.data());
+        nn::_math_simd::div<simd::_m256>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] / scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVX512Test, DivScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 16;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::div<simd::m512>(COUNT, data, scalar, result.data());
+        nn::_math_simd::div<simd::_m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] / scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, DivScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::div<simd::m512>(COUNT, data, scalar, result.data());
+        nn::_math_simd::div<simd::_m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] / scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, DivScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 22;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float scalar      = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::div<simd::m512>(COUNT, data, scalar, result.data());
+        nn::_math_simd::div<simd::_m512>(COUNT, data, scalar, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] / scalar;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
-#endif // TARGET_X86_64
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, DivScalar) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
         const nn::vector data  = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -1844,8 +1780,8 @@ TEST(CudaTest, DivScalar) {
                 expected[i] = data[i] / scalar;
 
         EXPECT_EQ(result, expected);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(MathTest, Tanh) {
         constexpr uint32_t COUNT = 4;
@@ -1862,190 +1798,181 @@ TEST(MathTest, Tanh) {
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
 }
 
-#ifdef TARGET_X86_64
 TEST(SSETest, TanhPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 4;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::tanh<simd::m128>(COUNT, data, result.data());
+        nn::_math_simd::tanh<simd::_m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::tanh(data[i]);
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, TanhLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::tanh<simd::m128>(COUNT, data, result.data());
+        nn::_math_simd::tanh<simd::_m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::tanh(data[i]);
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, TanhMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 7;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::tanh<simd::m128>(COUNT, data, result.data());
+        nn::_math_simd::tanh<simd::_m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::tanh(data[i]);
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(AVXTest, TanhPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 8;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::tanh<simd::m256>(COUNT, data, result.data());
+        nn::_math_simd::tanh<simd::_m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::tanh(data[i]);
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, TanhLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::tanh<simd::m256>(COUNT, data, result.data());
+        nn::_math_simd::tanh<simd::_m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::tanh(data[i]);
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, TanhMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 11;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::tanh<simd::m256>(COUNT, data, result.data());
+        nn::_math_simd::tanh<simd::_m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::tanh(data[i]);
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVX512Test, TanhPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 16;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::tanh<simd::m512>(COUNT, data, result.data());
+        nn::_math_simd::tanh<simd::_m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::tanh(data[i]);
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, TanhLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::tanh<simd::m512>(COUNT, data, result.data());
+        nn::_math_simd::tanh<simd::_m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::tanh(data[i]);
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, TanhMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 22;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::tanh<simd::m512>(COUNT, data, result.data());
+        nn::_math_simd::tanh<simd::_m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::tanh(data[i]);
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
-#endif // TARGET_X86_64
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Tanh) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
         const nn::vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -2060,8 +1987,8 @@ TEST(CudaTest, Tanh) {
                 expected[i] = std::tanh(data[i]);
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(MathTest, TanhDerivative) {
         constexpr uint32_t COUNT = 4;
@@ -2080,19 +2007,16 @@ TEST(MathTest, TanhDerivative) {
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
 }
 
-#ifdef TARGET_X86_64
 TEST(SSETest, TanhDerivativePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 4;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::tanh_derivative<simd::m128>(COUNT, data, result.data());
+        nn::_math_simd::tanh_derivative<simd::_m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -2101,20 +2025,19 @@ TEST(SSETest, TanhDerivativePrecise) {
         }
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, TanhDerivativeLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::tanh_derivative<simd::m128>(COUNT, data, result.data());
+        nn::_math_simd::tanh_derivative<simd::_m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -2123,20 +2046,19 @@ TEST(SSETest, TanhDerivativeLess) {
         }
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, TanhDerivativeMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 7;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::tanh_derivative<simd::m128>(COUNT, data, result.data());
+        nn::_math_simd::tanh_derivative<simd::_m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -2145,20 +2067,19 @@ TEST(SSETest, TanhDerivativeMore) {
         }
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(AVXTest, TanhDerivativePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 8;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::tanh_derivative<simd::m256>(COUNT, data, result.data());
+        nn::_math_simd::tanh_derivative<simd::_m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -2167,20 +2088,19 @@ TEST(AVXTest, TanhDerivativePrecise) {
         }
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, TanhDerivativeLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::tanh_derivative<simd::m256>(COUNT, data, result.data());
+        nn::_math_simd::tanh_derivative<simd::_m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -2189,20 +2109,19 @@ TEST(AVXTest, TanhDerivativeLess) {
         }
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, TanhDerivativeMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 11;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::tanh_derivative<simd::m256>(COUNT, data, result.data());
+        nn::_math_simd::tanh_derivative<simd::_m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -2211,20 +2130,19 @@ TEST(AVXTest, TanhDerivativeMore) {
         }
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVX512Test, TanhDerivativePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 16;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::tanh_derivative<simd::m512>(COUNT, data, result.data());
+        nn::_math_simd::tanh_derivative<simd::_m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -2233,20 +2151,19 @@ TEST(AVX512Test, TanhDerivativePrecise) {
         }
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, TanhDerivativeLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::tanh_derivative<simd::m512>(COUNT, data, result.data());
+        nn::_math_simd::tanh_derivative<simd::_m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -2255,20 +2172,19 @@ TEST(AVX512Test, TanhDerivativeLess) {
         }
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, TanhDerivativeMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 22;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::tanh_derivative<simd::m512>(COUNT, data, result.data());
+        nn::_math_simd::tanh_derivative<simd::_m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -2277,11 +2193,13 @@ TEST(AVX512Test, TanhDerivativeMore) {
         }
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
-#endif // TARGET_X86_64
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, TanhDerivative) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
         const nn::vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -2298,8 +2216,8 @@ TEST(CudaTest, TanhDerivative) {
         }
 
         EXPECT_EQ_FLOAT_VEC(result, expected, 4);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(MathTest, ReLU) {
         constexpr uint32_t COUNT = 4;
@@ -2316,190 +2234,181 @@ TEST(MathTest, ReLU) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef TARGET_X86_64
 TEST(SSETest, ReLUPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 4;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::ReLU<simd::m128>(COUNT, data, result.data());
+        nn::_math_simd::ReLU<simd::_m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(data[i], 0.0f);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, ReLULess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::ReLU<simd::m128>(COUNT, data, result.data());
+        nn::_math_simd::ReLU<simd::_m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(data[i], 0.0f);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, ReLUMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 7;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::ReLU<simd::m128>(COUNT, data, result.data());
+        nn::_math_simd::ReLU<simd::_m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(data[i], 0.0f);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(AVXTest, ReLUPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 8;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::ReLU<simd::m256>(COUNT, data, result.data());
+        nn::_math_simd::ReLU<simd::_m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(data[i], 0.0f);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, ReLULess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::ReLU<simd::m256>(COUNT, data, result.data());
+        nn::_math_simd::ReLU<simd::_m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(data[i], 0.0f);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, ReLUMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 11;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::ReLU<simd::m256>(COUNT, data, result.data());
+        nn::_math_simd::ReLU<simd::_m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(data[i], 0.0f);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVX512Test, ReLUPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 16;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::ReLU<simd::m512>(COUNT, data, result.data());
+        nn::_math_simd::ReLU<simd::_m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(data[i], 0.0f);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, ReLULess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::ReLU<simd::m512>(COUNT, data, result.data());
+        nn::_math_simd::ReLU<simd::_m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(data[i], 0.0f);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, ReLUMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 22;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::ReLU<simd::m512>(COUNT, data, result.data());
+        nn::_math_simd::ReLU<simd::_m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(data[i], 0.0f);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
-#endif // TARGET_X86_64
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, ReLU) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
         const nn::vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -2514,8 +2423,8 @@ TEST(CudaTest, ReLU) {
                 expected[i] = std::max((float)data[i], 0.0f);
 
         EXPECT_EQ(result, expected);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(MathTest, ReLUDerivative) {
         constexpr uint32_t COUNT = 4;
@@ -2532,190 +2441,181 @@ TEST(MathTest, ReLUDerivative) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef TARGET_X86_64
 TEST(SSETest, ReLUDerivativePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 4;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::ReLU_derivative<simd::m128>(COUNT, data, result.data());
+        nn::_math_simd::ReLU_derivative<simd::_m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] >= 0.0f ? 1.0f : 0.0f;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, ReLUDerivativeLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::ReLU_derivative<simd::m128>(COUNT, data, result.data());
+        nn::_math_simd::ReLU_derivative<simd::_m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] >= 0.0f ? 1.0f : 0.0f;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, ReLUDerivativeMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 7;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::ReLU_derivative<simd::m128>(COUNT, data, result.data());
+        nn::_math_simd::ReLU_derivative<simd::_m128>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] >= 0.0f ? 1.0f : 0.0f;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(AVXTest, ReLUDerivativePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 8;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::ReLU_derivative<simd::m256>(COUNT, data, result.data());
+        nn::_math_simd::ReLU_derivative<simd::_m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] >= 0.0f ? 1.0f : 0.0f;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, ReLUDerivativeLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::ReLU_derivative<simd::m256>(COUNT, data, result.data());
+        nn::_math_simd::ReLU_derivative<simd::_m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] >= 0.0f ? 1.0f : 0.0f;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, ReLUDerivativeMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 11;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::ReLU_derivative<simd::m256>(COUNT, data, result.data());
+        nn::_math_simd::ReLU_derivative<simd::_m256>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] >= 0.0f ? 1.0f : 0.0f;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVX512Test, ReLUDerivativePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 16;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::ReLU_derivative<simd::m512>(COUNT, data, result.data());
+        nn::_math_simd::ReLU_derivative<simd::_m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] >= 0.0f ? 1.0f : 0.0f;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, ReLUDerivativeLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::ReLU_derivative<simd::m512>(COUNT, data, result.data());
+        nn::_math_simd::ReLU_derivative<simd::_m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] >= 0.0f ? 1.0f : 0.0f;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, ReLUDerivativeMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 22;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::ReLU_derivative<simd::m512>(COUNT, data, result.data());
+        nn::_math_simd::ReLU_derivative<simd::_m512>(COUNT, data, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] >= 0.0f ? 1.0f : 0.0f;
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
-#endif // TARGET_X86_64
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, ReLUDerivative) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
         const nn::vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -2730,8 +2630,8 @@ TEST(CudaTest, ReLUDerivative) {
                 expected[i] = data[i] >= 0.0f ? 1.0f : 0.0f;
 
         EXPECT_EQ(result, expected);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(MathTest, MinScalar) {
         constexpr uint32_t COUNT = 4;
@@ -2749,199 +2649,190 @@ TEST(MathTest, MinScalar) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef TARGET_X86_64
 TEST(SSETest, MinScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 4;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4 };
         constexpr float min         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::min<simd::m128>(COUNT, data, min, result.data());
+        nn::_math_simd::min<simd::_m128>(COUNT, data, min, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min(data[i], min);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, MinScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
         constexpr float min         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::min<simd::m128>(COUNT, data, min, result.data());
+        nn::_math_simd::min<simd::_m128>(COUNT, data, min, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min(data[i], min);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, MinScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 7;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
         constexpr float min         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::min<simd::m128>(COUNT, data, min, result.data());
+        nn::_math_simd::min<simd::_m128>(COUNT, data, min, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min(data[i], min);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(AVXTest, MinScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 8;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
         constexpr float min         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::min<simd::m256>(COUNT, data, min, result.data());
+        nn::_math_simd::min<simd::_m256>(COUNT, data, min, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min(data[i], min);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, MinScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
         constexpr float min         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::min<simd::m256>(COUNT, data, min, result.data());
+        nn::_math_simd::min<simd::_m256>(COUNT, data, min, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min(data[i], min);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, MinScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 11;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float min         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::min<simd::m256>(COUNT, data, min, result.data());
+        nn::_math_simd::min<simd::_m256>(COUNT, data, min, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min(data[i], min);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVX512Test, MinScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 16;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
         constexpr float min         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::min<simd::m512>(COUNT, data, min, result.data());
+        nn::_math_simd::min<simd::_m512>(COUNT, data, min, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min(data[i], min);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, MinScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
         constexpr float min         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::min<simd::m512>(COUNT, data, min, result.data());
+        nn::_math_simd::min<simd::_m512>(COUNT, data, min, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min(data[i], min);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, MinScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 22;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float min         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::min<simd::m512>(COUNT, data, min, result.data());
+        nn::_math_simd::min<simd::_m512>(COUNT, data, min, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min(data[i], min);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
-#endif // TARGET_X86_64
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, MinScalar) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
         const nn::vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -2957,8 +2848,8 @@ TEST(CudaTest, MinScalar) {
                 expected[i] = std::min((float)data[i], min);
 
         EXPECT_EQ(result, expected);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(MathTest, MaxScalar) {
         constexpr uint32_t COUNT = 4;
@@ -2976,199 +2867,190 @@ TEST(MathTest, MaxScalar) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef TARGET_X86_64
 TEST(SSETest, MaxScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 4;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4 };
         constexpr float max         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::max<simd::m128>(COUNT, data, max, result.data());
+        nn::_math_simd::max<simd::_m128>(COUNT, data, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(data[i], max);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, MaxScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
         constexpr float max         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::max<simd::m128>(COUNT, data, max, result.data());
+        nn::_math_simd::max<simd::_m128>(COUNT, data, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(data[i], max);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, MaxScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 7;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
         constexpr float max         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::max<simd::m128>(COUNT, data, max, result.data());
+        nn::_math_simd::max<simd::_m128>(COUNT, data, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(data[i], max);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(AVXTest, MaxScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 8;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
         constexpr float max         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::max<simd::m256>(COUNT, data, max, result.data());
+        nn::_math_simd::max<simd::_m256>(COUNT, data, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(data[i], max);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, MaxScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
         constexpr float max         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::max<simd::m256>(COUNT, data, max, result.data());
+        nn::_math_simd::max<simd::_m256>(COUNT, data, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(data[i], max);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, MaxScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 11;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float max         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::max<simd::m256>(COUNT, data, max, result.data());
+        nn::_math_simd::max<simd::_m256>(COUNT, data, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(data[i], max);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVX512Test, MaxScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 16;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
         constexpr float max         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::max<simd::m512>(COUNT, data, max, result.data());
+        nn::_math_simd::max<simd::_m512>(COUNT, data, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(data[i], max);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, MaxScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
         constexpr float max         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::max<simd::m512>(COUNT, data, max, result.data());
+        nn::_math_simd::max<simd::_m512>(COUNT, data, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(data[i], max);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, MaxScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 22;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float max         = 3.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::max<simd::m512>(COUNT, data, max, result.data());
+        nn::_math_simd::max<simd::_m512>(COUNT, data, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(data[i], max);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
-#endif // TARGET_X86_64
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, MaxScalar) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
         const nn::vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -3184,8 +3066,8 @@ TEST(CudaTest, MaxScalar) {
                 expected[i] = std::max((float)data[i], max);
 
         EXPECT_EQ(result, expected);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(MathTest, ClampScalar) {
         constexpr uint32_t COUNT = 4;
@@ -3204,13 +3086,10 @@ TEST(MathTest, ClampScalar) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef TARGET_X86_64
 TEST(SSETest, ClampScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 4;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4 };
@@ -3218,21 +3097,20 @@ TEST(SSETest, ClampScalarPrecise) {
         constexpr float max         = 4.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::clamp<simd::m128>(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<simd::_m128>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::clamp(data[i], min, max);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, ClampScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
@@ -3240,21 +3118,20 @@ TEST(SSETest, ClampScalarLess) {
         constexpr float max         = 4.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::clamp<simd::m128>(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<simd::_m128>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::clamp(data[i], min, max);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, ClampScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 7;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
@@ -3262,21 +3139,20 @@ TEST(SSETest, ClampScalarMore) {
         constexpr float max         = 4.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::clamp<simd::m128>(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<simd::_m128>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::clamp(data[i], min, max);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(AVXTest, ClampScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 8;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
@@ -3284,21 +3160,20 @@ TEST(AVXTest, ClampScalarPrecise) {
         constexpr float max         = 4.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::clamp<simd::m256>(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<simd::_m256>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::clamp(data[i], min, max);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, ClampScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
@@ -3306,21 +3181,20 @@ TEST(AVXTest, ClampScalarLess) {
         constexpr float max         = 4.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::clamp<simd::m256>(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<simd::_m256>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::clamp(data[i], min, max);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, ClampScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 11;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
@@ -3328,21 +3202,20 @@ TEST(AVXTest, ClampScalarMore) {
         constexpr float max         = 4.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::clamp<simd::m256>(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<simd::_m256>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::clamp(data[i], min, max);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVX512Test, ClampScalarPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 16;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -3350,21 +3223,20 @@ TEST(AVX512Test, ClampScalarPrecise) {
         constexpr float max         = 4.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::clamp<simd::m512>(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<simd::_m512>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::clamp(data[i], min, max);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, ClampScalarLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
@@ -3372,21 +3244,20 @@ TEST(AVX512Test, ClampScalarLess) {
         constexpr float max         = 4.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::clamp<simd::m512>(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<simd::_m512>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::clamp(data[i], min, max);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, ClampScalarMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 22;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
@@ -3394,18 +3265,20 @@ TEST(AVX512Test, ClampScalarMore) {
         constexpr float max         = 4.0f;
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::clamp<simd::m512>(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<simd::_m512>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::clamp(data[i], min, max);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
-#endif // TARGET_X86_64
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, ClampScalar) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
         const nn::vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -3422,8 +3295,8 @@ TEST(CudaTest, ClampScalar) {
                 expected[i] = std::clamp((float)data[i], min, max);
 
         EXPECT_EQ(result, expected);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(MathTest, Min) {
         constexpr uint32_t COUNT = 4;
@@ -3441,199 +3314,190 @@ TEST(MathTest, Min) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef TARGET_X86_64
 TEST(SSETest, MinPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 4;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4 };
         constexpr float v2[COUNT] = { 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::min<simd::m128>(COUNT, v1, v2, result.data());
+        nn::_math_simd::min<simd::_m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, MinLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::min<simd::m128>(COUNT, v1, v2, result.data());
+        nn::_math_simd::min<simd::_m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, MinMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 7;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
         constexpr float v2[COUNT] = { 7, 6, 5, 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::min<simd::m128>(COUNT, v1, v2, result.data());
+        nn::_math_simd::min<simd::_m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(AVXTest, MinPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 8;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
         constexpr float v2[COUNT] = { 4, 3, 2, 1, 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::min<simd::m256>(COUNT, v1, v2, result.data());
+        nn::_math_simd::min<simd::_m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, MinLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::min<simd::m256>(COUNT, v1, v2, result.data());
+        nn::_math_simd::min<simd::_m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, MinMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 11;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float v2[COUNT] = { 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::min<simd::m256>(COUNT, v1, v2, result.data());
+        nn::_math_simd::min<simd::_m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVX512Test, MinPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 16;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
         constexpr float v2[COUNT] = { 8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::min<simd::m512>(COUNT, v1, v2, result.data());
+        nn::_math_simd::min<simd::_m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, MinLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::min<simd::m512>(COUNT, v1, v2, result.data());
+        nn::_math_simd::min<simd::_m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, MinMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 22;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float v2[COUNT] = { 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::min<simd::m512>(COUNT, v1, v2, result.data());
+        nn::_math_simd::min<simd::_m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
-#endif // TARGET_X86_64
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Min) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
         const nn::vector v1 = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -3650,8 +3514,8 @@ TEST(CudaTest, Min) {
                 expected[i] = std::min(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(MathTest, Max) {
         constexpr uint32_t COUNT = 4;
@@ -3669,199 +3533,190 @@ TEST(MathTest, Max) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef TARGET_X86_64
 TEST(SSETest, MaxPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 4;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4 };
         constexpr float v2[COUNT] = { 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::max<simd::m128>(COUNT, v1, v2, result.data());
+        nn::_math_simd::max<simd::_m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, MaxLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::max<simd::m128>(COUNT, v1, v2, result.data());
+        nn::_math_simd::max<simd::_m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, MaxMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 7;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
         constexpr float v2[COUNT] = { 7, 6, 5, 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::max<simd::m128>(COUNT, v1, v2, result.data());
+        nn::_math_simd::max<simd::_m128>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(AVXTest, MaxPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 8;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
         constexpr float v2[COUNT] = { 4, 3, 2, 1, 1, 2, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::max<simd::m256>(COUNT, v1, v2, result.data());
+        nn::_math_simd::max<simd::_m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, MaxLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::max<simd::m256>(COUNT, v1, v2, result.data());
+        nn::_math_simd::max<simd::_m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, MaxMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 11;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float v2[COUNT] = { 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::max<simd::m256>(COUNT, v1, v2, result.data());
+        nn::_math_simd::max<simd::_m256>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVX512Test, MaxPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 16;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
         constexpr float v2[COUNT] = { 8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::max<simd::m512>(COUNT, v1, v2, result.data());
+        nn::_math_simd::max<simd::_m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, MaxLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::max<simd::m512>(COUNT, v1, v2, result.data());
+        nn::_math_simd::max<simd::_m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, MaxMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 22;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         constexpr float v2[COUNT] = { 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::max<simd::m512>(COUNT, v1, v2, result.data());
+        nn::_math_simd::max<simd::_m512>(COUNT, v1, v2, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
-#endif // TARGET_X86_64
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Max) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
         const nn::vector v1 = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -3878,8 +3733,8 @@ TEST(CudaTest, Max) {
                 expected[i] = std::max(v1[i], v2[i]);
 
         EXPECT_EQ(result, expected);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(MathTest, Clamp) {
         constexpr uint32_t COUNT = 4;
@@ -3898,13 +3753,10 @@ TEST(MathTest, Clamp) {
         EXPECT_EQ(result, expected);
 }
 
-#ifdef TARGET_X86_64
 TEST(SSETest, ClampPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 4;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4 };
@@ -3912,21 +3764,20 @@ TEST(SSETest, ClampPrecise) {
         constexpr float max[COUNT]  = { 4, 3, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::clamp<simd::m128>(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<simd::_m128>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::clamp(data[i], min[i], max[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, ClampLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
@@ -3934,21 +3785,20 @@ TEST(SSETest, ClampLess) {
         constexpr float max[COUNT]  = { 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::clamp<simd::m128>(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<simd::_m128>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::clamp(data[i], min[i], max[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, ClampMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 7;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
@@ -3956,21 +3806,20 @@ TEST(SSETest, ClampMore) {
         constexpr float max[COUNT]  = { 7, 6, 5, 4, 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::clamp<simd::m128>(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<simd::_m128>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::clamp(data[i], min[i], max[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(AVXTest, ClampPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 8;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 1, 2, 3, 4 };
@@ -3978,21 +3827,20 @@ TEST(AVXTest, ClampPrecise) {
         constexpr float max[COUNT]  = { 4, 3, 3, 4, 4, 3, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::clamp<simd::m256>(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<simd::_m256>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::clamp(data[i], min[i], max[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, ClampLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
@@ -4000,21 +3848,20 @@ TEST(AVXTest, ClampLess) {
         constexpr float max[COUNT]  = { 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::clamp<simd::m256>(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<simd::_m256>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::clamp(data[i], min[i], max[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, ClampMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 11;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
@@ -4022,21 +3869,20 @@ TEST(AVXTest, ClampMore) {
         constexpr float max[COUNT]  = { 4, 3, 3, 4, 4, 3, 3, 4, 4, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::clamp<simd::m256>(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<simd::_m256>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::clamp(data[i], min[i], max[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVX512Test, ClampPrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 16;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -4044,21 +3890,20 @@ TEST(AVX512Test, ClampPrecise) {
         constexpr float max[COUNT]  = { 4, 3, 3, 4, 3, 3, 4, 4, 3, 3, 4, 4, 3, 3, 4, 3 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::clamp<simd::m512>(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<simd::_m512>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::clamp(data[i], min[i], max[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, ClampLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 3;
 
         constexpr float data[COUNT] = { 1, 2, 3 };
@@ -4066,21 +3911,20 @@ TEST(AVX512Test, ClampLess) {
         constexpr float max[COUNT]  = { 3, 2, 1 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::clamp<simd::m512>(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<simd::_m512>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::clamp(data[i], min[i], max[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, ClampMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 22;
 
         constexpr float data[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
@@ -4088,18 +3932,20 @@ TEST(AVX512Test, ClampMore) {
         constexpr float max[COUNT]  = { 4, 3, 3, 4, 4, 3, 3, 4, 4, 3, 4, 4, 3, 3, 4, 4, 3, 3, 4, 4, 3, 4 };
 
         std::vector<float> result(COUNT);
-        nn::_math_simd::clamp<simd::m512>(COUNT, data, min, max, result.data());
+        nn::_math_simd::clamp<simd::_m512>(COUNT, data, min, max, result.data());
 
         std::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::clamp(data[i], min[i], max[i]);
 
         EXPECT_EQ(result, expected);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
-#endif // TARGET_X86_64
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, Clamp) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
         const nn::vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -4116,8 +3962,8 @@ TEST(CudaTest, Clamp) {
                 expected[i] = std::clamp(data[i], min[i], max[i]);
 
         EXPECT_EQ(result, expected);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(MathTest, CompareTrue) {
         constexpr uint32_t COUNT = 4;
@@ -4143,316 +3989,298 @@ TEST(MathTest, CompareFalse) {
         EXPECT_FALSE(ans);
 }
 
-#ifdef TARGET_X86_64
 TEST(SSETest, CompareTruePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 4;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4 };
         constexpr float v2[COUNT] = { 1, 2, 3, 4 };
 
         bool ans;
-        nn::_math_simd::compare<simd::m128>(COUNT, v1, v2, &ans);
+        nn::_math_simd::compare<simd::_m128>(COUNT, v1, v2, &ans);
 
         EXPECT_TRUE(ans);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, CompareFalsePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 4;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4 };
         constexpr float v2[COUNT] = { 1, 5, 3, 4 };
 
         bool ans;
-        nn::_math_simd::compare<simd::m128>(COUNT, v1, v2, &ans);
+        nn::_math_simd::compare<simd::_m128>(COUNT, v1, v2, &ans);
 
         EXPECT_FALSE(ans);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, CompareTrueLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 1, 2, 3 };
 
         bool ans;
-        nn::_math_simd::compare<simd::m128>(COUNT, v1, v2, &ans);
+        nn::_math_simd::compare<simd::_m128>(COUNT, v1, v2, &ans);
 
         EXPECT_TRUE(ans);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, CompareFalseLess) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 1, 5, 3 };
 
         bool ans;
-        nn::_math_simd::compare<simd::m128>(COUNT, v1, v2, &ans);
+        nn::_math_simd::compare<simd::_m128>(COUNT, v1, v2, &ans);
 
         EXPECT_FALSE(ans);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, CompareTrueMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 5;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5 };
         constexpr float v2[COUNT] = { 1, 2, 3, 4, 5 };
 
         bool ans;
-        nn::_math_simd::compare<simd::m128>(COUNT, v1, v2, &ans);
+        nn::_math_simd::compare<simd::_m128>(COUNT, v1, v2, &ans);
 
         EXPECT_TRUE(ans);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(SSETest, CompareFalseMore) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         constexpr uint32_t COUNT = 5;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5 };
         constexpr float v2[COUNT] = { 1, 5, 3, 4, 5 };
 
         bool ans;
-        nn::_math_simd::compare<simd::m128>(COUNT, v1, v2, &ans);
+        nn::_math_simd::compare<simd::_m128>(COUNT, v1, v2, &ans);
 
         EXPECT_FALSE(ans);
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(AVXTest, CompareTruePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 8;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8 };
         constexpr float v2[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8 };
 
         bool ans;
-        nn::_math_simd::compare<simd::m256>(COUNT, v1, v2, &ans);
+        nn::_math_simd::compare<simd::_m256>(COUNT, v1, v2, &ans);
 
         EXPECT_TRUE(ans);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, CompareFalsePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 8;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8 };
         constexpr float v2[COUNT] = { 1, 2, 3, 4, 5, 7, 7, 8 };
 
         bool ans;
-        nn::_math_simd::compare<simd::m256>(COUNT, v1, v2, &ans);
+        nn::_math_simd::compare<simd::_m256>(COUNT, v1, v2, &ans);
 
         EXPECT_FALSE(ans);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, CompareTrueLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 1, 2, 3 };
 
         bool ans;
-        nn::_math_simd::compare<simd::m256>(COUNT, v1, v2, &ans);
+        nn::_math_simd::compare<simd::_m256>(COUNT, v1, v2, &ans);
 
         EXPECT_TRUE(ans);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, CompareFalseLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 1, 5, 3 };
 
         bool ans;
-        nn::_math_simd::compare<simd::m256>(COUNT, v1, v2, &ans);
+        nn::_math_simd::compare<simd::_m256>(COUNT, v1, v2, &ans);
 
         EXPECT_FALSE(ans);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, CompareTrueMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 9;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
         constexpr float v2[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
         bool ans;
-        nn::_math_simd::compare<simd::m256>(COUNT, v1, v2, &ans);
+        nn::_math_simd::compare<simd::_m256>(COUNT, v1, v2, &ans);
 
         EXPECT_TRUE(ans);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVXTest, CompareFalseMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         constexpr uint32_t COUNT = 9;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
         constexpr float v2[COUNT] = { 1, 2, 3, 4, 5, 7, 7, 8, 9 };
 
         bool ans;
-        nn::_math_simd::compare<simd::m256>(COUNT, v1, v2, &ans);
+        nn::_math_simd::compare<simd::_m256>(COUNT, v1, v2, &ans);
 
         EXPECT_FALSE(ans);
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVX512Test, CompareTruePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 16;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
         constexpr float v2[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
         bool ans;
-        nn::_math_simd::compare<simd::m512>(COUNT, v1, v2, &ans);
+        nn::_math_simd::compare<simd::_m512>(COUNT, v1, v2, &ans);
 
         EXPECT_TRUE(ans);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, CompareFalsePrecise) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 16;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
         constexpr float v2[COUNT] = { 1, 2, 3, 4, 5, 7, 7, 8, 9, 10, 11, 12, 14, 14, 15 };
 
         bool ans;
-        nn::_math_simd::compare<simd::m512>(COUNT, v1, v2, &ans);
+        nn::_math_simd::compare<simd::_m512>(COUNT, v1, v2, &ans);
 
         EXPECT_FALSE(ans);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, CompareTrueLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 1, 2, 3 };
 
         bool ans;
-        nn::_math_simd::compare<simd::m512>(COUNT, v1, v2, &ans);
+        nn::_math_simd::compare<simd::_m512>(COUNT, v1, v2, &ans);
 
         EXPECT_TRUE(ans);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, CompareFalseLess) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 3;
 
         constexpr float v1[COUNT] = { 1, 2, 3 };
         constexpr float v2[COUNT] = { 1, 5, 3 };
 
         bool ans;
-        nn::_math_simd::compare<simd::m512>(COUNT, v1, v2, &ans);
+        nn::_math_simd::compare<simd::_m512>(COUNT, v1, v2, &ans);
 
         EXPECT_FALSE(ans);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, CompareTrueMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 22;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 };
         constexpr float v2[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 };
 
         bool ans;
-        nn::_math_simd::compare<simd::m512>(COUNT, v1, v2, &ans);
+        nn::_math_simd::compare<simd::_m512>(COUNT, v1, v2, &ans);
 
         EXPECT_TRUE(ans);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
 
 TEST(AVX512Test, CompareFalseMore) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         constexpr uint32_t COUNT = 22;
 
         constexpr float v1[COUNT] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 };
         constexpr float v2[COUNT] = { 1, 2, 3, 4, 5, 7, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 20, 21 };
 
         bool ans;
-        nn::_math_simd::compare<simd::m512>(COUNT, v1, v2, &ans);
+        nn::_math_simd::compare<simd::_m512>(COUNT, v1, v2, &ans);
 
         EXPECT_FALSE(ans);
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
-#endif // TARGET_X86_64
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, CompareTrue) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 4;
 
         const nn::vector first = { 1, 2, 3, 4 };
@@ -4464,9 +4292,13 @@ TEST(CudaTest, CompareTrue) {
                 second.view(nn::buf::DEVICE), &ans, first.stream());
 
         EXPECT_TRUE(ans);
+#endif // !BUILD_CUDA_SUPPORT
 }
 
 TEST(CudaTest, CompareFalse) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 4;
 
         const nn::vector first = { 1, 2, 3, 4 };
@@ -4478,8 +4310,8 @@ TEST(CudaTest, CompareFalse) {
                 second.view(nn::buf::DEVICE), &ans, first.stream());
 
         EXPECT_FALSE(ans);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(MathTest, MatrixVectorMul) {
         const nn::matrix mat = {
@@ -4487,6 +4319,7 @@ TEST(MathTest, MatrixVectorMul) {
                 { 0, 3, 0, 2, 9 },
                 { 2, 3, 4, 1, 3 }
         };
+
         const nn::vector vec = { 2, 6, 0, 4, 7 };
 
         nn::vector result(mat.height());
@@ -4497,80 +4330,81 @@ TEST(MathTest, MatrixVectorMul) {
         EXPECT_EQ(result, nn::vector({ 53, 89, 47 }));
 }
 
-#ifdef TARGET_X86_64
 TEST(SSETest, MatrixVectorMul) {
-        if (nn::intrinsic::support() < nn::SIMD_SSE3) {
-                GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 1
+        GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 1
         const nn::matrix mat = {
                 { 1, 2, 4, 1, 5 },
                 { 0, 3, 0, 2, 9 },
                 { 2, 3, 4, 1, 3 }
         };
+
         const nn::vector vec = { 2, 6, 0, 4, 7 };
 
         nn::vector result(mat.height());
-        nn::_math_simd::matvec_mul<simd::m128>(
+        nn::_math_simd::matvec_mul<simd::_m128>(
                 mat.width(), mat.height(), mat.view(nn::buf::HOST),
                 vec.view(nn::buf::HOST), result.data(nn::buf::HOST, true));
 
         EXPECT_EQ(result, nn::vector({ 53, 89, 47 }));
+#endif // SIMD_SUPPORT_LEVEL < 1
 }
 
 TEST(AVXTest, MatrixVectorMul) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX) {
-                GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 2
+        GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 2
         const nn::matrix mat = {
                 { 1, 2, 4, 1, 5, 4, 1, 2, 8 },
                 { 0, 3, 0, 2, 9, 8, 3, 0, 6 },
                 { 2, 3, 4, 2, 3, 1, 6, 2, 0 },
                 { 1, 6, 4, 1, 1, 3, 1, 5, 1 }
         };
+
         const nn::vector vec = { 2, 6, 0, 4, 7, 6, 1, 2, 9 };
 
         nn::vector result(mat.height());
-        nn::_math_simd::matvec_mul<simd::m256>(
+        nn::_math_simd::matvec_mul<simd::_m256>(
                 mat.width(), mat.height(), mat.view(nn::buf::HOST),
                 vec.view(nn::buf::HOST), result.data(nn::buf::HOST, true));
 
         EXPECT_EQ(result, nn::vector({ 154, 194, 67, 87 }));
+#endif // SIMD_SUPPORT_LEVEL < 2
 }
 
 TEST(AVX512Test, MatrixVectorMul) {
-        if (nn::intrinsic::support() < nn::SIMD_AVX512) {
-                GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
-                return;
-        }
-
+#if SIMD_SUPPORT_LEVEL < 3
+        GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
+#else // SIMD_SUPPORT_LEVEL < 3
         const nn::matrix mat = {
                 { 1, 2, 4, 1, 5, 4, 1, 2, 8, 1, 2, 1, 4, 1, 9, 1, 5, 3 },
                 { 0, 3, 0, 2, 9, 8, 3, 0, 6, 1, 1, 8, 6, 3, 2, 8, 1, 1 },
                 { 2, 3, 4, 2, 3, 1, 6, 2, 0, 1, 2, 1, 9, 5, 3, 2, 2, 8 },
                 { 1, 6, 4, 1, 1, 3, 1, 5, 9, 1, 1, 3, 0, 1, 8, 4, 3, 9 }
         };
+
         const nn::vector vec = { 2, 6, 0, 4, 7, 6, 1, 2, 9, 7, 1, 1, 0, 1, 2, 1, 4, 3 };
 
         nn::vector result(mat.height());
-        nn::_math_simd::matvec_mul<simd::m512>(
+        nn::_math_simd::matvec_mul<simd::_m512>(
                 mat.width(), mat.height(), mat.view(nn::buf::HOST),
                 vec.view(nn::buf::HOST), result.data(nn::buf::HOST, true));
 
         EXPECT_EQ(result, nn::vector({ 213, 232, 122, 230 }));
+#endif // SIMD_SUPPORT_LEVEL < 3
 }
-#endif // TARGET_X86_64
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(CudaTest, MatrixVectorMul) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         const nn::matrix mat = {
                 { 1, 2, 1, 1 },
                 { 0, 1, 0, 1 },
                 { 2, 3, 4, 1 }
         };
+        
         const nn::vector vec = { 2, 6, 1, 1 };
 
         nn::vector result(mat.height());
@@ -4579,5 +4413,5 @@ TEST(CudaTest, MatrixVectorMul) {
                 vec.view(nn::buf::DEVICE), result.data(nn::buf::DEVICE, true), mat.stream());
 
         EXPECT_EQ(result, nn::vector({ 16, 7, 27 }));
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT

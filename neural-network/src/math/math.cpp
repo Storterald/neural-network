@@ -3,7 +3,6 @@
 #include <type_traits>
 #include <cstdint>
 
-#include <neural-network/intrinsic/intrinsic.h>
 #include <neural-network/utils/macros.h>
 #include <neural-network/types/buf.h>
 #include "_math_normal.h"
@@ -40,36 +39,32 @@ _get(__name__, __dest__) __VA_OPT__(, __GET_ALL2 PARENS (__dest__, __VA_ARGS__))
 #define __GET_ALL2() __GET_ALL
 
 #ifdef BUILD_CUDA_SUPPORT
-#define CHECK_IF_CUDA_MINIMUM(__name__, __size__, __first__, ...)                                       \
-if ((__first__).location() == buf::DEVICE)                                                              \
-        return _math_cuda:: __name__ (GET_ALL(buf::DEVICE, __VA_ARGS__), (__first__).stream())
+#define CHECK_IF_CUDA(__name__, __size__, __first__, ...)                                               \
+do {                                                                                                    \
+        if ((__first__).location() == buf::DEVICE)                                                      \
+                return _math_cuda:: __name__ (GET_ALL(buf::DEVICE, __VA_ARGS__), (__first__).stream()); \
+} while (false)
 #else // BUILD_CUDA_SUPPORT
-#define CHECK_IF_CUDA_MINIMUM(...)
+#define CHECK_IF_CUDA(...)
 #endif // BUILD_CUDA_SUPPORT
 
 #ifdef TARGET_X86_64
-#define SIMD_SWITCH(__name__, ...)                                                              \
-do {                                                                                            \
-        switch (intrinsic::support()) {                                                         \
-        case SIMD_AVX512:                                                                       \
-                return _math_simd::__name__ <simd::m512>(GET_ALL(buf::HOST, __VA_ARGS__));      \
-        case SIMD_AVX:                                                                          \
-                return _math_simd::__name__ <simd::m256>(GET_ALL(buf::HOST, __VA_ARGS__));      \
-        case SIMD_SSE3:                                                                         \
-                return _math_simd::__name__ <simd::m128>(GET_ALL(buf::HOST, __VA_ARGS__));      \
-        case SIMD_UNSUPPORTED:                                                                  \
-                return _math_normal:: __name__ (GET_ALL(buf::HOST, __VA_ARGS__));               \
-        }                                                                                       \
+#define NON_CUDA(__name__, ...)                                         \
+do {                                                                    \
+        return _math_simd:: __name__ (GET_ALL(buf::HOST, __VA_ARGS__)); \
 } while (false)
 #else // TARGET_X86_64
-#define SIMD_SWITCH(__name__, ...) return _math_normal:: __name__ (GET_ALL(buf::HOST, __VA_ARGS__));
+#define NON_CUDA(__name__, ...)                                                 \
+do {                                                                            \
+        return _math_normal:: __name__ (GET_ALL(buf::HOST, __VA_ARGS__));       \
+} while (false)
 #endif // TARGET_X86_64
 
-#define DECLARE_MATH_FUNCTION(__name__, __size__, __stream__, ...)                              \
-void math:: __name__ (GET_ARGS(__VA_ARGS__))                                                    \
-{                                                                                               \
-        CHECK_IF_CUDA_MINIMUM(__name__, __size__, __stream__, GET_ARGS_NAMES(__VA_ARGS__));     \
-        SIMD_SWITCH(__name__, GET_ARGS_NAMES(__VA_ARGS__));                                     \
+#define DECLARE_MATH_FUNCTION(__name__, __size__, __stream__, ...)                      \
+void math:: __name__ (GET_ARGS(__VA_ARGS__))                                            \
+{                                                                                       \
+        CHECK_IF_CUDA(__name__, __size__, __stream__, GET_ARGS_NAMES(__VA_ARGS__));     \
+        NON_CUDA(__name__, GET_ARGS_NAMES(__VA_ARGS__));                                \
 }
 
 namespace nn {

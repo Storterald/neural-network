@@ -31,6 +31,12 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/check_x86_64.cmake")
 check_x86_64(IS_X86_64)
 if (IS_X86_64)
         add_compile_definitions(TARGET_X86_64)
+
+        include("${CMAKE_CURRENT_LIST_DIR}/cmake/simd_support.cmake")
+        get_simd_support(SIMD_SUPPORT_LEVEL)
+        add_compile_definitions(SIMD_SUPPORT_LEVEL=${SIMD_SUPPORT_LEVEL})
+else ()
+        add_compile_definitions(SIMD_SUPPORT_LEVEL=0)
 endif ()
 
 # ------------------------------------------------------------------------------

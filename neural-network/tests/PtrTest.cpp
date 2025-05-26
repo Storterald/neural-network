@@ -7,7 +7,7 @@
 
 #ifdef BUILD_CUDA_SUPPORT
 #include <neural-network/utils/cuda.h>
-#endif // BUILD_CUDA_SUPPORT
+#endif // !BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, TypeAliasesAreCorrectlyInitialized) {
         using ptr = nn::ptr<float>;
@@ -26,16 +26,18 @@ TEST(PtrTest, ConstructorWorksWithNullptrOnHost) {
         EXPECT_TRUE((std::same_as<decltype(p)::value_type, float>));
 }
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, ConstructorWorksWithNullptrOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         EXPECT_NO_THROW([[maybe_unused]] nn::ptr<float> p(nullptr, true));
 
         const nn::ptr<float> p(nullptr, true);
         EXPECT_EQ(p, nullptr);
         EXPECT_TRUE(p.is_device());
         EXPECT_TRUE((std::same_as<decltype(p)::value_type, float>));
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, ConstructorWorksWithValidPointerOnHost) {
         float v = 13;
@@ -48,8 +50,10 @@ TEST(PtrTest, ConstructorWorksWithValidPointerOnHost) {
         EXPECT_TRUE((std::same_as<decltype(p)::value_type, float>));
 }
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, ConstructorWorksWithValidPointerOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         float *d_v = nn::cuda::alloc<float>();
 
         EXPECT_NO_THROW([[maybe_unused]] nn::ptr p(d_v, true));
@@ -60,8 +64,8 @@ TEST(PtrTest, ConstructorWorksWithValidPointerOnDevice) {
         EXPECT_TRUE((std::same_as<decltype(p)::value_type, float>));
 
         nn::cuda::free(d_v);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, ConstructorSavesValueOnHostWithPointerOnHost) {
         float v = 13;
@@ -69,8 +73,10 @@ TEST(PtrTest, ConstructorSavesValueOnHostWithPointerOnHost) {
         EXPECT_EQ(*p, v);
 }
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, ConstructorSavesValueOnHostWithPointerOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr float v = 13;
         float *d_v        = nn::cuda::alloc<float>();
         nn::cuda::memcpy(d_v, &v, sizeof(float), cudaMemcpyHostToDevice);
@@ -79,8 +85,8 @@ TEST(PtrTest, ConstructorSavesValueOnHostWithPointerOnDevice) {
         EXPECT_EQ(*p, v);
 
         nn::cuda::free(d_v);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, ConstPtrRetainsOriginalType) {
         float v = 13;
@@ -98,8 +104,10 @@ TEST(PtrTest, CopyConstructorWorksWithNullptrOnHost) {
         EXPECT_FALSE(copy.is_device());
 }
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, CopyConstructorWorksWithNullptrOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         const nn::ptr<float> p(nullptr, true);
 
         EXPECT_NO_THROW([[maybe_unused]] nn::ptr copy(p));
@@ -107,8 +115,8 @@ TEST(PtrTest, CopyConstructorWorksWithNullptrOnDevice) {
         const nn::ptr copy(p);
         EXPECT_EQ(copy, nullptr);
         EXPECT_TRUE(copy.is_device());
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, CopyConstructorWorksWithValidPointerOnHost) {
         float v = 13;
@@ -122,8 +130,10 @@ TEST(PtrTest, CopyConstructorWorksWithValidPointerOnHost) {
         EXPECT_EQ(*copy, v);
 }
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, CopyConstructorWorksWithValidPointerOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr float v = 13;
         float *d_v        = nn::cuda::alloc<float>();
         nn::cuda::memcpy(d_v, &v, sizeof(float), cudaMemcpyHostToDevice);
@@ -138,8 +148,8 @@ TEST(PtrTest, CopyConstructorWorksWithValidPointerOnDevice) {
         EXPECT_EQ(*copy, v);
 
         nn::cuda::free(d_v);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, MoveConstructorWorksWithNullptrOnHost) {
         EXPECT_NO_THROW([[maybe_unused]] nn::ptr p(nn::ptr<float>(nullptr, false)));
@@ -149,15 +159,17 @@ TEST(PtrTest, MoveConstructorWorksWithNullptrOnHost) {
         EXPECT_FALSE(p.is_device());
 }
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, MoveConstructorWorksWithNullptrOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         EXPECT_NO_THROW([[maybe_unused]] nn::ptr p(nn::ptr<float>(nullptr, true)));
 
         const nn::ptr p(nn::ptr<float>(nullptr, true));
         EXPECT_EQ(p, nullptr);
         EXPECT_TRUE(p.is_device());
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, MoveConstructorWorksWithValidPointerOnHost) {
         float v = 13;
@@ -169,8 +181,10 @@ TEST(PtrTest, MoveConstructorWorksWithValidPointerOnHost) {
         EXPECT_EQ(*p, v);
 }
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, MoveConstructorWorksWithValidPointerOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr float v = 13;
         float *d_v        = nn::cuda::alloc<float>();
         nn::cuda::memcpy(d_v, &v, sizeof(float), cudaMemcpyHostToDevice);
@@ -183,8 +197,8 @@ TEST(PtrTest, MoveConstructorWorksWithValidPointerOnDevice) {
         EXPECT_EQ(*p, v);
 
         nn::cuda::free(d_v);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, CopyAssignmentOperatorWorksWithNullptrOnHost) {
         const nn::ptr<float> p(nullptr, false);
@@ -195,16 +209,18 @@ TEST(PtrTest, CopyAssignmentOperatorWorksWithNullptrOnHost) {
         EXPECT_FALSE(copy.is_device());
 }
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, CopyAssignmentOperatorWorksWithNullptrOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         const nn::ptr<float> p(nullptr, true);
         nn::ptr<float> copy(nullptr, true);
         EXPECT_NO_THROW(copy = p);
 
         EXPECT_EQ(copy, nullptr);
         EXPECT_TRUE(copy.is_device());
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, CopyAssignmentOperatorWorksWithValidPointerOnHost) {
         float v = 13;
@@ -218,8 +234,10 @@ TEST(PtrTest, CopyAssignmentOperatorWorksWithValidPointerOnHost) {
         EXPECT_EQ(*copy, v);
 }
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, CopyAssignmentOperatorWorksWithValidPointerOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr float v = 13;
         float *d_v        = nn::cuda::alloc<float>();
         nn::cuda::memcpy(d_v, &v, sizeof(float), cudaMemcpyHostToDevice);
@@ -233,8 +251,8 @@ TEST(PtrTest, CopyAssignmentOperatorWorksWithValidPointerOnDevice) {
         EXPECT_EQ(*copy, v);
 
         nn::cuda::free(d_v);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, MoveAssignmentOperatorWorksWithNullptrOnHost) {
         nn::ptr<float> p(nullptr, false);
@@ -244,15 +262,17 @@ TEST(PtrTest, MoveAssignmentOperatorWorksWithNullptrOnHost) {
         EXPECT_FALSE(p.is_device());
 }
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, MoveAssignmentOperatorWorksWithNullptrOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         nn::ptr<float> p(nullptr, true);
         EXPECT_NO_THROW(p = nn::ptr<float>(nullptr, true));
 
         EXPECT_EQ(p, nullptr);
         EXPECT_TRUE(p.is_device());
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, MoveAssignmentOperatorWorksWithValidPointerOnHost) {
         float v = 13;
@@ -264,8 +284,10 @@ TEST(PtrTest, MoveAssignmentOperatorWorksWithValidPointerOnHost) {
         EXPECT_EQ(*p, v);
 }
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, MoveAssignmentOperatorWorksWithValidPointerOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         float v = 13;
         float *d_v = nn::cuda::alloc<float>();
         nn::cuda::memcpy(d_v, &v, sizeof(float), cudaMemcpyHostToDevice);
@@ -278,8 +300,8 @@ TEST(PtrTest, MoveAssignmentOperatorWorksWithValidPointerOnDevice) {
         EXPECT_EQ(*p, v);
 
         nn::cuda::free(d_v);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, ComparisonOperatorsWorksWithEqualPointersBothOnHost) {
         float v;
@@ -290,8 +312,10 @@ TEST(PtrTest, ComparisonOperatorsWorksWithEqualPointersBothOnHost) {
         EXPECT_FALSE(a != b);
 }
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, ComparisonOperatorsWorksWithEqualPointersBothOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         float *d_v = nn::cuda::alloc<float>();
 
         const nn::ptr a(d_v, true);
@@ -301,8 +325,8 @@ TEST(PtrTest, ComparisonOperatorsWorksWithEqualPointersBothOnDevice) {
         EXPECT_FALSE(a != b);
 
         nn::cuda::free(d_v);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, ComparisonOperatorsWorksWithDifferentPointersBothOnHost) {
         float v1;
@@ -314,8 +338,10 @@ TEST(PtrTest, ComparisonOperatorsWorksWithDifferentPointersBothOnHost) {
         EXPECT_TRUE(a != b);
 }
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, ComparisonOperatorsWorksWithDifferentPointersBothOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         float *d_v1 = nn::cuda::alloc<float>();
         float *d_v2 = nn::cuda::alloc<float>();
 
@@ -327,11 +353,13 @@ TEST(PtrTest, ComparisonOperatorsWorksWithDifferentPointersBothOnDevice) {
 
         nn::cuda::free(d_v1);
         nn::cuda::free(d_v2);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, ComparisonOperatorsWorksWithDifferentPointersOnHostAndOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         float v;
         float *d_v = nn::cuda::alloc<float>();
 
@@ -342,8 +370,8 @@ TEST(PtrTest, ComparisonOperatorsWorksWithDifferentPointersOnHostAndOnDevice) {
         EXPECT_TRUE(a != b);
 
         nn::cuda::free(d_v);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, RawComparisonOperatorsWorksWithEqualPointersBothOnHost) {
         float v;
@@ -353,8 +381,10 @@ TEST(PtrTest, RawComparisonOperatorsWorksWithEqualPointersBothOnHost) {
         EXPECT_FALSE(a != &v);
 }
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, RawComparisonOperatorsWorksWithEqualPointersBothOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         float *d_v = nn::cuda::alloc<float>();
 
         const nn::ptr a(d_v, true);
@@ -363,8 +393,8 @@ TEST(PtrTest, RawComparisonOperatorsWorksWithEqualPointersBothOnDevice) {
         EXPECT_FALSE(a != d_v);
 
         nn::cuda::free(d_v);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, RawComparisonOperatorsWorksWithDifferentPointersBothOnHost) {
         float v1;
@@ -375,8 +405,10 @@ TEST(PtrTest, RawComparisonOperatorsWorksWithDifferentPointersBothOnHost) {
         EXPECT_TRUE(a != &v2);
 }
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, RawComparisonOperatorsWorksWithDifferentPointersBothOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         float *d_v1 = nn::cuda::alloc<float>();
         float *d_v2 = nn::cuda::alloc<float>();
 
@@ -387,11 +419,13 @@ TEST(PtrTest, RawComparisonOperatorsWorksWithDifferentPointersBothOnDevice) {
 
         nn::cuda::free(d_v1);
         nn::cuda::free(d_v2);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, RawComparisonOperatorsWorksWithDifferentPointersOnHostAndOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         float v;
         float *d_v = nn::cuda::alloc<float>();
 
@@ -401,8 +435,8 @@ TEST(PtrTest, RawComparisonOperatorsWorksWithDifferentPointersOnHostAndOnDevice)
         EXPECT_TRUE(a != d_v);
 
         nn::cuda::free(d_v);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, DereferenceOperatorReturnsValidRefWithValidPointer) {
         float v;
@@ -553,12 +587,14 @@ TEST(PtrTest, DeviceReturnsIfThePointerIsADeviceOneWhenOnHost) {
         EXPECT_FALSE(p.is_device());
 }
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(PtrTest, DeviceReturnsIfThePointerIsADeviceOneWhenOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         const nn::ptr<float> p(nullptr, true);
         EXPECT_TRUE(p.is_device());
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(PtrTest, MakeSpanReturnsValidSpan) {
         float v;

@@ -55,22 +55,6 @@ add_library(NeuralNetworkLib STATIC ${SOURCES} ${CUDA_SOURCES})
 target_link_libraries(NeuralNetworkLib PRIVATE NeuralNetwork::Headers)
 add_library(NeuralNetwork::Lib ALIAS NeuralNetworkLib)
 
-if (IS_X86_64)
-        if (MSVC)
-                enable_language(ASM_MASM)
-                set(ASM_EXT "asm")
-        else ()
-                enable_language(ASM_NASM)
-                set(CMAKE_ASM_NASM_COMPILER "nasm")
-                set(ASM_EXT "nasm")
-        endif ()
-
-        file(GLOB_RECURSE ASM_SOURCES
-                "${SRC_DIR}/*.${ASM_EXT}")
-        target_sources(NeuralNetworkLib
-                PUBLIC ${ASM_SOURCES})
-endif ()
-
 if (BUILD_CUDA_SUPPORT)
         enable_language(CUDA)
         target_compile_definitions(NeuralNetworkLib

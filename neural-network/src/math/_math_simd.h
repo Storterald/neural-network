@@ -11,7 +11,7 @@
 
 namespace nn::_math_simd {
 
-template <simd::simd m>
+template<typename m = simd::simd>
 inline void sum(
         uint32_t           size,
         const float        first[],
@@ -20,7 +20,7 @@ inline void sum(
 
         const uint32_t end = size & ~(m::width - 1);
 
-        for (uint32_t i = 0; i < end; i+=m::width) {
+        for (uint32_t i = 0; i < end; i+= m::width) {
                 const m values(&first[i]);
                 const m otherValues(&second[i]);
                 const m sumResult = values + otherValues;
@@ -31,7 +31,7 @@ inline void sum(
                 _math_normal::sum(rem, first + end, second + end, result + end);
 }
 
-template <simd::simd m>
+template<typename m = simd::simd>
 inline void sub(
         uint32_t           size,
         const float        first[],
@@ -40,7 +40,7 @@ inline void sub(
 
         const uint32_t end = size & ~(m::width - 1);
 
-        for (uint32_t i = 0; i < end; i+=m::width) {
+        for (uint32_t i = 0; i < end; i+= m::width) {
                 const m values(&first[i]);
                 const m otherValues(&second[i]);
                 const m subResult = values - otherValues;
@@ -51,7 +51,7 @@ inline void sub(
                 _math_normal::sub(rem, first + end, second + end, result + end);
 }
 
-template <simd::simd m>
+template<typename m = simd::simd>
 inline void mul(
         uint32_t           size,
         const float        first[],
@@ -60,7 +60,7 @@ inline void mul(
 
         const uint32_t end = size & ~(m::width - 1);
 
-        for (uint32_t i = 0; i < end; i+=m::width) {
+        for (uint32_t i = 0; i < end; i+= m::width) {
                 const m values(&first[i]);
                 const m otherValues(&second[i]);
                 const m mulResult = values * otherValues;
@@ -71,7 +71,7 @@ inline void mul(
                 _math_normal::mul(rem, first + end, second + end, result + end);
 }
 
-template <simd::simd m>
+template<typename m = simd::simd>
 inline void div(
         uint32_t           size,
         const float        first[],
@@ -80,7 +80,7 @@ inline void div(
 
         const uint32_t end = size & ~(m::width - 1);
 
-        for (uint32_t i = 0; i < end; i+=m::width) {
+        for (uint32_t i = 0; i < end; i+= m::width) {
                 const m values(&first[i]);
                 const m otherValues(&second[i]);
                 const m divResult = values / otherValues;
@@ -91,7 +91,7 @@ inline void div(
                 _math_normal::div(rem, first + end, second + end, result + end);
 }
 
-template <simd::simd m>
+template<typename m = simd::simd>
 inline void sum(
         uint32_t           size,
         const float        data[],
@@ -102,7 +102,7 @@ inline void sum(
 
         const m scalarValues(scalar);
 
-        for (uint32_t i = 0; i < end; i+=m::width) {
+        for (uint32_t i = 0; i < end; i+= m::width) {
                 const m values(&data[i]);
                 const m sumResult = values + scalarValues;
                 sumResult.store(&result[i]);
@@ -112,7 +112,7 @@ inline void sum(
                 _math_normal::sum(rem, data + end, scalar, result + end);
 }
 
-template <simd::simd m>
+template<typename m = simd::simd>
 inline void sub(
         uint32_t           size,
         const float        data[],
@@ -123,7 +123,7 @@ inline void sub(
 
         const m scalarValues(scalar);
 
-        for (uint32_t i = 0; i < end; i+=m::width) {
+        for (uint32_t i = 0; i < end; i+= m::width) {
                 const m values(&data[i]);
                 const m subResult = values - scalarValues;
                 subResult.store(&result[i]);
@@ -133,7 +133,7 @@ inline void sub(
                 _math_normal::sub(rem, data + end, scalar, result + end);
 }
 
-template <simd::simd m>
+template<typename m = simd::simd>
 inline void mul(
         uint32_t           size,
         const float        data[],
@@ -144,7 +144,7 @@ inline void mul(
 
         const m scalarValues(scalar);
 
-        for (uint32_t i = 0; i < end; i+=m::width) {
+        for (uint32_t i = 0; i < end; i+= m::width) {
                 const m values(&data[i]);
                 const m mulResult = values * scalarValues;
                 mulResult.store(&result[i]);
@@ -154,7 +154,7 @@ inline void mul(
                 _math_normal::mul(rem, data + end, scalar, result + end);
 }
 
-template <simd::simd m>
+template<typename m = simd::simd>
 inline void div(
         uint32_t           size,
         const float        data[],
@@ -165,7 +165,7 @@ inline void div(
 
         const m scalarValues(scalar);
 
-        for (uint32_t i = 0; i < end; i+=m::width) {
+        for (uint32_t i = 0; i < end; i+= m::width) {
                 const m values(&data[i]);
                 const m divResult = values / scalarValues;
                 divResult.store(&result[i]);
@@ -175,7 +175,7 @@ inline void div(
                 _math_normal::div(rem, data + end, scalar, result + end);
 }
 
-template <simd::simd m>
+template<typename m = simd::simd>
 inline void tanh(
         uint32_t           size,
         const float        data[],
@@ -194,11 +194,11 @@ inline void tanh(
         const m v62370(62370.0f);
         const m v135135(135135.0f);
 
-        for (uint32_t i = 0; i < end; i += m::width) {
+        for (uint32_t i = 0; i < end; i +=  m::width) {
                 const m x(&data[i]);
                 const m x2 = x * x;
 
-                const m absoluteX = x.abs();
+                const m absoluteX           = x.abs();
                 const typename m::mask mask = absoluteX >= threshold;
                 const m signs               = x & negative;
                 const m signedOne           = signs | one;
@@ -213,7 +213,7 @@ inline void tanh(
                 denominator            = x2.fma(denominator, v135135);
 
                 m tanh = numerator / denominator;
-                tanh            = mask.blend(tanh, signedOne);
+                tanh            = mask(tanh, signedOne);
 
                 tanh.store(&result[i]);
         }
@@ -222,7 +222,7 @@ inline void tanh(
                 _math_normal::tanh(rem, data + end, result + end);
 }
 
-template <simd::simd m>
+template<typename m = simd::simd>
 inline void tanh_derivative(
         uint32_t           size,
         const float        data[],
@@ -230,22 +230,22 @@ inline void tanh_derivative(
 
         const uint32_t end = size & ~(m::width - 1);
 
-        _math_simd::tanh<m>(size - end, data, result);
+        _math_simd::tanh(size - end, data, result);
 
         const m threshold(4.9f);
         const m zero{};
         const m one(1.0f);
 
-        for (uint32_t i = 0; i < end; i+=m::width) {
+        for (uint32_t i = 0; i < end; i+= m::width) {
                 const m values(&data[i]);
                 const m tanhValues(&result[i]);
                 m tanhDerivative = tanhValues.fnma(tanhValues, one);
 
                 const typename m::mask neg = values.abs() > threshold;
-                tanhDerivative             = neg.blend(tanhDerivative, zero);
+                tanhDerivative             = neg(tanhDerivative, zero);
 
                 const typename m::mask eq = values == zero;
-                tanhDerivative         = eq.blend(tanhDerivative, one);
+                tanhDerivative            = eq(tanhDerivative, one);
 
                 tanhDerivative.store(&result[i]);
         }
@@ -254,7 +254,7 @@ inline void tanh_derivative(
                 _math_normal::tanh_derivative(rem, data + end, result + end);
 }
 
-template <simd::simd m>
+template<typename m = simd::simd>
 inline void ReLU(
         uint32_t           size,
         const float        data[],
@@ -264,7 +264,7 @@ inline void ReLU(
 
         const m zero{};
 
-        for (uint32_t i = 0; i < end; i+=m::width) {
+        for (uint32_t i = 0; i < end; i+= m::width) {
                 const m x(&data[i]);
                 const m relu = zero.max(x);
                 relu.store(&result[i]);
@@ -274,7 +274,7 @@ inline void ReLU(
                 _math_normal::ReLU(rem, data + end, result + end);
 }
 
-template <simd::simd m>
+template<typename m = simd::simd>
 inline void ReLU_derivative(
         uint32_t           size,
         const float        data[],
@@ -285,10 +285,10 @@ inline void ReLU_derivative(
         const m zero{};
         const m one(1.0f);
 
-        for (uint32_t i = 0; i < end; i+=m::width) {
+        for (uint32_t i = 0; i < end; i+= m::width) {
                 const m x(&data[i]);
                 const typename m::mask pos = x > zero;
-                const m reluDerivative     = pos.blend(zero, one);
+                const m reluDerivative     = pos(zero, one);
                 reluDerivative.store(&result[i]);
         }
 
@@ -296,7 +296,7 @@ inline void ReLU_derivative(
                 _math_normal::ReLU_derivative(rem, data + end, result + end);
 }
 
-template <simd::simd m>
+template<typename m = simd::simd>
 inline void min(
         uint32_t           size,
         const float        data[],
@@ -307,7 +307,7 @@ inline void min(
 
         const m minValues(min);
 
-        for (uint32_t i = 0; i < end; i+=m::width) {
+        for (uint32_t i = 0; i < end; i+= m::width) {
                 const m values(&data[i]);
                 const m minResult = values.min(minValues);
                 minResult.store(&result[i]);
@@ -317,7 +317,7 @@ inline void min(
                 _math_normal::min(rem, data + end, min, result + end);
 }
 
-template <simd::simd m>
+template<typename m = simd::simd>
 inline void max(
         uint32_t           size,
         const float        data[],
@@ -328,7 +328,7 @@ inline void max(
 
         const m maxValues(max);
 
-        for (uint32_t i = 0; i < end; i+=m::width) {
+        for (uint32_t i = 0; i < end; i+= m::width) {
                 const m values(&data[i]);
                 const m maxResult = values.max(maxValues);
                 maxResult.store(&result[i]);
@@ -338,7 +338,7 @@ inline void max(
                 _math_normal::max(rem, data + end, max, result + end);
 }
 
-template <simd::simd m>
+template<typename m = simd::simd>
 inline void clamp(
         uint32_t           size,
         const float        data[],
@@ -351,7 +351,7 @@ inline void clamp(
         const m minValues(min);
         const m maxValues(max);
 
-        for (uint32_t i = 0; i < end; i+=m::width) {
+        for (uint32_t i = 0; i < end; i+= m::width) {
                 const m values(&data[i]);
                 const m clamp = minValues.max(maxValues.min(values));
                 clamp.store(&result[i]);
@@ -361,7 +361,7 @@ inline void clamp(
                 _math_normal::clamp(rem, data + end, min, max, result + end);
 }
 
-template <simd::simd m>
+template<typename m = simd::simd>
 inline void min(
         uint32_t           size,
         const float        first[],
@@ -370,7 +370,7 @@ inline void min(
 
         const uint32_t end = size & ~(m::width - 1);
 
-        for (uint32_t i = 0; i < end; i+=m::width) {
+        for (uint32_t i = 0; i < end; i+= m::width) {
                 const m values(&first[i]);
                 const m otherValues(&second[i]);
                 const m minValues = otherValues.min(values);
@@ -381,7 +381,7 @@ inline void min(
                 _math_normal::min(rem, first + end, second + end, result + end);
 }
 
-template <simd::simd m>
+template<typename m = simd::simd>
 inline void max(
         uint32_t           size,
         const float        first[],
@@ -390,7 +390,7 @@ inline void max(
 
         const uint32_t end = size & ~(m::width - 1);
 
-        for (uint32_t i = 0; i < end; i+=m::width) {
+        for (uint32_t i = 0; i < end; i+= m::width) {
                 const m values(&first[i]);
                 const m otherValues(&second[i]);
                 const m maxValues = otherValues.max(values);
@@ -401,7 +401,7 @@ inline void max(
                 _math_normal::max(rem, first + end, second + end, result + end);
 }
 
-template <simd::simd m>
+template<typename m = simd::simd>
 inline void clamp(
         uint32_t           size,
         const float        data[],
@@ -411,7 +411,7 @@ inline void clamp(
 
         const uint32_t end = size & ~(m::width - 1);
 
-        for (uint32_t i = 0; i < end; i+=m::width) {
+        for (uint32_t i = 0; i < end; i+= m::width) {
                 const m values(&data[i]);
                 const m minValues(&min[i]);
                 const m maxValues(&max[i]);
@@ -423,7 +423,7 @@ inline void clamp(
                 _math_normal::clamp(rem, data + end, min + end, max + end, result + end);
 }
 
-template <simd::simd m>
+template<typename m = simd::simd>
 inline void compare(
         uint32_t           size,
         const float        first[],
@@ -434,7 +434,7 @@ inline void compare(
 
         *result = true;
 
-        for (uint32_t i = 0; i < end; i+=m::width) {
+        for (uint32_t i = 0; i < end; i+= m::width) {
                 const m values(&first[i]);
                 const m otherValues(&second[i]);
                 if ((values == otherValues) != m::mask::ones) {
@@ -447,7 +447,7 @@ inline void compare(
                 _math_normal::compare(rem, first + end, second + end, result);
 }
 
-template <simd::simd m>
+template<typename m = simd::simd>
 inline void matvec_mul(
         uint32_t           width,
         uint32_t           height,
@@ -460,7 +460,7 @@ inline void matvec_mul(
         for (uint32_t i = 0; i < height; ++i) {
                 m sum{};
 
-                for (uint32_t j = 0; j < end; j+=m::width) {
+                for (uint32_t j = 0; j < end; j+= m::width) {
                         const m values(&matrix[i * width + j]);
                         const m vectorValues(&vector[j]);
                         const m product = values * vectorValues;
@@ -474,4 +474,4 @@ inline void matvec_mul(
         }
 }
 
-} // namespace nn::simd
+} // namespace nn::_math_simd

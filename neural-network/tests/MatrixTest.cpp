@@ -38,15 +38,17 @@ TEST(MatrixTest, ConstructorWithInitializerListWorks) {
                         EXPECT_EQ(m[i][j], std::data(std::data(values)[i])[j]);
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, ConstructorWithInitializerListThrowsIfSizesDontMatch) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const std::initializer_list<std::initializer_list<float>> values = {
                 { 1, 2, 3, 4 },
                 { 5, 6, 7 }
         };
         EXPECT_THROW(nn::matrix m(values), nn::fatal_error);
+#endif // !DEBUG_MODE_ENABLED
 }
-#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, AccessOperator) {
         nn::matrix m(10, 10);
@@ -55,12 +57,14 @@ TEST(MatrixTest, AccessOperator) {
         EXPECT_EQ(m[9][9], 3.0f);
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, AccessOperatorThrowsIfIndexOutOfBounds) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::matrix m(10, 10);
         EXPECT_THROW([[maybe_unused]] auto value = m[10], nn::fatal_error);
+#endif // !DEBUG_MODE_ENABLED
 }
-#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, PairAccessOperator) {
         nn::matrix m(10, 10);
@@ -76,17 +80,23 @@ TEST(MatrixTest, PairAccessOperatorMatchesAccessOperator) {
         EXPECT_EQ(m[nn::matrix::indexer(9, 9)], m[9][9]);
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, PairAccessOperatorThrowsIfRowIndexOutOfBounds) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::matrix m(10, 10);
         EXPECT_THROW([[maybe_unused]] float value = m[nn::matrix::indexer(10, 9)], nn::fatal_error);
+#endif // !DEBUG_MODE_ENABLED
 }
 
 TEST(MatrixTestDebug, PairAccessOperatorThrowsIfHeightIndexOutOfBounds) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::matrix m(10, 10);
         EXPECT_THROW([[maybe_unused]] float value = m[nn::matrix::indexer(9, 10)], nn::fatal_error);
+#endif // !DEBUG_MODE_ENABLED
 }
-#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, AtFunction) {
         nn::matrix m(10, 10);
@@ -95,12 +105,14 @@ TEST(MatrixTest, AtFunction) {
         EXPECT_EQ(m.at(9)[9], 3.0f);
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, AtFunctionThrowsIfIndexOutOfBounds) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::matrix m(10, 10);
         EXPECT_THROW([[maybe_unused]] nn::ptr value = m.at(10), nn::fatal_error);
+#endif // !DEBUG_MODE_ENABLED
 }
-#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, PairAtFunctionReturnsCorrectValue) {
         nn::matrix m(10, 10);
@@ -116,17 +128,23 @@ TEST(MatrixTest, PairAtFunctionMatchesAtFunction) {
         EXPECT_EQ(m.at(9)[9], m.at(9, 9));
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, PairAtFunctionThrowsIfRowIndexOutOfBounds) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::matrix m(10, 10);
         EXPECT_THROW([[maybe_unused]] float value = m.at(10, 9), nn::fatal_error);
+#endif // !DEBUG_MODE_ENABLED
 }
 
 TEST(MatrixTestDebug, PairAtFunctionThrowsIfHeightIndexOutOfBounds) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::matrix m(10, 10);
         EXPECT_THROW([[maybe_unused]] float value = m.at(9, 10), nn::fatal_error);
+#endif // !DEBUG_MODE_ENABLED
 }
-#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, AdditionOperator) {
         const nn::matrix m1     = { { 1, 2 }, { 3, 4 } };
@@ -135,19 +153,25 @@ TEST(MatrixTest, AdditionOperator) {
         EXPECT_EQ(result, nn::matrix({ { 6, 8 }, { 10, 12 } }));
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, AdditionOperatorThrowsIfWidthDoesNotMatch) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::matrix m1 = { { 1, 2 }, { 3, 4 } };
         const nn::matrix m2 = { { 5, 6, 7 }, { 8, 9, 10 } };
         EXPECT_THROW(nn::matrix value = m1 + m2, nn::fatal_error);
+#endif // !DEBUG_MODE_ENABLED
 }
 
 TEST(MatrixTestDebug, AdditionOperatorThrowsIfHeightDoesNotMatch) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::matrix m1 = { { 1, 2 }, { 3, 4 } };
         const nn::matrix m2 = { { 5, 6 }, { 7, 8 }, { 9, 10 } };
         EXPECT_THROW(nn::matrix value = m1 + m2, nn::fatal_error);
+#endif // !DEBUG_MODE_ENABLED
 }
-#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, AdditionAssignmentOperator) {
         nn::matrix m1       = { { 1, 2 }, { 3, 4 } };
@@ -156,19 +180,25 @@ TEST(MatrixTest, AdditionAssignmentOperator) {
         EXPECT_EQ(m1, nn::matrix({ { 6, 8 }, { 10, 12 } }));
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, AdditionAssignmentOperatorThrowsIfWidthDoesNotMatch) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         nn::matrix m1       = { { 1, 2 }, { 3, 4 } };
         const nn::matrix m2 = { { 5, 6, 7 }, { 8, 9, 10 } };
         EXPECT_THROW(m1 += m2, nn::fatal_error);
+#endif // !DEBUG_MODE_ENABLED
 }
 
 TEST(MatrixTestDebug, AdditionAssignmentOperatorThrowsIfHeightDoesNotMatch) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         nn::matrix m1       = { { 1, 2 }, { 3, 4 } };
         const nn::matrix m2 = { { 5, 6 }, { 7, 8 }, { 9, 10 } };
         EXPECT_THROW(m1 += m2, nn::fatal_error);
+#endif // !DEBUG_MODE_ENABLED
 }
-#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, ScalarAdditionOperator) {
         const nn::matrix m      = { { 1, 2 }, { 3, 4 } };
@@ -189,19 +219,25 @@ TEST(MatrixTest, SubtractionOperator) {
         EXPECT_EQ(result, nn::matrix({ { 4, 4 }, { 4, 4 } }));
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, SubtractionOperatorThrowsIfWidthDoesNotMatch) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::matrix m1 = { { 1, 2 }, { 3, 4 }};
         const nn::matrix m2 = { { 5, 6, 7 }, { 8, 9, 10 }};
         EXPECT_THROW(nn::matrix value = m1 - m2, nn::fatal_error);
+#endif // !DEBUG_MODE_ENABLED
 }
 
 TEST(MatrixTestDebug, SubtractionOperatorThrowsIfHeightDoesNotMatch) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::matrix m1 = { { 1, 2 }, { 3, 4 } };
         const nn::matrix m2 = { { 5, 6 }, { 7, 8 }, { 9, 10 } };
         EXPECT_THROW(nn::matrix value = m1 - m2, nn::fatal_error);
+#endif // !DEBUG_MODE_ENABLED
 }
-#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, SubtractionAssignmentOperator) {
         nn::matrix m1       = { { 5, 6 }, { 7, 8 } };
@@ -210,19 +246,25 @@ TEST(MatrixTest, SubtractionAssignmentOperator) {
         EXPECT_EQ(m1, nn::matrix({ { 4, 4 }, { 4, 4 } }));
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, SubtractionAssignmentOperatorThrowsIfWidthDoesNotMatch) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         nn::matrix m1       = { { 1, 2 }, { 3, 4 } };
         const nn::matrix m2 = { { 5, 6, 7 }, { 8, 9, 10 } };
         EXPECT_THROW(m1 -= m2, nn::fatal_error);
+#endif // !DEBUG_MODE_ENABLED
 }
 
 TEST(MatrixTestDebug, SubtractionAssignmentOperatorThrowsIfHeightDoesNotMatch) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         nn::matrix m1       = { { 1, 2 }, { 3, 4 } };
         const nn::matrix m2 = { { 5, 6 }, { 7, 8 }, { 9, 10 } };
         EXPECT_THROW(m1 -= m2, nn::fatal_error);
+#endif // !DEBUG_MODE_ENABLED
 }
-#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, ScalarSubtractionOperator) {
         const nn::matrix m      = { { 5, 6 }, { 7, 8 } };
@@ -254,15 +296,14 @@ TEST(MatrixTest, ScalarDivisionOperator) {
         EXPECT_EQ(result, nn::matrix({ { 3, 4 }, { 5, 6 } }));
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, ScalarDivisionOperatorThrowsIfValueIs0) {
-        const nn::matrix m = {
-                { 6, 8 },
-                { 10, 12 }
-        };
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
+        const nn::matrix m = { { 6, 8 }, { 10, 12 } };
         EXPECT_THROW(nn::matrix value = m / 0, nn::fatal_error);
+#endif // !DEBUG_MODE_ENABLED
 }
-#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, ScalarDivisionAssignmentOperator) {
         nn::matrix m = { { 6, 8 }, { 10, 12 } };
@@ -270,12 +311,14 @@ TEST(MatrixTest, ScalarDivisionAssignmentOperator) {
         EXPECT_EQ(m, nn::matrix({ { 3, 4 }, { 5, 6 } }));
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, ScalarDivisionAssignmentOperatorThrowsIfValueIs0) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         nn::matrix m = { { 6, 8 }, { 10, 12 } };
         EXPECT_THROW(m /= 0, nn::fatal_error);
+#endif // !DEBUG_MODE_ENABLED
 }
-#endif // DEBUG_MODE_ENABLED
 
 TEST(MatrixTest, VectorMultiplicationOperator) {
         const nn::matrix m      = { { 1, 2, 1, 1 }, { 0, 1, 0, 1 }, { 2, 3, 4, 1 } };
@@ -284,10 +327,12 @@ TEST(MatrixTest, VectorMultiplicationOperator) {
         EXPECT_EQ(result, nn::vector({ 16, 7, 27 }));
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(MatrixTestDebug, VectorMultiplicationOperatorThrowsIfVectorSizeDoesNotMatchMatrixWidth) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::matrix m = { { 1, 2, 1, 1 }, { 0, 1, 0, 1 }, { 2, 3, 4, 1 } };
         const nn::vector v = { 2, 6, 1 };
         EXPECT_THROW(nn::vector value = m * v, nn::fatal_error);
+#endif // !DEBUG_MODE_ENABLED
 }
-#endif // DEBUG_MODE_ENABLED

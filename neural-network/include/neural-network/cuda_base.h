@@ -9,6 +9,6 @@
 namespace nn {
 
 constexpr uint32_t CUDA_THREADS = 256;
-constexpr uint32_t CUDA_MINIMUM = 500'000;
+constexpr uint32_t CUDA_MINIMUM = 100'000;
 
 } // namespace nn

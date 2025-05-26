@@ -7,7 +7,7 @@
 #ifdef BUILD_CUDA_SUPPORT
 #include <neural-network/utils/cuda.h>
 #include "CudaTestHelper.h"
-#endif // BUILD_CUDA_SUPPORT
+#endif // !BUILD_CUDA_SUPPORT
 
 TEST(SpanTest, TypeAliasesAreCorrectlyInitialized) {
         using span = nn::span<float>;
@@ -23,19 +23,23 @@ TEST(SpanTest, SpanConstructorDoesNotAllocateMemoryIfLocationsAreHost) {
         EXPECT_FALSE(s.is_owning());
 }
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(SpanTest, SpanConstructorDoesNotAllocateMemoryIfLocationsAreDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         float *d_arr = nn::cuda::alloc<float>(10);
 
         const nn::span s(10, true, d_arr, true);
 
         EXPECT_FALSE(s.is_owning());
         nn::cuda::free(d_arr);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(SpanTest, SpanConstructorAllocatesMemoryIfSourceIsOnHostAndSpanOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
         nn::span s(10, true, arr, false);
 
@@ -43,11 +47,13 @@ TEST(SpanTest, SpanConstructorAllocatesMemoryIfSourceIsOnHostAndSpanOnDevice) {
         EXPECT_TRUE(helper::check_values(s.size(), s, 1));
 
         EXPECT_TRUE(s.is_owning());
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(SpanTest, SpanConstructorAllocatesMemoryIfSourceIsOnDeviceAndSpanOnHost) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
         float *d_arr            = nn::cuda::alloc<float>(10);
         nn::cuda::memcpy(d_arr, arr, 10 * sizeof(float), cudaMemcpyHostToDevice);
@@ -60,11 +66,13 @@ TEST(SpanTest, SpanConstructorAllocatesMemoryIfSourceIsOnDeviceAndSpanOnHost) {
 
         EXPECT_TRUE(s.is_owning());
         nn::cuda::free(d_arr);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(SpanTest, DestructorUpdatesTheDataIfExplicitedInTheConstructor) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         float *d_arr = nn::cuda::alloc<float>(10);
         nn::cuda::memset(d_arr, 0, 10 * sizeof(float));
 
@@ -79,11 +87,13 @@ TEST(SpanTest, DestructorUpdatesTheDataIfExplicitedInTheConstructor) {
 
         EXPECT_EQ(v, 3.0f);
         nn::cuda::free(d_arr);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(SpanTest, ImplicitTypePointerCastReturnsPointerToCorrectLocationWhenCreatedOnHost) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         float *d_arr = nn::cuda::alloc<float>(10);
 
         nn::span s(10, false, d_arr, true);
@@ -94,11 +104,13 @@ TEST(SpanTest, ImplicitTypePointerCastReturnsPointerToCorrectLocationWhenCreated
         // EXPECT_DEATH(Helper::access_values(1, p), "");
 
         nn::cuda::free(d_arr);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(SpanTest, ImplicitTypePointerCastReturnsPointerToCorrectLocationWhenCreatedOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
         nn::span s(10, true, arr, false);
 
@@ -106,8 +118,8 @@ TEST(SpanTest, ImplicitTypePointerCastReturnsPointerToCorrectLocationWhenCreated
         EXPECT_NO_FATAL_FAILURE(helper::access_values(1, p));
         // While this expectation should be correct, it is not guaranteed to work.
         // EXPECT_DEATH(float value = *p, "");
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(SpanTest, IndexerReturnsValidReference) {
         float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
@@ -141,35 +153,41 @@ TEST(SpanTest, IsOwningReturnsFalseValueWhenOnSourceAndSpanOnHost) {
         EXPECT_FALSE(s.is_owning());
 }
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(SpanTest, IsOwningReturnsFalseValueWhenOnSourceAndSpanOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         float *d_arr = nn::cuda::alloc<float>(10);
 
         const nn::span s(10, true, d_arr, true);
 
         EXPECT_FALSE(s.is_owning());
         nn::cuda::free(d_arr);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(SpanTest, IsOwningReturnsFalseValueWhenOnSourceIsOnHostAndSpanOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         constexpr float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
         const nn::span s(10, true, arr, false);
 
         EXPECT_TRUE(s.is_owning());
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(SpanTest, IsOwningReturnsFalseValueWhenOnSourceIsOnDeviceAndSpanOnHost) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         float *d_arr = nn::cuda::alloc<float>(10);
         const nn::span s(10, false, d_arr, true);
 
         EXPECT_TRUE(s.is_owning());
         nn::cuda::free(d_arr);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(SpanTest, UpdateUpdatesSourceCorrectlyWhenSourceOnHostAndSpanOnDevice) {
         float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
@@ -181,8 +199,10 @@ TEST(SpanTest, UpdateUpdatesSourceCorrectlyWhenSourceOnHostAndSpanOnDevice) {
         EXPECT_EQ(arr[3], 3.0f);
 }
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(SpanTest, UpdateUpdatesSourceCorrectlyWhenSourceOnDeviceAndSpanOnHost) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         float *d_arr = nn::cuda::alloc<float>(10);
         nn::cuda::memset(d_arr, 0, 10 * sizeof(float));
 
@@ -198,11 +218,13 @@ TEST(SpanTest, UpdateUpdatesSourceCorrectlyWhenSourceOnDeviceAndSpanOnHost) {
         nn::cuda::memcpy(&v, &d_arr[3], sizeof(float), cudaMemcpyDeviceToHost);
         EXPECT_EQ(v, 3.0f);
         nn::cuda::free(d_arr);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(SpanTest, UpdateDoesNothingOnSpanOfConstType) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         float arr[10] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
         nn::span<const float> s(10, true, arr, false);
 
@@ -210,5 +232,5 @@ TEST(SpanTest, UpdateDoesNothingOnSpanOfConstType) {
         helper::set_values(1, (float *)(&s[3]).get(), 3.0f);
         s.update();
         EXPECT_NE(arr[3], 3.0f);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT

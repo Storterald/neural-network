@@ -7,7 +7,7 @@
 
 #ifdef BUILD_CUDA_SUPPORT
 #include <neural-network/utils/cuda.h>
-#endif // BUILD_CUDA_SUPPORT
+#endif // !BUILD_CUDA_SUPPORT
 
 TEST(RefTest, TypeAliasesAreCorrectlyInitialized) {
         using ref = nn::ref<float>;
@@ -32,8 +32,10 @@ TEST(RefTest, ConstructorDoesNotThrowWithValidPointerOnHost) {
         EXPECT_EQ(&r, &v);
 }
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(RefTest, ConstructorDoesNotThrowWithValidPointerOnDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         float *d_v = nn::cuda::alloc<float>();
 
         EXPECT_NO_THROW([[maybe_unused]] nn::ref r(d_v, true));
@@ -42,8 +44,8 @@ TEST(RefTest, ConstructorDoesNotThrowWithValidPointerOnDevice) {
         EXPECT_EQ(&r, d_v);
 
         nn::cuda::free(d_v);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(RefTest, CopyAssignmentOperatorOnlyChangesValue) {
         float v1 = 13;
@@ -82,8 +84,10 @@ TEST(RefTest, AssignmentOperatorCorrectlySetsValueInTheHost) {
         EXPECT_EQ(&r, &v);
 }
 
-#ifdef BUILD_CUDA_SUPPORT
 TEST(RefTest, AssignmentOperatorCorrectlySetsValueInTheDevice) {
+#ifndef BUILD_CUDA_SUPPORT
+        GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
+#else // !BUILD_CUDA_SUPPORT
         float *d_v = nn::cuda::alloc<float>();
         nn::ref r(d_v, true);
 
@@ -97,8 +101,8 @@ TEST(RefTest, AssignmentOperatorCorrectlySetsValueInTheDevice) {
         EXPECT_EQ(&r, d_v);
 
         nn::cuda::free(d_v);
+#endif // !BUILD_CUDA_SUPPORT
 }
-#endif // BUILD_CUDA_SUPPORT
 
 TEST(RefTest, ComparisonOperatorReturnsTrueWhenBothReferTheSameValue) {
         float v1 = 13;

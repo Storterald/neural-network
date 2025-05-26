@@ -51,12 +51,14 @@ TEST(VectorTest, AccessOperator) {
         EXPECT_EQ(v[2], 3.0f);
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(VectorTestDebug, AccessOperatorThrowsIfIndexOutOfBounds) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::vector v(10);
         EXPECT_THROW([[maybe_unused]] float value = v[10], nn::fatal_error);
-}
 #endif // DEBUG_MODE_ENABLED
+}
 
 TEST(VectorTest, AtFunction) {
         const nn::vector v = { 1.0f, 2.0f, 3.0f };
@@ -64,12 +66,14 @@ TEST(VectorTest, AtFunction) {
         EXPECT_EQ(v.at(2), 3.0f);
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(VectorTestDebug, AtFunctionThrowsIfIndexOutOfBounds) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::vector v(10);
         EXPECT_THROW([[maybe_unused]] float value = v.at(10), nn::fatal_error);
-}
 #endif // DEBUG_MODE_ENABLED
+}
 
 TEST(VectorTest, AdditionOperator) {
         const nn::vector v1     = { 1, 2, 3 };
@@ -78,13 +82,15 @@ TEST(VectorTest, AdditionOperator) {
         EXPECT_EQ(result, nn::vector({ 5, 7, 9 }));
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(VectorTestDebug, AdditionOperatorThrowsIfSizeDoesNotMatch) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::vector v1 = { 1, 2, 3 };
         const nn::vector v2 = { 4, 5, 6, 7 };
         EXPECT_THROW(nn::vector value = v1 + v2, nn::fatal_error);
-}
 #endif // DEBUG_MODE_ENABLED
+}
 
 TEST(VectorTest, AdditionAssignmentOperator) {
         nn::vector v1       = { 1, 2, 3 };
@@ -93,13 +99,15 @@ TEST(VectorTest, AdditionAssignmentOperator) {
         EXPECT_EQ(v1, nn::vector({ 5, 7, 9 }));
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(VectorTestDebug, AdditionAssignmentOperatorThrowsIfSizeDoesNotMatch) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         nn::vector v1       = { 1, 2, 3 };
         const nn::vector v2 = { 4, 5, 6, 7 };
         EXPECT_THROW(v1 += v2, nn::fatal_error);
-}
 #endif // DEBUG_MODE_ENABLED
+}
 
 TEST(VectorTest, ScalarAdditionOperator) {
         const nn::vector v      = { 1, 2, 3 };
@@ -120,13 +128,15 @@ TEST(VectorTest, SubtractionOperator) {
         EXPECT_EQ(result, nn::vector({ 3, 3, 3 }));
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(VectorTestDebug, SubtractionOperatorThrowsIfSizeDoesNotMatch) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::vector v1 = { 1, 2, 3 };
         const nn::vector v2 = { 4, 5, 6, 7 };
         EXPECT_THROW(nn::vector value = v1 - v2, nn::fatal_error);
-}
 #endif // DEBUG_MODE_ENABLED
+}
 
 TEST(VectorTest, SubtractionAssignmentOperator) {
         nn::vector v1       = { 4, 5, 6 };
@@ -135,13 +145,15 @@ TEST(VectorTest, SubtractionAssignmentOperator) {
         EXPECT_EQ(v1, nn::vector({ 3, 3, 3 }));
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(VectorTestDebug, SubtractionAssignmentOperatorThrowsIfSizeDoesNotMatch) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         nn::vector v1       = { 1, 2, 3 };
         const nn::vector v2 = { 4, 5, 6, 7 };
         EXPECT_THROW(v1 -= v2, nn::fatal_error);
-}
 #endif // DEBUG_MODE_ENABLED
+}
 
 TEST(VectorTest, ScalarSubtractionOperator) {
         const nn::vector v      = { 4, 5, 6 };
@@ -162,13 +174,15 @@ TEST(VectorTest, MultiplicationOperator) {
         EXPECT_EQ(result, nn::vector({2, 6, 12}));
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(VectorTestDebug, MultiplicationOperatorThrowsIfSizeDoesNotMatch) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::vector v1 = { 1, 2, 3 };
         const nn::vector v2 = { 4, 5, 6, 7 };
         EXPECT_THROW(nn::vector value = v1 * v2, nn::fatal_error);
-}
 #endif // DEBUG_MODE_ENABLED
+}
 
 TEST(VectorTest, MultiplicationAssignmentOperator) {
         nn::vector v1       = { 1, 2, 3 };
@@ -177,13 +191,15 @@ TEST(VectorTest, MultiplicationAssignmentOperator) {
         EXPECT_EQ(v1, nn::vector({ 2, 6, 12 }));
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(VectorTestDebug, MultiplicationAssignmentOperatorThrowsIfSizeDoesNotMatch) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         nn::vector v1       = { 1, 2, 3 };
         const nn::vector v2 = { 4, 5, 6, 7 };
         EXPECT_THROW(v1 *= v2, nn::fatal_error);
-}
 #endif // DEBUG_MODE_ENABLED
+}
 
 TEST(VectorTest, ScalarMultiplicationOperator) {
         const nn::vector v      = { 1, 2, 3 };
@@ -204,19 +220,25 @@ TEST(VectorTest, DivisionOperator) {
         EXPECT_EQ(result, nn::vector({ 2, 3, 4 }));
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(VectorTestDebug, DivisionOperatorThrowsIfAnyOfTheOtherValuesIs0) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::vector v1 = { 1, 2, 3 };
         const nn::vector v2 = { 4, 5, 0 };
         EXPECT_THROW(nn::vector value = v1 / v2, nn::fatal_error);
+#endif // DEBUG_MODE_ENABLED
 }
 
 TEST(VectorTestDebug, DivisionOperatorThrowsIfSizeDoesNotMatch) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::vector v1 = { 1, 2, 3 };
         const nn::vector v2 = { 4, 5, 6, 7 };
         EXPECT_THROW(nn::vector value = v1 / v2, nn::fatal_error);
-}
 #endif // DEBUG_MODE_ENABLED
+}
 
 TEST(VectorTest, DivisionAssignmentOperator) {
         nn::vector v1       = { 4, 9, 16 };
@@ -225,19 +247,25 @@ TEST(VectorTest, DivisionAssignmentOperator) {
         EXPECT_EQ(v1, nn::vector({ 2, 3, 4 }));
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(VectorTestDebug, DivisionAssignmentOperatorThrowsIfAnyOfTheOtherValuesIs0) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         nn::vector v1       = { 1, 2, 3 };
         const nn::vector v2 = { 4, 5, 0 };
         EXPECT_THROW(v1 /= v2, nn::fatal_error);
+#endif // DEBUG_MODE_ENABLED
 }
 
 TEST(VectorTestDebug, DivisionAssignmentOperatorThrowsIfSizeDoesNotMatch) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         nn::vector v1       = { 1, 2, 3 };
         const nn::vector v2 = { 4, 5, 6, 7 };
         EXPECT_THROW(v1 /= v2, nn::fatal_error);
-}
 #endif // DEBUG_MODE_ENABLED
+}
 
 TEST(VectorTest, ScalarDivisionOperator) {
         const nn::vector v      = { 4, 9, 16 };
@@ -245,12 +273,14 @@ TEST(VectorTest, ScalarDivisionOperator) {
         EXPECT_EQ(result, nn::vector({ 2, 4.5, 8 }));
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(VectorTestDebug, ScalarDivisionOperatorThrowsIfValueIs0) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::vector v1 = { 1, 2, 3 };
         EXPECT_THROW(nn::vector value = v1 / 0, nn::fatal_error);
-}
 #endif // DEBUG_MODE_ENABLED
+}
 
 TEST(VectorTest, ScalarDivisionAssignmentOperator) {
         nn::vector v = { 4, 9, 16 };
@@ -258,12 +288,14 @@ TEST(VectorTest, ScalarDivisionAssignmentOperator) {
         EXPECT_EQ(v, nn::vector({ 2, 4.5, 8 }));
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(VectorTestDebug, ScalarDivisionAssignmentOperatorThrowsIfValueIs0) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         nn::vector v1 = { 1, 2, 3 };
         EXPECT_THROW(v1 /= 0, nn::fatal_error);
-}
 #endif // DEBUG_MODE_ENABLED
+}
 
 TEST(VectorTest, Min) {
         const nn::vector v1     = { 5, 10, 15 };
@@ -272,13 +304,15 @@ TEST(VectorTest, Min) {
         EXPECT_EQ(result, nn::vector({ 5, 8, 12 }));
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(VectorTestDebug, MinThrowsIfSizeDoesNotMatch) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::vector v1 = { 1, 2, 3 };
         const nn::vector v2 = { 4, 5, 6, 7 };
         EXPECT_THROW(nn::vector value = v1.min(v2), nn::fatal_error);
-}
 #endif // DEBUG_MODE_ENABLED
+}
 
 TEST(VectorTest, ScalarMin) {
         const nn::vector v      = { 5, 10, 15 };
@@ -293,13 +327,15 @@ TEST(VectorTest, Max) {
         EXPECT_EQ(result, nn::vector({7, 10, 15}));
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(VectorTestDebug, MaxThrowsIfSizeDoesNotMatch) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::vector v1 = { 1, 2, 3 };
         const nn::vector v2 = { 4, 5, 6, 7 };
         EXPECT_THROW(nn::vector value = v1.max(v2), nn::fatal_error);
-}
 #endif // DEBUG_MODE_ENABLED
+}
 
 TEST(VectorTest, ScalarMax) {
         const nn::vector v      = { 5, 10, 15 };
@@ -315,21 +351,27 @@ TEST(VectorTest, Clamp) {
         EXPECT_EQ(result, nn::vector({6, 10, 14}));
 }
 
-#ifdef DEBUG_MODE_ENABLED
 TEST(VectorTestDebug, ClampThrowsIfMinSizeDoesNotMatch) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::vector v    = { 5, 10, 15 };
         const nn::vector vMin = { 6, 8, 12, 11 };
         const nn::vector vMax = { 7, 12, 14 };
         EXPECT_THROW(nn::vector value = v.clamp(vMin, vMax), nn::fatal_error);
+#endif // DEBUG_MODE_ENABLED
 }
 
 TEST(VectorTestDebug, ClampThrowsIfMaxSizeDoesNotMatch) {
+#ifndef DEBUG_MODE_ENABLED
+        GTEST_SKIP() << "Skipping DEBUG tests in release mode.";
+#else // !DEBUG_MODE_ENABLED
         const nn::vector v    = { 5, 10, 15 };
         const nn::vector vMin = { 6, 8, 12 };
         const nn::vector vMax = { 7, 12, 14, 11 };
         EXPECT_THROW(nn::vector value = v.clamp(vMin, vMax), nn::fatal_error);
-}
 #endif // DEBUG_MODE_ENABLED
+}
 
 TEST(VectorTest, ScalarClamp) {
         const nn::vector v      = { 5, 10, 15 };
