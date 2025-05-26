@@ -11,9 +11,23 @@ if (MSVC)
         set(CMAKE_CXX_FLAGS_DEBUG       "/MTd /Zi /Od")
         set(CMAKE_CXX_FLAGS_RELEASE     "/O2 /MT")
 else ()
-        set(CMAKE_CXX_FLAGS             "-Wall -Wextra -msse -msse2 -msse3 -mavx -mfma -mavx512f -mavx512dq")
+        set(CMAKE_CXX_FLAGS             "-Wall -Wextra")
         set(CMAKE_CXX_FLAGS_DEBUG       "-gdwarf-4")
         set(CMAKE_CXX_FLAGS_RELEASE     "-O3 -static")
+
+        if (IS_X86_64)
+                if ("${SIMD_SUPPORT_LEVEL}" GREATER_EQUAL "1")
+                        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse -msse2 -msse3")
+                endif ()
+
+                if ("${SIMD_SUPPORT_LEVEL}" GREATER_EQUAL "2")
+                        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx -mfma")
+                endif ()
+
+                if ("${SIMD_SUPPORT_LEVEL}" GREATER_EQUAL "3")
+                        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx512f -mavx512dq")
+                endif ()
+        endif ()
 endif ()
 
 # ASM x86
