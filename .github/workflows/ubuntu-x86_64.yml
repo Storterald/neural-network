@@ -1,0 +1,42 @@
+name: ubuntu-x86_64
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  CI:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "MinGW x86_64"
+            preset: "mingw-debug"
+            cuda: false
+
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ilammy/setup-nasm@v1
+
+    - name: Setup CUDA
+      if: matrix.cuda
+      uses: Jimver/cuda-toolkit@v0.2.23
+      with:
+        cuda: '12.8.1'
+        method: 'network'
+        use-github-cache: false
+
+    - name: Configure and Build
+      shell: bash
+      run: |
+        cmake --preset ${{ matrix.preset }}
+        cmake --build --preset ${{ matrix.preset }}-build
+
+    - name: Run
+      shell: bash
+      run: |
+        build/${{ matrix.preset }}/neural-network/tests/NeuralNetworkTest

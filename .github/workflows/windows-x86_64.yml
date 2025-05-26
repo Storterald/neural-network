@@ -1,0 +1,82 @@
+name: windows-x86_64
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  CI:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "MSVC x86_64"
+            preset: "msvc-debug-x86_64"
+            setup_action: "msvc"
+            cuda: false
+          - name: "MSVC-CUDA x86_64 x86_64"
+            preset: "msvc-cuda-debug-x86_64"
+            setup_action: "msvc"
+            cuda: true
+          - name: "MinGW x86_64"
+            preset: "mingw-debug"
+            setup_action: "msys2"
+            cuda: false
+
+    runs-on: windows-latest
+    continue-on-error: true
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup CUDA
+      if: matrix.cuda
+      uses: Jimver/cuda-toolkit@v0.2.23
+      with:
+        cuda: '12.8.1'
+        method: 'network'
+        use-github-cache: false
+
+    - name: Setup MSVC
+      if: matrix.setup_action == 'msvc'
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Setup MSYS2
+      if: matrix.setup_action == 'msys2'
+      uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: >
+          mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-cmake
+          mingw-w64-x86_64-ninja
+          mingw-w64-x86_64-nasm
+          git
+        msystem: MINGW64
+
+    - name: Configure and Build with MSVC
+      if: matrix.setup_action == 'msvc'
+      shell: pwsh
+      run: |
+        cmake --preset ${{ matrix.preset }}
+        cmake --build --preset ${{ matrix.preset }}-build
+
+    - name: Configure and Build with MinGW
+      if: matrix.setup_action == 'msys2'
+      shell: msys2 {0}
+      run: |
+        cmake --preset ${{ matrix.preset }}
+        cmake --build --preset ${{ matrix.preset }}-build
+
+    - name: Run with MSVC
+      if: matrix.setup_action == 'msvc' && !matrix.cuda
+      shell: pwsh
+      run: |
+        build/${{ matrix.preset }}/neural-network/tests/Debug/NeuralNetworkTest.exe
+
+    - name: Run with MinGW
+      if: matrix.setup_action == 'msys2'
+      shell: msys2 {0}
+      run: |
+        build/${{ matrix.preset }}/neural-network/tests/NeuralNetworkTest.exe

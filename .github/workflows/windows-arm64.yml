@@ -1,4 +1,4 @@
-name: CI
+name: windows-arm64
 
 on:
   push:
@@ -11,28 +11,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: "MSVC x86_64"
-            os: "windows-latest"
-            preset: "msvc-debug-x86_64"
-            setup_action: "msvc"
-            cuda: false
-          - name: "MSVC-CUDA x86_64 x86_64"
-            os: "windows-latest"
-            preset: "msvc-cuda-debug-x86_64"
-            setup_action: "msvc"
-            cuda: true
-          - name: "MinGW x86_64"
-            os: "windows-latest"
-            preset: "mingw-debug"
-            setup_action: "msys2"
-            cuda: false
           - name: "MSVC arm64"
-            os: "windows-11-arm"
             preset: "msvc-debug-arm64"
             setup_action: "msvc"
             cuda: false
 
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-11-arm
     continue-on-error: true
 
     steps:
@@ -68,14 +52,14 @@ jobs:
       shell: pwsh
       run: |
         cmake --preset ${{ matrix.preset }}
-        cmake --build --preset ${{ matrix.preset }}-build --target NeuralNetworkTest
+        cmake --build --preset ${{ matrix.preset }}-build
 
     - name: Configure and Build with MinGW
       if: matrix.setup_action == 'msys2'
       shell: msys2 {0}
       run: |
         cmake --preset ${{ matrix.preset }}
-        cmake --build --preset ${{ matrix.preset }}-build --target NeuralNetworkTest
+        cmake --build --preset ${{ matrix.preset }}-build
 
     - name: Run with MSVC
       if: matrix.setup_action == 'msvc' && !matrix.cuda
