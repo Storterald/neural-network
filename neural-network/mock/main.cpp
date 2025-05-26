@@ -15,7 +15,7 @@ namespace fs = std::filesystem;
 namespace ch = std::chrono;
 
 #define MNIST_TRAINING
-static constexpr uint32_t MAX_ITERATIONS = 1000;
+static constexpr uint32_t MAX_ITERATIONS = 1;
 
 #if defined(MNIST_TRAINING) && defined(PPO_TRAINING)
 #error "Only one training mode can be selected at a time."
@@ -220,7 +220,7 @@ int main(int argc, const char *argv[])
                 nn::layer_create_info {
                         .type         = nn::FULLY_CONNECTED,
                         .functionType = nn::TANH,
-                        .neuronCount  = 16
+                        .neuronCount  = 1024
                 },
                 nn::layer_create_info {
                         .type         = nn::FULLY_CONNECTED,

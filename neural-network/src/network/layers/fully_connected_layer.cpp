@@ -64,8 +64,7 @@ fully_connected_layer::fully_connected_layer(
         m_w(previousLayerSize, layerSize, stream),
         m_b(layerSize, stream),
         m_functionType(functionType),
-        m_mutex()
-{
+        m_mutex() {
 
         std::random_device rd;
         std::mt19937 gen(rd());
@@ -90,8 +89,7 @@ fully_connected_layer::fully_connected_layer(
         m_w(previousLayerSize, layerSize, stream),
         m_b(layerSize, stream),
         m_functionType(functionType),
-        m_mutex()
-{
+        m_mutex() {
 
         uint32_t sizes[4]{};
         encodedData.read((char *)sizes, 4 * sizeof(uint32_t));
@@ -125,7 +123,7 @@ vector fully_connected_layer::backward(const vector &cost, const vector &input)
         //  ∂bL      ∂bL   ∂zjL   ∂ajL
         const vector db = _activation_derivative(m_functionType, m_w * input + m_b) * cost;
 
-        //  ∂Ce      ∂zjL    ∂ajL   ∂Ce
+        //   ∂Ce     ∂zjL    ∂ajL   ∂Ce
         // ⎯⎯⎯⎯⎯ = ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯⎯ ⎯⎯⎯⎯⎯ = input * AFoo'(z) * Lcost
         //  ∂wjkL    ∂wjkL   ∂zjL   ∂ajL
         matrix dw(m_w.width(), m_w.height(), m_stream);

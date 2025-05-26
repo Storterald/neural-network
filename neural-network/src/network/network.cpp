@@ -242,10 +242,9 @@ std::future<void> network::_get_supervised_future(
                         for (uint32_t L = 1; L < m_layerCount; ++L)
                                 a[L] = m_L[L - 1]->forward(a[L - 1]);
 
-                        const vector y(m_outputSize, outValues);
+                        const vector y(m_outputSize, outValues, m_stream);
                         const vector dC = 2.0f * (a[m_layerCount - 1] - y);
 
-                        // TODO i'm not sure if this can be done with _backward_impl
                         this->backward(dC, a);
                         delete [] a;
                 }
