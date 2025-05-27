@@ -3,6 +3,13 @@
 A simple neural network implementation in `C++` and `CUDA`. With both supervised
 and unsupervised training.<br>*No external libraries required*.
 
+# CI Status
+
+| OS      | x86_64                                                                                                                | Arm64                                                                                                               |
+|---------|-----------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
+| Windows | ![Windows x86_64](https://img.shields.io/github/actions/workflow/status/storterald/neural-network/windows-x86_64.yml) | ![Windows arm64](https://img.shields.io/github/actions/workflow/status/storterald/neural-network/windows-arm64.yml) |
+| Ubuntu  | ![Ubuntu x86_64](https://img.shields.io/github/actions/workflow/status/storterald/neural-network/ubuntu-x86_64.yml)   |                                                                                                                     |
+
 # Requirements
 
  - **CMake 3.13.0+**
