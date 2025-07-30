@@ -1,5 +1,3 @@
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
 #include <filesystem>
 #include <algorithm>
 #include <iostream>
@@ -43,29 +41,6 @@ static void _get_inputs(
         }
 }
 
-static std::vector<float> _get_image(const char *path)
-{
-        int32_t w, h, d;
-        stbi_uc *pixels = stbi_load(path, &w, &h, &d, STBI_rgb_alpha);
-
-        std::vector<float> out(784);
-        for (int y = 0; y < 28; ++y) {
-                for (int x = 0; x < 28; ++x) {
-                        const int index      = y * 28 + x;
-                        const int pixelIndex = 4 * (y * 28 + x);
-
-                        const stbi_uc r = pixels[pixelIndex + 0];
-                        const stbi_uc g = pixels[pixelIndex + 1];
-                        const stbi_uc b = pixels[pixelIndex + 2];
-
-                        out[index] = (float)(r + g + b) / 3.0f / 255.0f;
-                }
-        }
-
-        stbi_image_free(pixels);
-        return out;
-}
-
 template<typename ...Args>
 static void _train(
         const fs::path &encoded,
@@ -76,12 +51,12 @@ static void _train(
         std::vector<float> inputs, outputs;
         _get_inputs("mnist_train.nntv", sampleCount, inputs, outputs);
 
-        nn::network network(args..., fs::exists(encoded) ? encoded : "");
+        nn::network network(std::forward<Args>(args)..., fs::exists(encoded) ? encoded : "");
         const auto start = ch::high_resolution_clock::now();
 
         for (uint32_t i = 0; i < MAX_ITERATIONS; ++i) {
                 network.train_supervised(sampleCount, inputs.data(), outputs.data());
-                nn::logger::log() << nn::logger::pref(nn::LOG_INFO) << "Iteration " << i
+                nn::logger::log() << nn::logger::pref(nn::info) << "Iteration " << i
                                   << " completed.\n";
         }
 
@@ -122,27 +97,11 @@ static void _test(
                 const uint32_t expected = (uint32_t)std::distance(tmp.begin(), std::ranges::max_element(tmp));
                 correct          += output == expected;
 
-                auto pref = output == expected ? nn::logger::pref(nn::LOG_INFO) : nn::logger::pref(nn::LOG_ERROR);
+                auto pref = output == expected ? nn::logger::pref(nn::info) : nn::logger::pref(nn::error);
                 nn::logger::log() << pref << "Expected: " << expected << ", got: " << output << ", with " << out[output] << " certainty.\n";
         }
 
         std::cout << "Test completed in " << us << "us. Correct guesses: " << correct << "/1000.\n";
-}
-
-template<typename ...Args>
-static void _user_image(
-        const fs::path &path,
-        const fs::path &encoded,
-        Args           &&...args) {
-
-        const std::vector<float> in = _get_image(path.string().c_str());
-        const nn::network network(args..., fs::exists(encoded) ? encoded : "");
-
-        const nn::vector out  = network.forward(nn::vector(784, in.data()));
-        const uint32_t output = (uint32_t)std::distance(out.begin(), std::ranges::max_element(out));
-
-        std::cout << "The network thinks the number in the image is: " << output
-                  << ", with " << out[output] << " certainty.\n";
 }
 
 #endif // MNIST_TRAINING
@@ -164,7 +123,7 @@ public:
                 velocity(0.0f) {}
 
         // Get the current state of the environment (just position and velocity)
-        [[nodiscard]] nn::vector getState() const override
+        [[nodiscard]] nn::vector get_state() const override
         {
                 return { position, velocity };
         }
@@ -207,7 +166,7 @@ int main(int argc, const char *argv[])
 {
         std::vector<std::string_view> args(argv + 1, argv + argc);
 
-        const fs::path dir = fs::path(__FILE__).parent_path();
+        const fs::path dir     = fs::path(__FILE__).parent_path();
         const fs::path encoded = dir / "Encoded.nnv";
         fs::create_directory(dir / "logs");
 
@@ -218,29 +177,32 @@ int main(int argc, const char *argv[])
 #ifdef MNIST_TRAINING
         constexpr std::array INFOS = {
                 nn::layer_create_info {
-                        .type         = nn::FULLY_CONNECTED,
-                        .functionType = nn::TANH,
-                        .neuronCount  = 1024
+                        .type  = nn::layer_type::input,
+                        .count = 784
                 },
                 nn::layer_create_info {
-                        .type         = nn::FULLY_CONNECTED,
-                        .functionType = nn::TANH,
-                        .neuronCount  = 10
+                        .type  = nn::layer_type::dense,
+                        .count = 16
+                },
+                nn::layer_create_info {
+                        .type       = nn::layer_type::activation,
+                        .activation = nn::function_type::tanh,
+                },
+                nn::layer_create_info {
+                        .type  = nn::layer_type::dense,
+                        .count = 10
+                },
+                nn::layer_create_info {
+                        .type       = nn::layer_type::activation,
+                        .activation = nn::function_type::relu
                 }
         };
 
         if (std::ranges::find(args, "--train") != args.end())
-                _train(encoded, 784, INFOS);
+                _train(encoded, INFOS);
 
         if (std::ranges::find(args, "--test") != args.end())
-                _test(encoded, 784, INFOS);
-
-        std::erase_if(args, [](const std::string_view &arg) -> bool {
-                return arg.starts_with("--");
-        });
-
-        if (args.size() == 1)
-                _user_image(args[0], encoded, 784, INFOS);
+                _test(encoded, INFOS);
 
 #endif // MNIST_TRAINING
 #ifdef PPO_TRAINING

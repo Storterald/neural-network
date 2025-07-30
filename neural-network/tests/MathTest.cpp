@@ -242,9 +242,9 @@ TEST(CudaTest, Sum) {
 
         nn::vector result(COUNT);
         nn::_math_cuda::sum(
-                COUNT, v1.view(nn::buf::DEVICE),
-                v2.view(nn::buf::DEVICE),
-                result.data(nn::buf::DEVICE, true), v1.stream());
+                COUNT, v1.view(nn::buf::loc_type::device),
+                v2.view(nn::buf::loc_type::device),
+                result.data(nn::buf::loc_type::device, true), v1.stream());
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -461,9 +461,9 @@ TEST(CudaTest, Sub) {
 
         nn::vector result(COUNT);
         nn::_math_cuda::sub(
-                COUNT, v1.view(nn::buf::DEVICE),
-                v2.view(nn::buf::DEVICE),
-                result.data(nn::buf::DEVICE, true), v1.stream());
+                COUNT, v1.view(nn::buf::loc_type::device),
+                v2.view(nn::buf::loc_type::device),
+                result.data(nn::buf::loc_type::device, true), v1.stream());
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -680,9 +680,9 @@ TEST(CudaTest, Mul) {
 
         nn::vector result(COUNT);
         nn::_math_cuda::mul(
-                COUNT, v1.view(nn::buf::DEVICE),
-                v2.view(nn::buf::DEVICE),
-                result.data(nn::buf::DEVICE, true), v1.stream());
+                COUNT, v1.view(nn::buf::loc_type::device),
+                v2.view(nn::buf::loc_type::device),
+                result.data(nn::buf::loc_type::device, true), v1.stream());
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -899,9 +899,9 @@ TEST(CudaTest, Div) {
 
         nn::vector result(COUNT);
         nn::_math_cuda::div(
-                COUNT, v1.view(nn::buf::DEVICE),
-                v2.view(nn::buf::DEVICE),
-                result.data(nn::buf::DEVICE, true), v1.stream());
+                COUNT, v1.view(nn::buf::loc_type::device),
+                v2.view(nn::buf::loc_type::device),
+                result.data(nn::buf::loc_type::device, true), v1.stream());
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1118,8 +1118,8 @@ TEST(CudaTest, SumScalar) {
 
         nn::vector result(COUNT);
         nn::_math_cuda::sum(
-                COUNT, data.view(nn::buf::DEVICE),
-                scalar, result.data(nn::buf::DEVICE, true), data.stream());
+                COUNT, data.view(nn::buf::loc_type::device),
+                scalar, result.data(nn::buf::loc_type::device, true), data.stream());
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1336,8 +1336,8 @@ TEST(CudaTest, SubScalar) {
 
         nn::vector result(COUNT);
         nn::_math_cuda::sub(
-                COUNT, data.view(nn::buf::DEVICE),
-                scalar, result.data(nn::buf::DEVICE, true), data.stream());
+                COUNT, data.view(nn::buf::loc_type::device),
+                scalar, result.data(nn::buf::loc_type::device, true), data.stream());
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1554,8 +1554,8 @@ TEST(CudaTest, MulScalar) {
 
         nn::vector result(COUNT);
         nn::_math_cuda::mul(
-                COUNT, data.view(nn::buf::DEVICE),
-                scalar, result.data(nn::buf::DEVICE, true), data.stream());
+                COUNT, data.view(nn::buf::loc_type::device),
+                scalar, result.data(nn::buf::loc_type::device, true), data.stream());
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1772,8 +1772,8 @@ TEST(CudaTest, DivScalar) {
 
         nn::vector result(COUNT);
         nn::_math_cuda::div(
-                COUNT, data.view(nn::buf::DEVICE),
-                scalar, result.data(nn::buf::DEVICE, true), data.stream());
+                COUNT, data.view(nn::buf::loc_type::device),
+                scalar, result.data(nn::buf::loc_type::device, true), data.stream());
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -1979,8 +1979,8 @@ TEST(CudaTest, Tanh) {
 
         nn::vector result(COUNT);
         nn::_math_cuda::tanh(
-                COUNT, data.view(nn::buf::DEVICE),
-                result.data(nn::buf::DEVICE, true), data.stream());
+                COUNT, data.view(nn::buf::loc_type::device),
+                result.data(nn::buf::loc_type::device, true), data.stream());
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2206,8 +2206,8 @@ TEST(CudaTest, TanhDerivative) {
 
         nn::vector result(COUNT);
         nn::_math_cuda::tanh_derivative(
-                COUNT, data.view(nn::buf::DEVICE),
-                result.data(nn::buf::DEVICE, true), data.stream());
+                COUNT, data.view(nn::buf::loc_type::device),
+                result.data(nn::buf::loc_type::device, true), data.stream());
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
@@ -2415,8 +2415,8 @@ TEST(CudaTest, ReLU) {
 
         nn::vector result(COUNT);
         nn::_math_cuda::ReLU(
-                COUNT, data.view(nn::buf::DEVICE),
-                result.data(nn::buf::DEVICE, true), data.stream());
+                COUNT, data.view(nn::buf::loc_type::device),
+                result.data(nn::buf::loc_type::device, true), data.stream());
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2622,8 +2622,8 @@ TEST(CudaTest, ReLUDerivative) {
 
         nn::vector result(COUNT);
         nn::_math_cuda::ReLU_derivative(
-                COUNT, data.view(nn::buf::DEVICE),
-                result.data(nn::buf::DEVICE, true), data.stream());
+                COUNT, data.view(nn::buf::loc_type::device),
+                result.data(nn::buf::loc_type::device, true), data.stream());
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -2840,8 +2840,8 @@ TEST(CudaTest, MinScalar) {
 
         nn::vector result(COUNT);
         nn::_math_cuda::min(
-                COUNT, data.view(nn::buf::DEVICE),
-                min, result.data(nn::buf::DEVICE, true), data.stream());
+                COUNT, data.view(nn::buf::loc_type::device),
+                min, result.data(nn::buf::loc_type::device, true), data.stream());
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3058,8 +3058,8 @@ TEST(CudaTest, MaxScalar) {
 
         nn::vector result(COUNT);
         nn::_math_cuda::max(
-                COUNT, data.view(nn::buf::DEVICE),
-                max, result.data(nn::buf::DEVICE, true), data.stream());
+                COUNT, data.view(nn::buf::loc_type::device),
+                max, result.data(nn::buf::loc_type::device, true), data.stream());
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3287,8 +3287,8 @@ TEST(CudaTest, ClampScalar) {
 
         nn::vector result(COUNT);
         nn::_math_cuda::clamp(
-                COUNT, data.view(nn::buf::DEVICE),
-                min, max, result.data(nn::buf::DEVICE, true), data.stream());
+                COUNT, data.view(nn::buf::loc_type::device),
+                min, max, result.data(nn::buf::loc_type::device, true), data.stream());
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3505,9 +3505,9 @@ TEST(CudaTest, Min) {
 
         nn::vector result(COUNT);
         nn::_math_cuda::min(
-                COUNT, v1.view(nn::buf::DEVICE),
-                v2.view(nn::buf::DEVICE),
-                result.data(nn::buf::DEVICE, true), v1.stream());
+                COUNT, v1.view(nn::buf::loc_type::device),
+                v2.view(nn::buf::loc_type::device),
+                result.data(nn::buf::loc_type::device, true), v1.stream());
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3724,9 +3724,9 @@ TEST(CudaTest, Max) {
 
         nn::vector result(COUNT);
         nn::_math_cuda::max(
-                COUNT, v1.view(nn::buf::DEVICE),
-                v2.view(nn::buf::DEVICE),
-                result.data(nn::buf::DEVICE, true), v1.stream());
+                COUNT, v1.view(nn::buf::loc_type::device),
+                v2.view(nn::buf::loc_type::device),
+                result.data(nn::buf::loc_type::device, true), v1.stream());
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -3954,8 +3954,8 @@ TEST(CudaTest, Clamp) {
 
         nn::vector result(COUNT);
         nn::_math_cuda::clamp(
-                COUNT, data.view(nn::buf::DEVICE), min.view(nn::buf::DEVICE),
-                max.view(nn::buf::DEVICE), result.data(nn::buf::DEVICE, true), data.stream());
+                COUNT, data.view(nn::buf::loc_type::device), min.view(nn::buf::loc_type::device),
+                max.view(nn::buf::loc_type::device), result.data(nn::buf::loc_type::device, true), data.stream());
 
         nn::vector expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
@@ -4288,8 +4288,8 @@ TEST(CudaTest, CompareTrue) {
 
         bool ans;
         nn::_math_cuda::compare(
-                COUNT, first.view(nn::buf::DEVICE),
-                second.view(nn::buf::DEVICE), &ans, first.stream());
+                COUNT, first.view(nn::buf::loc_type::device),
+                second.view(nn::buf::loc_type::device), &ans, first.stream());
 
         EXPECT_TRUE(ans);
 #endif // !BUILD_CUDA_SUPPORT
@@ -4306,8 +4306,8 @@ TEST(CudaTest, CompareFalse) {
 
         bool ans;
         nn::_math_cuda::compare(
-                COUNT, first.view(nn::buf::DEVICE),
-                second.view(nn::buf::DEVICE), &ans, first.stream());
+                COUNT, first.view(nn::buf::loc_type::device),
+                second.view(nn::buf::loc_type::device), &ans, first.stream());
 
         EXPECT_FALSE(ans);
 #endif // !BUILD_CUDA_SUPPORT
@@ -4324,8 +4324,8 @@ TEST(MathTest, MatrixVectorMul) {
 
         nn::vector result(mat.height());
         nn::_math_normal::matvec_mul(
-                mat.width(), mat.height(), mat.view(nn::buf::HOST),
-                vec.view(nn::buf::HOST), result.data(nn::buf::HOST, true));
+                mat.width(), mat.height(), mat.view(nn::buf::loc_type::host),
+                vec.view(nn::buf::loc_type::host), result.data(nn::buf::loc_type::host, true));
 
         EXPECT_EQ(result, nn::vector({ 53, 89, 47 }));
 }
@@ -4344,8 +4344,8 @@ TEST(SSETest, MatrixVectorMul) {
 
         nn::vector result(mat.height());
         nn::_math_simd::matvec_mul<simd::_m128>(
-                mat.width(), mat.height(), mat.view(nn::buf::HOST),
-                vec.view(nn::buf::HOST), result.data(nn::buf::HOST, true));
+                mat.width(), mat.height(), mat.view(nn::buf::loc_type::host),
+                vec.view(nn::buf::loc_type::host), result.data(nn::buf::loc_type::host, true));
 
         EXPECT_EQ(result, nn::vector({ 53, 89, 47 }));
 #endif // SIMD_SUPPORT_LEVEL < 1
@@ -4366,8 +4366,8 @@ TEST(AVXTest, MatrixVectorMul) {
 
         nn::vector result(mat.height());
         nn::_math_simd::matvec_mul<simd::_m256>(
-                mat.width(), mat.height(), mat.view(nn::buf::HOST),
-                vec.view(nn::buf::HOST), result.data(nn::buf::HOST, true));
+                mat.width(), mat.height(), mat.view(nn::buf::loc_type::host),
+                vec.view(nn::buf::loc_type::host), result.data(nn::buf::loc_type::host, true));
 
         EXPECT_EQ(result, nn::vector({ 154, 194, 67, 87 }));
 #endif // SIMD_SUPPORT_LEVEL < 2
@@ -4388,8 +4388,8 @@ TEST(AVX512Test, MatrixVectorMul) {
 
         nn::vector result(mat.height());
         nn::_math_simd::matvec_mul<simd::_m512>(
-                mat.width(), mat.height(), mat.view(nn::buf::HOST),
-                vec.view(nn::buf::HOST), result.data(nn::buf::HOST, true));
+                mat.width(), mat.height(), mat.view(nn::buf::loc_type::host),
+                vec.view(nn::buf::loc_type::host), result.data(nn::buf::loc_type::host, true));
 
         EXPECT_EQ(result, nn::vector({ 213, 232, 122, 230 }));
 #endif // SIMD_SUPPORT_LEVEL < 3
@@ -4409,8 +4409,8 @@ TEST(CudaTest, MatrixVectorMul) {
 
         nn::vector result(mat.height());
         nn::_math_cuda::matvec_mul(
-                mat.width(), mat.height(), mat.view(nn::buf::DEVICE),
-                vec.view(nn::buf::DEVICE), result.data(nn::buf::DEVICE, true), mat.stream());
+                mat.width(), mat.height(), mat.view(nn::buf::loc_type::device),
+                vec.view(nn::buf::loc_type::device), result.data(nn::buf::loc_type::device, true), mat.stream());
 
         EXPECT_EQ(result, nn::vector({ 16, 7, 27 }));
 #endif // !BUILD_CUDA_SUPPORT

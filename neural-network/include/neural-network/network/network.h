@@ -2,6 +2,7 @@
 
 #include <string_view>
 #include <filesystem>
+#include <utility>  // std::forward
 #include <cstdint>
 #include <ranges>
 #include <future>
@@ -15,62 +16,63 @@
 
 namespace nn {
 
-template<typename T>
-concept network_infos = std::ranges::range<T>
-        && std::same_as<std::iter_value_t<T>, layer_create_info>
-        && !std::same_as<T, std::span<layer_create_info>>;
-
 class network {
 public:
-        network() = default;
-
-        inline network(
-                uint32_t                           inputSize,
-                const network_infos auto           &infos,
+        template<std::ranges::range layers_t>
+        requires std::is_same_v<typename layers_t::value_type, layer_create_info>
+        network(
+                const layers_t                     &layers,
                 const std::filesystem::path        &path = "") :
-                network(inputSize, std::to_address(std::ranges::begin(infos)), std::to_address(std::ranges::end(infos)), path) {}
+                network(std::ranges::begin(layers), std::ranges::end(layers), path) {}
+
+        template<typename iterator_t>
+        requires std::is_same_v<typename iterator_t::value_type, layer_create_info>
+        network(
+                const iterator_t                   &begin,
+                const iterator_t                   &end,
+                const std::filesystem::path        &path = "") :
+                network(std::to_address(begin), std::to_address(end), path) {}
 
         network(
-                uint32_t                           inputSize,
-                const layer_create_info            *infosBegin,
-                const layer_create_info            *infosEnd,
+                const layer_create_info            *begin,
+                const layer_create_info            *end,
                 const std::filesystem::path        &path = "");
 
-        [[nodiscard]] vector forward(const vector &input) const;
+        [[nodiscard]] vector forward(vector input) const;
         void backward(const vector &input, const vector &cost);
-        void backward(const vector &cost, const vector activationValues[]);
+        void backward(vector cost, const vector activations[]);
 
         void train_supervised(
-                uint32_t           samplesCount,
+                uint32_t           samples,
                 const float        inputs[],
                 const float        outputs[]);
 
-        template<std::derived_from<environment> Environment, typename ...Ts>
+        template<std::derived_from<environment> env_t, typename ...Args>
         inline void train_ppo(
-                network         &valueNetwork,
+                network         &value,
                 uint32_t        epochs,
-                uint32_t        maxSteps,
-                Ts              ...args) {
+                uint32_t        max_steps,
+                Args            &&...args) {
 
-                Environment env(args...);
-                _train_ppo(valueNetwork, env, epochs, maxSteps);
+                env_t env(std::forward<Args...>(args)...);
+                _train_ppo(value, env, epochs, max_steps);
         }
 
         void encode(const std::filesystem::path &path) const;
 
         [[nodiscard]] inline uint32_t layer_count() const
         {
-                return m_layerCount;
+                return m_count;
         }
 
         [[nodiscard]] inline uint32_t input_size() const
         {
-                return m_inputSize;
+                return m_L[0]->size();
         }
 
         [[nodiscard]] inline uint32_t output_size() const
         {
-                return m_outputSize;
+                return m_L[m_count - 1]->size();
         }
 
         ~network();
@@ -78,21 +80,11 @@ public:
 private:
         using chunk = std::ranges::subrange<std::span<const float>::iterator>;
 
-        uint32_t                       m_layerCount;
+        uint32_t               m_count;
+        stream                 m_stream;
+        std::unique_ptr<layer> *m_L;
 
-#ifdef BUILD_CUDA_SUPPORT
-        stream                         m_stream;
-#else
-        static constexpr stream        m_stream = invalid_stream;
-#endif // BUILD_CUDA_SUPPORT
-        uint32_t                       m_inputSize;
-        uint32_t                       m_outputSize;
-        std::unique_ptr<layer>         *m_L;  // [m_layerCount - 1]
-        uint32_t                       *m_n;  // [m_layerCount]
-
-#ifdef BUILD_CUDA_SUPPORT
         [[nodiscard]] stream _create_stream(const layer_create_info *infos) const;
-#endif // BUILD_CUDA_SUPPORT
 
         [[nodiscard]] std::unique_ptr<layer> *_create_layers(
                 const layer_create_info        *infos) const;
@@ -101,21 +93,25 @@ private:
                 const layer_create_info        *infos,
                 const std::string_view         &path) const;
 
-        [[nodiscard]] uint32_t *_get_sizes(
-                const layer_create_info        *infos) const;
-
         [[nodiscard]] std::future<void> _get_supervised_future(
                 const chunk        &inputs,
                 const chunk        &outputs);
 
-        [[nodiscard]] vector _forward_impl(vector aL) const;
-        void _backward_impl(vector dC, const vector a[]);
+        inline void _forward_impl(
+                const vector        &input,
+                vector              a[]) const;
 
         void _train_ppo(
-                network            &valueNetwork,
-                environment        &environment,
+                network            &value,
+                environment        &env,
                 uint32_t           epochs,
-                uint32_t           maxSteps);
+                uint32_t           max_steps);
+
+        void _train_ppo_iteration(
+                network                                     &value,
+                environment                                 &env,
+                uint32_t                                    max_steps,
+                std::unordered_map<uint64_t, vector>        &policies);
 
 }; // class network
 

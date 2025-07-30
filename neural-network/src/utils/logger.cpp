@@ -9,13 +9,13 @@
 
 static std::string _time()
 {
-        char buffer[80]{};
-        time_t rawTime{};
+        time_t time{};
+        std::time(&time);
 
-        // Get time as formatted string
-        std::time(&rawTime);
         std::tm tm{};
-        localtime_s(&tm, &rawTime);
+        localtime_s(&tm, &time);
+
+        char buffer[80]{};
         std::strftime(buffer, sizeof(buffer), "%X", &tm);
 
         return buffer;
@@ -26,20 +26,15 @@ namespace nn {
 logger::logger() :
         m_dir(""),
         m_file(),
-        m_fileCount(0),
-        m_printOnFatal(false) {}
-
-logger::~logger()
-{
-        m_file.close();
-}
+        m_count(0),
+        m_print(false) {}
 
 logger &logger::set_directory(const std::filesystem::path &path)
 {
         m_file.close();
 
         m_dir = path;
-        m_fileCount = 0;
+        m_count = 0;
         m_file = std::ofstream(m_dir / "latest-0.log");
 
         if (!m_file)
@@ -50,7 +45,7 @@ logger &logger::set_directory(const std::filesystem::path &path)
 
 logger &logger::set_print_on_fatal(bool value)
 {
-        m_printOnFatal = value;
+        m_print = value;
         return *this;
 }
 
@@ -72,7 +67,7 @@ void logger::_update_file()
                 if (m_file)
                         m_file.close();
 
-                m_file = std::ofstream(m_dir / std::format("latest-{}.log", ++m_fileCount));
+                m_file = std::ofstream(m_dir / std::format("latest-{}.log", ++m_count));
                 if (!m_file)
                         throw std::runtime_error("Could not open log file.");
         }

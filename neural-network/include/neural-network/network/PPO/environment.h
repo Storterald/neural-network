@@ -8,7 +8,7 @@ namespace nn {
 
 class environment {
 public:
-        [[nodiscard]] virtual vector getState() const = 0;
+        [[nodiscard]] virtual vector get_state() const = 0;
 
         virtual std::pair<float, bool> step(const vector &action) = 0;
 

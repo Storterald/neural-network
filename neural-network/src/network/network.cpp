@@ -6,7 +6,6 @@
 #include <numeric> // std::accumulate
 #include <fstream>
 #include <cstdint>
-#include <chrono>
 #include <vector>
 #include <thread>
 #include <future>
@@ -26,66 +25,57 @@
 template<typename ...Args>
 static void _create_layers(
         std::unique_ptr<nn::layer>         *layers,
-        uint32_t                           inputSize,
         uint32_t                           count,
         const nn::layer_create_info        *infos,
         Args                               &&...args) {
 
-        layers[0] = nn::layer::create(inputSize, infos[0], args...);
+        layers[0] = nn::layer::create(0, infos[0], std::forward<Args>(args)...);
         for (uint32_t L = 1; L < count; ++L)
-                layers[L] = nn::layer::create(infos[L - 1].neuronCount, infos[L], args...);
+                layers[L] = nn::layer::create(infos[L - 1].count, infos[L], std::forward<Args>(args)...);
 }
 
 namespace nn {
 
 network::network(
-        uint32_t                           inputSize,
-        const layer_create_info            *infosBegin,
-        const layer_create_info            *infosEnd,
+        const layer_create_info            *begin,
+        const layer_create_info            *end,
         const std::filesystem::path        &path) :
 
-        m_layerCount((uint32_t)std::distance(infosBegin, infosEnd) + 1),
-#ifdef BUILD_CUDA_SUPPORT
-        m_stream(_create_stream(infosBegin)),
-#endif // BUILD_CUDA_SUPPORT
-        m_inputSize(inputSize),
-        m_outputSize(infosBegin[m_layerCount - 2].neuronCount),
-        m_L(_create_layers(infosBegin, path.string().c_str())),
-        m_n(_get_sizes(infosBegin)) {
-}
+        m_count(static_cast<uint32_t>(std::distance(begin, end))),
+        m_stream(_create_stream(begin)),
+        m_L(_create_layers(begin, path.string()))
+{}
 
 network::~network()
 {
         delete[] m_L;
-        delete[] m_n;
 }
 
-vector network::forward(const vector &input) const
+vector network::forward(vector aL) const
 {
-        const vector out = _forward_impl(input);
+        for (uint32_t L = 1; L < m_count; ++L)
+                aL = m_L[L]->forward(aL);
 
 #ifdef BUILD_CUDA_SUPPORT
         cuda::sync(m_stream);
 #endif // BUILD_CUDA_SUPPORT
 
-        return out;
+        return aL;
 }
 
-void network::backward(const vector &input, const vector &dC)
+void network::backward(const vector &a0, const vector &dC)
 {
-        auto a = new vector[m_layerCount];
-        a[0]   = input;
-
-        for (uint32_t L = 1; L < m_layerCount; ++L)
-                a[L] = m_L[L - 1]->forward(a[L - 1]);
+        const auto a = new vector[m_count];
+        _forward_impl(a0, a);
 
         this->backward(dC, a);
         delete [] a;
 }
 
-void network::backward(const vector &cost, const vector activationValues[])
+void network::backward(vector dC, const vector a[])
 {
-        _backward_impl(cost, activationValues);
+        for (int32_t L = (int32_t)m_count - 1; L > 0; --L)
+                dC = m_L[L]->backward(dC, a[L]);
 
 #ifdef BUILD_CUDA_SUPPORT
         cuda::sync(m_stream);
@@ -93,9 +83,9 @@ void network::backward(const vector &cost, const vector activationValues[])
 }
 
 void network::train_supervised(
-        uint32_t           samplesCount,
-        const float        _inputs[],
-        const float        _outputs[]) {
+        uint32_t           samples,
+        const float        inputs[],
+        const float        outputs[]) {
 
         namespace ch = std::chrono;
 
@@ -103,20 +93,19 @@ void network::train_supervised(
         constexpr uint32_t chunks = 1;
 #else
         const uint32_t threads = std::thread::hardware_concurrency();
-        const uint32_t chunks  = std::clamp(threads, 1u, samplesCount);
+        const uint32_t chunks  = std::clamp(threads, 1u, samples);
 #endif // DEBUG_MODE_ENABLED
 
         std::vector<std::future<void>> futures;
         futures.reserve(chunks);
 
-        std::span inputs(_inputs, (size_t)samplesCount * m_inputSize);
-        std::span outputs(_outputs, (size_t)samplesCount * m_outputSize);
+        std::span inview(inputs,   (size_t)samples * this->input_size());
+        std::span outview(outputs, (size_t)samples * this->output_size());
 
-        auto inputsChunks = inputs  | std::views::chunk(inputs.size() / chunks);
-        auto outputsChunk = outputs | std::views::chunk(outputs.size() / chunks);
-
+        const auto in  = inview  | std::views::chunk(static_cast<ptrdiff_t>(inview.size()) / chunks);
+        const auto out = outview | std::views::chunk(static_cast<ptrdiff_t>(outview.size()) / chunks);
         for (uint32_t t = 0; t < chunks; ++t)
-                futures.push_back(_get_supervised_future(inputsChunks[t], outputsChunk[t]));
+                futures.push_back(_get_supervised_future(in[t], out[t]));
 
         for (std::future<void> &f : futures)
                 f.get();
@@ -132,15 +121,15 @@ void network::encode(const std::filesystem::path &path) const
         if (!file)
                 throw fatal_error("Error opening file.");
 
-        for (uint32_t L = 0; L < m_layerCount - 1; ++L)
+        for (uint32_t L = 0; L < m_count; ++L)
                 m_L[L]->encode(file);
 
         file.close();
 }
 
-#ifdef BUILD_CUDA_SUPPORT
-stream network::_create_stream(const layer_create_info *infos) const
+stream network::_create_stream([[maybe_unused]] const layer_create_info *infos) const
 {
+#ifdef BUILD_CUDA_SUPPORT
         static std::array<stream, 16> streams = [] {
                 std::array<stream, 16> ret{};
                 for (stream &str : ret)
@@ -150,9 +139,9 @@ stream network::_create_stream(const layer_create_info *infos) const
         }();
         static uint32_t usedStreams = 0;
 
-        uint32_t ops = m_inputSize * infos[0].neuronCount;
-        for (uint32_t i = 1; i < m_layerCount - 1; ++i)
-                ops += infos[i - 1].neuronCount * infos[i].neuronCount;
+        uint32_t ops = 0;
+        for (uint32_t i = 1; i < m_count; ++i)
+                ops += infos[i - 1].count * infos[i].count;
 
         if (ops >= CUDA_MINIMUM) {
                 const stream str = streams[usedStreams];
@@ -160,21 +149,15 @@ stream network::_create_stream(const layer_create_info *infos) const
                 return str;
         }
 
+#endif // BUILD_CUDA_SUPPORT
         return invalid_stream;
 }
-#endif // BUILD_CUDA_SUPPORT
 
 std::unique_ptr<layer> *network::_create_layers(
         const layer_create_info        *infos) const {
 
-        if (m_layerCount == 1)
-                throw fatal_error("Cannot initialize Network with no layers. The "
-                                  "minimum required amount is 1, the output layer.");
-
-        const uint32_t size = m_layerCount - 1;
-
-        auto layers = new std::unique_ptr<layer>[size];
-        ::_create_layers(layers, m_inputSize, size, infos, m_stream);
+        auto layers = new std::unique_ptr<layer>[m_count];
+        ::_create_layers(layers, m_count, infos, m_stream);
 
         return layers;
 }
@@ -188,190 +171,136 @@ std::unique_ptr<layer> *network::_create_layers(
         if (path.empty())
                 return _create_layers(infos);
 
-        if (m_layerCount == 1)
-                throw fatal_error("Cannot initialize Network with no layers. The "
-                                  "minimum required amount is 1, the output layer.");
-
         if (!fs::exists(path))
                 throw fatal_error("File given to Network() does not exist.");
 
-        const uint32_t size = m_layerCount - 1;
-
         std::ifstream file(fs::path(path), std::ios::binary);
-        auto layers = new std::unique_ptr<layer>[size];
-        ::_create_layers(layers, m_inputSize, size, infos, file, m_stream);
+        auto layers = new std::unique_ptr<layer>[m_count];
+        ::_create_layers(layers, m_count, infos, file, m_stream);
 
         file.close();
         return layers;
-}
-
-uint32_t *network::_get_sizes(
-        const layer_create_info        *infos) const {
-
-        const uint32_t size = m_layerCount - 1;
-
-        auto sizes = new uint32_t[size];
-        sizes[0]   = m_inputSize;
-
-        for (uint32_t L = 1; L < size; ++L)
-                sizes[L] = infos[L - 1].neuronCount;
-
-        return sizes;
 }
 
 std::future<void> network::_get_supervised_future(
         const chunk        &inputs,
         const chunk        &outputs) {
 
-        namespace ch = std::chrono;
-        using clock  = ch::high_resolution_clock;
-
         return std::async(std::launch::async, [&]() -> void {
-                const float *in   = inputs.data();
-                const float *out  = outputs.data();
-                const size_t size = inputs.size() / m_inputSize;
+                const size_t size = inputs.size() / this->input_size();
 
-                const auto s = clock::now();
                 for (uint32_t i = 0; i < size; ++i) {
-                        const float *inValues  = in + (uintptr_t)i * m_inputSize;
-                        const float *outValues = out + (uintptr_t)i * m_outputSize;
+                        const float *in  = inputs.data() + (uintptr_t)i * this->input_size();
+                        const float *out = outputs.data() + (uintptr_t)i * this->output_size();
 
-                        const auto a = new vector[m_layerCount];
-                        a[0]         = vector(m_inputSize, inValues, m_stream);
+                        const auto a = new vector[m_count];
+                        _forward_impl(vector(this->input_size(), in, m_stream), a);
 
-                        for (uint32_t L = 1; L < m_layerCount; ++L)
-                                a[L] = m_L[L - 1]->forward(a[L - 1]);
-
-                        const vector y(m_outputSize, outValues, m_stream);
-                        const vector dC = 2.0f * (a[m_layerCount - 1] - y);
+                        const vector y(this->output_size(), out, m_stream);
+                        const vector dC = 2.0f * (a[m_count - 1] - y);
 
                         this->backward(dC, a);
                         delete [] a;
                 }
-
-                const auto e    = clock::now();
-                const auto time = ch::duration_cast<ch::milliseconds>(e - s);
-
-                logger::log() << "Thread [" << std::this_thread::get_id()
-                              << "] finished execution in " << time << "\n";
         });
 }
 
-vector network::_forward_impl(vector aL) const
-{
-        for (uint32_t L = 0; L < m_layerCount - 1; ++L)
-                aL = m_L[L]->forward(aL);
+inline void network::_forward_impl(
+        const vector        &input,
+        vector              a[]) const {
 
-        return aL;
+        a[0] = input;
+        for (uint32_t L = 1; L < m_count; ++L)
+                a[L] = m_L[L - 1]->forward(a[L - 1]);
 }
 
-void network::_backward_impl(vector dC, const vector a[])
-{
-        for (int32_t L = (int32_t)m_layerCount - 2; L >= 0; --L)
-                dC = m_L[L]->backward(dC, a[L]);
-}
+struct _iteration_data {
+        uint64_t        stateHash;
+        float           reward;
+        float           predicted;
+        vector          policy;
+        vector          *pa;
+        vector          *va;
+
+};
 
 void network::_train_ppo(
-        network            &valueNetwork,
-        environment        &environment,
+        network            &value,
+        environment        &env,
         uint32_t           epochs,
-        uint32_t           maxSteps) {
+        uint32_t           max_steps) {
 
-        struct iteration_data {
-                uint64_t        stateHash;
-                float           reward;
-                float           predictedReward;
-                vector          policy;
-                vector          *policyActivations;
-                vector          *valueActivations;
+        std::unordered_map<uint64_t, vector> policies;
+        for (uint32_t i = 0; i < epochs; ++i)
+                _train_ppo_iteration(value, env, max_steps, policies);
+}
 
-        };
+void network::_train_ppo_iteration(
+        network                                     &value,
+        environment                                 &env,
+        uint32_t                                    max_steps,
+        std::unordered_map<uint64_t, vector>        &policies) {
 
-        const uint32_t valueLayerCount = valueNetwork.m_layerCount;
+        std::vector<_iteration_data> iteration;
+        for (uint32_t s = 0, done = false; !done && s < max_steps; ++s) {
+                iteration.emplace_back();
+                auto &[hash, reward, predicted, policy, pa, va] = iteration.back();
 
-        // The policies are saved between epochs for better training.
-        std::unordered_map<uint64_t, vector> oldPolicies;
+                const vector state = env.get_state();
+                hash               = std::hash<buf>{}(state);
 
-        for (uint32_t i = 0; i < epochs; ++i) {
-                std::vector<iteration_data> iterationData;
-                for (uint32_t s = 0, done = false; !done && s < maxSteps; ++s) {
-                        iterationData.emplace_back();
-                        auto &[stateHash, reward, predictedReward, policy, pa, va] = iterationData.back();
+                pa = new vector[m_count];
+                _forward_impl(state, pa);
 
-                        const vector state = environment.getState();
-                        stateHash = std::hash<buf>{}(state);
+                va = new vector[value.m_count];
+                value._forward_impl(state, va);
 
-                        pa    = new vector[m_layerCount];
-                        pa[0] = state;
+                policy    = pa[m_count - 1];
+                predicted = va[value.m_count - 1].at(0);
 
-                        for (uint32_t L = 1; L < m_layerCount; ++L)
-                                pa[L] = m_L[L - 1]->forward(pa[L - 1]);
-
-                        policy = pa[m_layerCount - 1];
-
-                        va    = new vector[valueLayerCount];
-                        va[0] = state;
-
-                        for (uint32_t L = 1; L < valueLayerCount; ++L)
-                                va[L] = valueNetwork.m_L[L - 1]->forward(va[L - 1]);
-
-                        predictedReward = va[valueLayerCount - 1].at(0);
-
-                        auto [_reward, _done] = environment.step(pa[m_layerCount - 1]);
-                        reward                = _reward;
-                        done                  = _done;
-                }
-
-#ifdef DEBUG_MODE_ENABLED
-                logger::log() << logger::pref(LOG_DEBUG) << "Execution [" << i << "] done.\n";
-#endif // DEBUG_MODE_ENABLED
-
-                const auto STATE_COUNT = (uint32_t)iterationData.size();
-                float *advantages      = new float[STATE_COUNT], previous = 0.0f;
-
-                for (int32_t s = (int32_t)STATE_COUNT - 1; s >= 0; --s) {
-                        const float reward              = iterationData[s].reward;
-                        const float predictedReward     = iterationData[s].predictedReward;
-                        const float nextPredictedReward = (uint32_t)s == STATE_COUNT - 1 ?
-                                0 : iterationData[s + 1].predictedReward;
-
-                        const float delta = reward + GAMMA * nextPredictedReward * predictedReward;
-                        advantages[s]     = delta + GAMMA * LAMBDA * previous;
-                        previous          = advantages[s];
-                }
-
-                for (uint32_t s = 0; s < STATE_COUNT; ++s) {
-                        auto &[stateHash, reward, predictedReward, policy, pa, va] = iterationData[s];
-
-                        const float advantage = advantages[s];
-                        policy                = policy.max(EPSILON); // prevent division by 0.
-                        const vector vdC      = { (predictedReward - reward) * 2.0f };
-
-                        valueNetwork.backward(vdC, va);
-                        delete [] va;
-
-                        oldPolicies.insert({stateHash, policy});
-
-                        //               ⌈      π𝜃ɴᴇᴡ(aₜ|sₜ)                           ⌉
-                        // Lᴘᴏʟɪᴄʏ(𝜃) = 𝔼| min( ⎯⎯⎯⎯⎯⎯⎯⎯ Aₜ, clip(p, 1 - ε, 1 + ε)Aₜ) |
-                        //               ⌊      π𝜃ᴏʟᴅ(aₜ|sₜ)                           ⌋
-                        const vector ratio         = policy / oldPolicies.at(stateHash);
-                        const vector clippedRatio  = ratio.clamp(1.0f - CLIP_EPSILON, 1.0f + CLIP_EPSILON);
-                        const vector surrogateLoss = (ratio * advantage).min(clippedRatio * advantage);
-
-                        oldPolicies[stateHash] = policy;
-
-                        this->backward(surrogateLoss, pa);
-                        delete [] pa;
-                }
-
-                delete [] advantages;
-                environment.reset();
-
-#ifdef DEBUG_MODE_ENABLED
-                logger::log() << logger::pref(LOG_DEBUG) << "Training [" << i << "] completed.\n";
-#endif // DEBUG_MODE_ENABLED
+                auto [_reward, _done] = env.step(pa[m_count - 1]);
+                reward                = _reward;
+                done                  = _done;
         }
+
+        const auto states = (uint32_t)iteration.size();
+        float *advantages = new float[states], previous = 0.0f;
+
+        for (uint32_t s = states - 1; s != UINT32_MAX; --s) {
+                const float reward      = iteration[s].reward;
+                const float predicted   = iteration[s].predicted;
+                const float nextpredict = s == states - 1 ?
+                        0 : iteration[s + 1].predicted;
+
+                const float delta = reward + GAMMA * nextpredict * predicted;
+                advantages[s]     = delta + GAMMA * LAMBDA * previous;
+                previous          = advantages[s];
+        }
+
+        for (uint32_t s = 0; s < states; ++s) {
+                auto &[hash, reward, predicted, policy, pa, va] = iteration[s];
+
+                const float advantage = advantages[s];
+                policy                = policy.max(EPSILON); // prevent division by 0.
+                const vector vdC      = { (predicted - reward) * 2.0f };
+
+                value.backward(vdC, va);
+                delete [] va;
+
+                policies.insert({hash, policy});
+
+                const vector ratio   = policy / policies.at(hash);
+                const vector clipped = ratio.clamp(1.0f - CLIP_EPSILON, 1.0f + CLIP_EPSILON);
+                const vector loss    = (ratio * advantage).min(clipped * advantage);
+
+                policies[hash] = policy;
+
+                this->backward(loss, pa);
+                delete [] pa;
+        }
+
+        delete [] advantages;
+        env.reset();
 }
 
 } // namespace nn

@@ -30,6 +30,13 @@ namespace nn::math {
                 const buf       &second,
                 buf             &result);
 
+        void fma(
+                uint32_t        size,
+                const buf       &first,
+                const buf       &second,
+                const buf       &third,
+                buf             &result);
+
         void sum(
                 uint32_t         size,
                 const buf        &data,
@@ -53,6 +60,13 @@ namespace nn::math {
                 const buf        &data,
                 float            scalar,
                 buf              &result);
+
+        void fma(
+                uint32_t        size,
+                const buf       &first,
+                float           scalar,
+                const buf       &third,
+                buf             &result);
 
         void tanh(
                 uint32_t         size,

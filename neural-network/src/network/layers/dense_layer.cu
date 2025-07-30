@@ -1,6 +1,6 @@
-#include <neural-network/network/layers/fully_connected_layer.h>
+#include <neural-network/network/layers/dense_layer.h>
 
-#include <cuda_runtime.h>  // __global__
+#include <cuda_runtime.h>
 
 #include <cstdint>
 
@@ -19,31 +19,29 @@ namespace kernels {
                 const float        db[],
                 float              result[]) {
 
-                const uint32_t k = blockIdx.x * blockDim.x + threadIdx.x;
+                const uint32_t j = blockIdx.x * blockDim.x + threadIdx.x;
 
-                if (k >= width)
+                if (j >= height)
                         return;
 
-                float dCe = 0.0f;
-                for (uint32_t j = 0; j < height; j++) {
-                        dCe += w[j * width + k] * db[j];
-                        dw[j * width + k] = input[k] * db[j];
+                const uint32_t idx = j * width;
+                for (uint32_t k = 0; k < width; ++k) {
+                        dw[idx + k] = input[k]           * db[j];
+                        atomicAdd(&result[k], w[idx + k] * db[j]);
                 }
-
-                result[k] = dCe;
         }
 
 } // namespace kernels
 
 namespace nn {
 
-void fully_connected_layer::_d_backward(
+void dense_layer::_gpu_backward(
         const float        input[],
         float              dw[],
         const float        db[],
         float              result[]) const {
 
-        const uint32_t BLOCKS_COUNT = (m_w.width() + CUDA_THREADS - 1) / CUDA_THREADS;
+        const uint32_t BLOCKS_COUNT = (m_w.height() + CUDA_THREADS - 1) / CUDA_THREADS;
         kernels::backward<<<BLOCKS_COUNT, CUDA_THREADS, 0, m_stream>>>(
                 m_w.width(), m_w.height(), input,
                 m_w.begin().get(), dw, db, result);

@@ -7,13 +7,25 @@ project(NeuralNetworkLib LANGUAGES CXX)
 
 # C++
 if (MSVC)
-        set(CMAKE_CXX_FLAGS             "/Zc:preprocessor /EHs /W4 /wd4711 /wd4514 /wd4577 /wd4710 /wd4625 /wd4626 /wd5045 /wd5026 /wd5027 /wd4820 /wd4866 /wd4297")
-        set(CMAKE_CXX_FLAGS_DEBUG       "/MTd /Zi /Od")
-        set(CMAKE_CXX_FLAGS_RELEASE     "/O2 /MT")
+        # Silenced warnings:
+        #   C4464 relative path in include
+        #   C4514 unused inline function removed
+        #   C4548 comma expression has no effect
+        #   C4625 copy constructor implicitly deleted
+        #   C4626 copy assignment op implicitly deleted
+        #   C4710 function not inlined
+        #   C4711 function inlined
+        #   C4820 implicit padding
+        #   C5026 move constructor implicitly deleted
+        #   C5027 move assignment op implicitly deleted
+        #   C5045 spectre mitigation
+        set(CMAKE_CXX_FLAGS         "/Zc:preprocessor /EHa /Wall /WX /wd4464 /wd4514 /wd4548 /wd4625 /wd4626 /wd4710 /wd4711 /wd4820 /wd5026 /wd5027 /wd5045")
+        set(CMAKE_CXX_FLAGS_DEBUG   "/MTd /Zi /Od")
+        set(CMAKE_CXX_FLAGS_RELEASE "/O2 /MT")
 else ()
-        set(CMAKE_CXX_FLAGS             "-Wall -Wextra")
-        set(CMAKE_CXX_FLAGS_DEBUG       "-gdwarf-4")
-        set(CMAKE_CXX_FLAGS_RELEASE     "-O3 -static")
+        set(CMAKE_CXX_FLAGS         "-Wall -Wextra -Wpedantic -Werror")
+        set(CMAKE_CXX_FLAGS_DEBUG   "-gdwarf-4")
+        set(CMAKE_CXX_FLAGS_RELEASE "-O3 -static")
 
         if (IS_X86_64)
                 if ("${SIMD_SUPPORT_LEVEL}" GREATER_EQUAL "1")
@@ -46,9 +58,23 @@ if (BUILD_CUDA_SUPPORT)
         set(CMAKE_CUDA_ARCHITECTURES          "native")
         set(CMAKE_CUDA_SEPARABLE_COMPILATION  ON)
         set(CMAKE_CUDA_RESOLVE_DEVICE_SYMBOLS ON)
-        set(CMAKE_CUDA_FLAGS                  "-Xcompiler=/Zc:preprocessor -Xcompiler=/wd4297")
-        set(CMAKE_CUDA_FLAGS_DEBUG            "-Xcompiler=/MTd")
-        set(CMAKE_CUDA_FLAGS_RELEASE          "-O3 -Xcompiler=/MT")
+
+        set(CMAKE_CUDA_FLAGS         "-diag-suppress 221")
+        set(CMAKE_CUDA_FLAGS_DEBUG   "")
+        set(CMAKE_CUDA_FLAGS_RELEASE "-O3")
+
+        if (MSVC)
+                # Silences the same warnings as C++ plus:
+                #   C4100 unused parameter
+                #   C4505 unreferenced function with internal linkage
+                #   C4619 no warning number <n>
+                #   C4668 not defined as preprocessor macro
+                #   C5031 #pragma warning(pop) mismatch
+                #   C5039 C++ exception in extern "C"
+                set(CMAKE_CUDA_FLAGS         "${CMAKE_CUDA_FLAGS} -Xcompiler=/Zc:preprocessor,/EHs,/Wall,/WX,/wd4100,/wd4464,/wd4505,/wd4514,/wd4548,/wd4619,/wd4625,/wd4626,/wd4668,/wd4710,/wd4711,/wd4820,/wd5026,/wd5027,/wd5031,/wd5039,/wd5045")
+                set(CMAKE_CUDA_FLAGS_DEBUG   "${CMAKE_CUDA_FLAGS} -Xcompiler=/MTd,/Zi,/Od")
+                set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS} -Xcompiler=/MT")
+        endif ()
 endif ()
 
 # ------------------------------------------------------------------------------

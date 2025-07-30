@@ -204,9 +204,9 @@ public:
         }
 
 protected:
-        value_type          *m_pointer;
-        cudaStream_t        m_stream;
-        bool                m_device;
+        value_type   *m_pointer;
+        cudaStream_t m_stream;
+        bool         m_device;
 
 }; // class ptr
 
@@ -276,8 +276,32 @@ public:
                 return _get();
         }
 
+        ref &operator+= (arg_type other) noexcept
+        {
+                _set(_get() + other);
+                return *this;
+        }
+
+        ref &operator-= (arg_type other) noexcept
+        {
+                _set(_get() - other);
+                return *this;
+        }
+
+        ref &operator*= (arg_type other) noexcept
+        {
+                _set(_get() * other);
+                return *this;
+        }
+
+        ref &operator/= (arg_type other) noexcept
+        {
+                _set(_get() / other);
+                return *this;
+        }
+
 protected:
-        ptr<value_type>        m_ptr;
+        ptr<value_type> m_ptr;
 
         value_type _get() const
         {
@@ -488,13 +512,13 @@ public:
         constexpr void update() noexcept requires (std::is_const_v<value_type>) {}
 
 private:
-        T                   *m_src;
-        T                   *m_ptr;
-        cudaStream_t        m_stream;
-        uint32_t            m_size;
-        bool                m_device;
-        bool                m_owning;
-        bool                m_updateOnDestruction;
+        T            *m_src;
+        T            *m_ptr;
+        cudaStream_t m_stream;
+        uint32_t     m_size;
+        bool         m_device;
+        bool         m_owning;
+        bool         m_updateOnDestruction;
 
         void _clear() noexcept
         {

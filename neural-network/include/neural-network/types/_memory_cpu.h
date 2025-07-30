@@ -160,7 +160,7 @@ public:
         }
 
 protected:
-        value_type        *m_pointer;
+        value_type *m_pointer;
 
 }; // class ptr
 
@@ -228,7 +228,7 @@ public:
         }
 
 protected:
-        ptr<value_type>        m_ptr;
+        ptr<value_type> m_ptr;
 
 }; // class ref
 
@@ -308,8 +308,8 @@ public:
         constexpr void update() noexcept {}
 
 private:
-        value_type        *m_ptr;
-        uint32_t          m_size;
+        value_type *m_ptr;
+        uint32_t   m_size;
 
 }; // class span
 

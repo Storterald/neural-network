@@ -46,6 +46,17 @@ void _math_normal::div(
                 result[i] = first[i] / second[i];
 }
 
+void _math_normal::fma(
+        uint32_t           size,
+        const float        first[],
+        const float        second[],
+        const float        third[],
+        float              result[]) {
+
+        for (uint32_t i = 0; i < size; ++i)
+                result[i] = std::fmaf(first[i], second[i], third[i]);
+}
+
 void _math_normal::sum(
         uint32_t           size,
         const float        data[],
@@ -84,6 +95,17 @@ void _math_normal::div(
 
         for (uint32_t i = 0; i < size; ++i)
                 result[i] = data[i] / scalar;
+}
+
+void _math_normal::fma(
+        uint32_t           size,
+        const float        first[],
+        float              scalar,
+        const float        third[],
+        float              result[]) {
+
+        for (uint32_t i = 0; i < size; ++i)
+                result[i] = std::fmaf(first[i], scalar, third[i]);
 }
 
 void _math_normal::tanh(

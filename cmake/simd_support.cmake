@@ -15,6 +15,5 @@ function (get_simd_support OUTPUT_VARIABLE)
                 CMAKE_FLAGS CMAKE_ASM_NASM_COMPILER=${CMAKE_ASM_NASM_COMPILER}
                 RUN_OUTPUT_VARIABLE LEVEL)
 
-        message("level: ${LEVEL}")
         set(${OUTPUT_VARIABLE} ${LEVEL} PARENT_SCOPE)
 endfunction ()

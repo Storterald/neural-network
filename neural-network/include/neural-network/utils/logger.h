@@ -8,10 +8,10 @@
 namespace nn {
 
 enum log_type {
-        LOG_INFO,
-        LOG_DEBUG,
-        LOG_ERROR,
-        LOG_FATAL
+        info,
+        debug,
+        error,
+        fatal
 
 }; // enum log_type
 
@@ -46,13 +46,11 @@ public:
                 return m_file;
         }
 
-        ~logger();
-
 private:
-        std::filesystem::path        m_dir;
-        std::ofstream                m_file;
-        uint32_t                     m_fileCount;
-        bool                         m_printOnFatal;
+        std::filesystem::path m_dir;
+        std::ofstream         m_file;
+        uint32_t              m_count;
+        bool                  m_print;
 
         logger();
 

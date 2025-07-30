@@ -21,10 +21,10 @@ inline void sum(
         const uint32_t end = size & ~(m::width - 1);
 
         for (uint32_t i = 0; i < end; i+= m::width) {
-                const m values(&first[i]);
-                const m otherValues(&second[i]);
-                const m sumResult = values + otherValues;
-                sumResult.store(&result[i]);
+                const m a(&first[i]);
+                const m b(&second[i]);
+                const m sum = a + b;
+                sum.store(&result[i]);
         }
 
         if (const uint32_t rem = size - end; rem != 0)
@@ -41,10 +41,10 @@ inline void sub(
         const uint32_t end = size & ~(m::width - 1);
 
         for (uint32_t i = 0; i < end; i+= m::width) {
-                const m values(&first[i]);
-                const m otherValues(&second[i]);
-                const m subResult = values - otherValues;
-                subResult.store(&result[i]);
+                const m a(&first[i]);
+                const m b(&second[i]);
+                const m sub = a - b;
+                sub.store(&result[i]);
         }
 
         if (const uint32_t rem = size - end; rem != 0)
@@ -61,10 +61,10 @@ inline void mul(
         const uint32_t end = size & ~(m::width - 1);
 
         for (uint32_t i = 0; i < end; i+= m::width) {
-                const m values(&first[i]);
-                const m otherValues(&second[i]);
-                const m mulResult = values * otherValues;
-                mulResult.store(&result[i]);
+                const m a(&first[i]);
+                const m b(&second[i]);
+                const m mul = a * b;
+                mul.store(&result[i]);
         }
 
         if (const uint32_t rem = size - end; rem != 0)
@@ -81,14 +81,36 @@ inline void div(
         const uint32_t end = size & ~(m::width - 1);
 
         for (uint32_t i = 0; i < end; i+= m::width) {
-                const m values(&first[i]);
-                const m otherValues(&second[i]);
-                const m divResult = values / otherValues;
-                divResult.store(&result[i]);
+                const m a(&first[i]);
+                const m b(&second[i]);
+                const m div = a / b;
+                div.store(&result[i]);
         }
 
         if (const uint32_t rem = size - end; rem != 0)
                 _math_normal::div(rem, first + end, second + end, result + end);
+}
+
+template<typename m = simd::simd>
+inline void fma(
+        uint32_t           size,
+        const float        first[],
+        const float        second[],
+        const float        third[],
+        float              result[]) {
+
+        const uint32_t end = size & ~(m::width - 1);
+
+        for (uint32_t i = 0; i < end; i+= m::width) {
+                const m a(&first[i]);
+                const m b(&second[i]);
+                const m c(&third[i]);
+                const m fma = a.fma(b, c);
+                fma.store(&result[i]);
+        }
+
+        if (const uint32_t rem = size - end; rem != 0)
+                _math_normal::fma(rem, first + end, second + end, third + end, result + end);
 }
 
 template<typename m = simd::simd>
@@ -100,12 +122,12 @@ inline void sum(
 
         const uint32_t end = size & ~(m::width - 1);
 
-        const m scalarValues(scalar);
+        const m b(scalar);
 
         for (uint32_t i = 0; i < end; i+= m::width) {
-                const m values(&data[i]);
-                const m sumResult = values + scalarValues;
-                sumResult.store(&result[i]);
+                const m a(&data[i]);
+                const m sum = a + b;
+                sum.store(&result[i]);
         }
 
         if (const uint32_t rem = size - end; rem != 0)
@@ -121,12 +143,12 @@ inline void sub(
 
         const uint32_t end = size & ~(m::width - 1);
 
-        const m scalarValues(scalar);
+        const m b(scalar);
 
         for (uint32_t i = 0; i < end; i+= m::width) {
-                const m values(&data[i]);
-                const m subResult = values - scalarValues;
-                subResult.store(&result[i]);
+                const m a(&data[i]);
+                const m sub = a - b;
+                sub.store(&result[i]);
         }
 
         if (const uint32_t rem = size - end; rem != 0)
@@ -142,12 +164,12 @@ inline void mul(
 
         const uint32_t end = size & ~(m::width - 1);
 
-        const m scalarValues(scalar);
+        const m b(scalar);
 
         for (uint32_t i = 0; i < end; i+= m::width) {
-                const m values(&data[i]);
-                const m mulResult = values * scalarValues;
-                mulResult.store(&result[i]);
+                const m a(&data[i]);
+                const m mul = a * b;
+                mul.store(&result[i]);
         }
 
         if (const uint32_t rem = size - end; rem != 0)
@@ -163,16 +185,39 @@ inline void div(
 
         const uint32_t end = size & ~(m::width - 1);
 
-        const m scalarValues(scalar);
+        const m b(scalar);
 
         for (uint32_t i = 0; i < end; i+= m::width) {
-                const m values(&data[i]);
-                const m divResult = values / scalarValues;
-                divResult.store(&result[i]);
+                const m a(&data[i]);
+                const m div = a / b;
+                div.store(&result[i]);
         }
 
         if (const uint32_t rem = size - end; rem != 0)
                 _math_normal::div(rem, data + end, scalar, result + end);
+}
+
+template<typename m = simd::simd>
+inline void fma(
+        uint32_t           size,
+        const float        first[],
+        float              scalar,
+        const float        third[],
+        float              result[]) {
+
+        const uint32_t end = size & ~(m::width - 1);
+
+        const m b(scalar);
+
+        for (uint32_t i = 0; i < end; i+= m::width) {
+                const m a(&first[i]);
+                const m c(&third[i]);
+                const m fma = a.fma(b, c);
+                fma.store(&result[i]);
+        }
+
+        if (const uint32_t rem = size - end; rem != 0)
+                _math_normal::fma(rem, first + end, scalar, third + end, result + end);
 }
 
 template<typename m = simd::simd>
@@ -230,7 +275,7 @@ inline void tanh_derivative(
 
         const uint32_t end = size & ~(m::width - 1);
 
-        _math_simd::tanh(size - end, data, result);
+        _math_simd::tanh<m>(size - end, data, result);
 
         const m threshold(4.9f);
         const m zero{};
@@ -372,8 +417,8 @@ inline void min(
 
         for (uint32_t i = 0; i < end; i+= m::width) {
                 const m values(&first[i]);
-                const m otherValues(&second[i]);
-                const m minValues = otherValues.min(values);
+                const m other(&second[i]);
+                const m minValues = other.min(values);
                 minValues.store(&result[i]);
         }
 
@@ -392,8 +437,8 @@ inline void max(
 
         for (uint32_t i = 0; i < end; i+= m::width) {
                 const m values(&first[i]);
-                const m otherValues(&second[i]);
-                const m maxValues = otherValues.max(values);
+                const m other(&second[i]);
+                const m maxValues = other.max(values);
                 maxValues.store(&result[i]);
         }
 
@@ -436,8 +481,8 @@ inline void compare(
 
         for (uint32_t i = 0; i < end; i+= m::width) {
                 const m values(&first[i]);
-                const m otherValues(&second[i]);
-                if ((values == otherValues) != m::mask::ones) {
+                const m other(&second[i]);
+                if ((values == other) != m::mask::ones) {
                         *result = false;
                         return;
                 }
@@ -462,8 +507,8 @@ inline void matvec_mul(
 
                 for (uint32_t j = 0; j < end; j+= m::width) {
                         const m values(&matrix[i * width + j]);
-                        const m vectorValues(&vector[j]);
-                        const m product = values * vectorValues;
+                        const m other(&vector[j]);
+                        const m product = values * other;
                         sum += product;
                 }
 

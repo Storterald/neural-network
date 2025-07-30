@@ -90,6 +90,19 @@ namespace kernels {
                         result[idx] = first[idx] / second[idx];
         }
 
+        __global__ void fma(
+                uint32_t           size,
+                const float        first[],
+                const float        second[],
+                const float        third[],
+                float              result[]) {
+
+                const uint32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+                if (idx < size)
+                        result[idx] = fmaf(first[idx], second[idx], third[idx]);
+        }
+
         __global__ void sum(
                 uint32_t           size,
                 const float        data[],
@@ -136,6 +149,19 @@ namespace kernels {
                 
                 if (idx < size)
                         result[idx] = data[idx] / scalar;
+        }
+
+        __global__ void fma(
+                uint32_t           size,
+                const float        first[],
+                float              scalar,
+                const float        third[],
+                float              result[]) {
+
+                const uint32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+                if (idx < size)
+                        result[idx] = fmaf(first[idx], scalar, third[idx]);
         }
 
         __global__ void tanh(
@@ -289,7 +315,7 @@ namespace kernels {
 } // namespace kernels
 
 #define DECLARE_CUDA_FUNCTION(__name__, __size__, ...)                                          \
-void _math_cuda:: __name__ (GET_ARGS(__VA_ARGS__), stream stream)                         \
+void _math_cuda:: __name__ (GET_ARGS(__VA_ARGS__), stream stream)                               \
 {                                                                                               \
         const uint32_t blocks = (__size__ + CUDA_THREADS - 1) / CUDA_THREADS;                   \
         kernels:: __name__ <<<blocks, CUDA_THREADS, 0, stream>>>(GET_ARGS_NAMES(__VA_ARGS__));  \
@@ -322,6 +348,13 @@ DECLARE_CUDA_FUNCTION(div, size,
         const float *,        second,
         float *,              result)
 
+DECLARE_CUDA_FUNCTION(fma, size,
+        uint32_t,             size,
+        const float *,        first,
+        const float *,        second,
+        const float *,        third,
+        float *,              result)
+
 DECLARE_CUDA_FUNCTION(sum, size,
         uint32_t,             size,
         const float *,        data,
@@ -344,6 +377,13 @@ DECLARE_CUDA_FUNCTION(div, size,
         uint32_t,             size,
         const float *,        data,
         float,                scalar,
+        float *,              result)
+
+DECLARE_CUDA_FUNCTION(fma, size,
+        uint32_t,             size,
+        const float *,        first,
+        float,                scalar,
+        const float *,        third,
         float *,              result)
 
 DECLARE_CUDA_FUNCTION(tanh, size,

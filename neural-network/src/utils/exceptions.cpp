@@ -19,10 +19,10 @@ namespace nn {
 fatal_error::fatal_error(const char *message)
         : std::runtime_error(message) {
 
-        if (logger::log().m_printOnFatal)
+        if (logger::log().m_print)
                 std::cout << message << std::endl;
 
-        logger::log().m_file << logger::pref(LOG_FATAL) << message << std::endl;
+        logger::log().m_file << logger::pref(fatal) << message << std::endl;
 }
 
 #ifdef BUILD_CUDA_SUPPORT

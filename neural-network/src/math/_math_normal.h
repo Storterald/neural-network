@@ -28,6 +28,13 @@ namespace nn::_math_normal {
                 const float        second[],
                 float              result[]);
 
+        void fma(
+                uint32_t           size,
+                const float        first[],
+                const float        second[],
+                const float        third[],
+                float              result[]);
+
         void sum(
                 uint32_t           size,
                 const float        data[],
@@ -50,6 +57,13 @@ namespace nn::_math_normal {
                 uint32_t           size,
                 const float        data[],
                 float              scalar,
+                float              result[]);
+
+        void fma(
+                uint32_t           size,
+                const float        first[],
+                float              scalar,
+                const float        third[],
                 float              result[]);
 
         void tanh(

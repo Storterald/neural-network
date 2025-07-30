@@ -9,35 +9,38 @@
 
 namespace nn {
 
-enum function_type : uint32_t {
-        TANH,
-        RELU
+enum function_type : uint16_t {
+        none,
+        tanh,
+        relu
 
 }; // enum function_type
 
-enum layer_type : uint32_t {
-        FULLY_CONNECTED
+enum layer_type : uint16_t {
+        input,
+        dense,
+        activation
 
 }; // enum layer_type
 
 struct layer_create_info {
-        layer_type           type;
-        function_type        functionType;
-        uint32_t             neuronCount;
+        layer_type    type;
+        uint32_t      count      = 0;
+        function_type activation = function_type::none;
 
 }; // struct layer_create_info
 
 class layer {
 public:
         static std::unique_ptr<layer> create(
-                uint32_t                       previousLayerSize,
-                const layer_create_info        &layerInfo,
+                uint32_t                       prev,
+                const layer_create_info        &info,
                 stream                         stream = invalid_stream);
 
         static std::unique_ptr<layer> create(
-                uint32_t                       previousLayerSize,
-                const layer_create_info        &layerInfo,
-                std::istream                   &inputStream,
+                uint32_t                       prev,
+                const layer_create_info        &info,
+                std::istream                   &in,
                 stream                         stream = invalid_stream);
 
         [[nodiscard]] virtual vector forward(const vector &input) const = 0;

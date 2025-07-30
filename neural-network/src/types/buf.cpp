@@ -138,10 +138,10 @@ bool buf::operator== (const buf &other) const
         return ans;
 }
 
-void buf::move([[maybe_unused]] loc_type location, [[maybe_unused]] ::nn::stream stream)
+void buf::move([[maybe_unused]] loc_type location, [[maybe_unused]] nn::stream stream)
 {
 #ifdef BUILD_CUDA_SUPPORT
-        if (location == (m_device ? DEVICE : HOST))
+        if (location == (m_device ? device : host))
                 return;
 
         value_type *data;
@@ -162,7 +162,7 @@ void buf::move([[maybe_unused]] loc_type location, [[maybe_unused]] ::nn::stream
                 delete [] m_data;
         }
 
-        m_device = location == DEVICE;
+        m_device = location == device;
         m_stream = stream;
         m_data   = data;
 #endif // BUILD_CUDA_SUPPORT

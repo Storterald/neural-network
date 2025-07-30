@@ -25,6 +25,18 @@ public:
         [[nodiscard]] const_pointer operator[] (uint32_t row) const;
         [[nodiscard]] const_pointer at(uint32_t row) const;
 
+#ifndef __CUDACC__  // nvcc does not yet support C++23
+        [[nodiscard]] inline reference operator[] (uint32_t row, uint32_t column)
+        {
+                return this->operator[]({row, column});
+        }
+
+        [[nodiscard]] inline const_reference operator[] (uint32_t row, uint32_t column) const
+        {
+                return this->operator[]({row, column});
+        }
+#endif // !__CUDACC__
+
         [[nodiscard]] reference operator[] (indexer position);
         [[nodiscard]] const_reference operator[] (indexer position) const;
         [[nodiscard]] value_type at(uint32_t row, uint32_t column) const;
@@ -58,8 +70,8 @@ public:
         [[nodiscard]] vector operator* (const vector &vec) const;
 
 private:
-        uint32_t        m_width  = 0;
-        uint32_t        m_height = 0;
+        uint32_t m_width  = 0;
+        uint32_t m_height = 0;
 
 }; // class matrix
 

@@ -40,4 +40,5 @@ corresponding **build** preset should be used, e.g.: **msvc-release-build-x86_64
 # Dependencies
 
  - [googletest](https://github.com/google/googletest) *optional*
+ - [benchmark](https://github.com/google/benchmark) *optional*
  - [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h) *optional*
