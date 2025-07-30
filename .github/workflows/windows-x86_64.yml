@@ -2,7 +2,25 @@ name: windows-x86_64
 
 on:
   push:
+    paths:
+      - '**.c'
+      - '**.cpp'
+      - '**.cu'
+      - '**.h'
+      - '**.cpp'
+      - '**.cmake'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
   pull_request:
+    paths:
+      - '**.c'
+      - '**.cpp'
+      - '**.cu'
+      - '**.h'
+      - '**.cpp'
+      - '**.cmake'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
   workflow_dispatch:
 
 jobs:

@@ -2,7 +2,25 @@ name: ubuntu-x86_64
 
 on:
   push:
+    paths:
+      - '**.c'
+      - '**.cpp'
+      - '**.cu'
+      - '**.h'
+      - '**.cpp'
+      - '**.cmake'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
   pull_request:
+    paths:
+      - '**.c'
+      - '**.cpp'
+      - '**.cu'
+      - '**.h'
+      - '**.cpp'
+      - '**.cmake'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
   workflow_dispatch:
 
 jobs:
@@ -20,6 +38,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: ilammy/setup-nasm@v1
+
+    - name: Add Ubuntu Toolchain PPA
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y software-properties-common
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+        sudo apt-get update
 
     - name: Install latest GCC and G++
       run: |
