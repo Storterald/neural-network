@@ -22,6 +22,11 @@ if (MSVC)
         set(CMAKE_CXX_FLAGS         "/Zc:preprocessor /EHa /Wall /WX /wd4464 /wd4514 /wd4548 /wd4625 /wd4626 /wd4710 /wd4711 /wd4820 /wd5026 /wd5027 /wd5045")
         set(CMAKE_CXX_FLAGS_DEBUG   "/MTd /Zi /Od")
         set(CMAKE_CXX_FLAGS_RELEASE "/O2 /MT")
+
+        if (NOT IS_X86_64)
+                # Silence volatile access of '<expression>' is subject to setting
+                set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4746")
+        endif ()
 else ()
         set(CMAKE_CXX_FLAGS         "-Wall -Wextra -Wpedantic -Werror")
         set(CMAKE_CXX_FLAGS_DEBUG   "-gdwarf-4")

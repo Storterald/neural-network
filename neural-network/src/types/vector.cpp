@@ -31,7 +31,7 @@ vector::vector(uint32_t size, const value_type values[], nn::stream stream) :
                 return;
         }
 
-#if BUILD_CUDA_SUPPORT
+#ifdef BUILD_CUDA_SUPPORT
         cuda::memcpy(m_data, values, m_size * sizeof(value_type),
                 cudaMemcpyHostToDevice, m_stream);
 #endif // BUILD_CUDA_SUPPORT
@@ -45,7 +45,7 @@ vector::vector(const std::initializer_list<value_type> &values, nn::stream strea
                 return;
         }
 
-#if BUILD_CUDA_SUPPORT
+#ifdef BUILD_CUDA_SUPPORT
         cuda::memcpy(m_data, std::data(values), m_size * sizeof(value_type),
                 cudaMemcpyHostToDevice, m_stream);
 #endif // BUILD_CUDA_SUPPORT

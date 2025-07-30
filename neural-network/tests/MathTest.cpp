@@ -20,7 +20,7 @@
 #include <neural-network/utils/_simd512.h>
 #endif // SIMD_SUPPORT_LEVEL >= 3
 
-#if TARGET_X86_64
+#ifdef TARGET_X86_64
 #include "../src/math/_math_simd.h"
 namespace simd = nn::simd;
 #endif // TARGET_X86_64
