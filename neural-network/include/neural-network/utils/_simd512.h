@@ -35,7 +35,7 @@ public:
         using mask                          = _mask16;
 
         inline _m512() : data(_mm512_setzero_ps()) {}
-        inline _m512(const float *values) : data(_mm512_loadu_ps(values)) {}
+        inline _m512(const float *values) : data(_mm512_load_ps(values)) {}
         inline _m512(float scalar) : data(_mm512_set1_ps(scalar)) {}
         inline _m512(const __m512 &reg) : data(reg) {}
         inline operator __m512() const { return data; }

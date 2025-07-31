@@ -46,7 +46,7 @@ public:
         using mask                          = _mask4;
 
         inline _m128() : data(_mm_setzero_ps()) {}
-        inline _m128(const float *values) : data(_mm_loadu_ps(values)) {}
+        inline _m128(const float *values) : data(_mm_load_ps(values)) {}
         inline _m128(float scalar) : data(_mm_set1_ps(scalar)) {}
         inline _m128(const __m128 &reg) : data(reg) {}
         inline operator __m128() const { return data; }

@@ -41,7 +41,7 @@ public:
         using mask                          = _mask8;
 
         inline _m256() : data(_mm256_setzero_ps()) {}
-        inline _m256(const float *values) : data(_mm256_loadu_ps(values)) {}
+        inline _m256(const float *values) : data(_mm256_load_ps(values)) {}
         inline _m256(float scalar) : data(_mm256_set1_ps(scalar)) {}
         inline _m256(const __m256 &reg) : data(reg) {}
         inline operator __m256() const { return data; }

@@ -3,6 +3,10 @@
 #include <cstdint>
 #include <cstring>  // std::memcpy
 
+#ifndef _MSC_VER
+#include <new>  // std::align_val_t
+#endif // !_MSC_VER
+
 #include <neural-network/math/math.h>
 #include <neural-network/base.h>
 
@@ -12,7 +16,7 @@
 
 namespace nn {
 
-buf::buf(uint32_t size, [[maybe_unused]] nn::stream stream) :
+buf::buf(uint32_t size, [[maybe_unused]] stream_t stream) :
 #ifdef BUILD_CUDA_SUPPORT
         m_stream(stream), m_device(stream != invalid_stream),
 #endif // BUILD_CUDA_SUPPORT
@@ -22,7 +26,7 @@ buf::buf(uint32_t size, [[maybe_unused]] nn::stream stream) :
                 return;
 
         if (!m_device) {
-                m_data = new value_type[m_size]();
+                m_data = _alloc_cpu(m_size);
                 return;
         }
 
@@ -42,7 +46,7 @@ buf::buf(const buf &other) :
                 return;
 
         if (!m_device) {
-                m_data = new value_type[m_size];
+                m_data = _alloc_cpu(m_size);
                 std::memcpy(m_data, other.m_data, m_size * sizeof(value_type));
                 return;
         }
@@ -67,8 +71,6 @@ buf::buf(buf &&other) noexcept : m_data(other.m_data),
 buf::~buf()
 {
         _free();
-        m_data = nullptr;
-        m_size = 0;
 }
 
 buf &buf::operator= (const buf &other)
@@ -89,7 +91,7 @@ buf &buf::operator= (const buf &other)
 #endif // BUILD_CUDA_SUPPORT
 
                 if (!m_device)
-                        m_data = new value_type[m_size];
+                        m_data = _alloc_cpu(m_size);
 #ifdef BUILD_CUDA_SUPPORT
                 else
                         m_data = cuda::alloc<value_type>(m_size, m_stream);
@@ -138,7 +140,7 @@ bool buf::operator== (const buf &other) const
         return ans;
 }
 
-void buf::move([[maybe_unused]] loc_type location, [[maybe_unused]] nn::stream stream)
+void buf::move([[maybe_unused]] loc_type location, [[maybe_unused]] stream_t stream)
 {
 #ifdef BUILD_CUDA_SUPPORT
         if (location == (m_device ? device : host))
@@ -146,7 +148,7 @@ void buf::move([[maybe_unused]] loc_type location, [[maybe_unused]] nn::stream s
 
         value_type *data;
         if (m_device) {
-                data = new value_type[m_size];
+                data = _alloc_cpu(m_size);
                 cuda::memcpy(data, m_data, m_size * sizeof(value_type),
                         cudaMemcpyDeviceToHost, m_stream);
                 cuda::free(m_data, m_stream);
@@ -159,7 +161,7 @@ void buf::move([[maybe_unused]] loc_type location, [[maybe_unused]] nn::stream s
                 data = cuda::alloc<value_type>(m_size, m_stream);
                 cuda::memcpy(data, m_data, m_size * sizeof(value_type),
                         cudaMemcpyHostToDevice, m_stream);
-                delete [] m_data;
+                _free_cpu();
         }
 
         m_device = location == device;
@@ -168,17 +170,40 @@ void buf::move([[maybe_unused]] loc_type location, [[maybe_unused]] nn::stream s
 #endif // BUILD_CUDA_SUPPORT
 }
 
+inline buf::value_type *buf::_alloc_cpu(uint32_t count)
+{
+#ifndef _MSC_VER
+        return new (std::align_val_t(64)) value_type[count]();
+#else // !_MSC_VER
+        value_type *out = (value_type *)_aligned_malloc(count * sizeof(value_type), 64);
+        memset(out, 0, count * sizeof(value_type));
+        return out;
+#endif // _MSC_VER
+}
+
+inline void buf::_free_cpu()
+{
+#ifndef _MSC_VER
+        operator delete[] (m_data, std::align_val_t{64});
+#else // !_MSC_VER
+        _aligned_free(m_data);
+#endif // _MSC_VER
+}
+
 void buf::_free() noexcept
 {
         if (!m_data)
                 return;
 
         if (!m_device)
-                delete [] m_data;
+                _free_cpu();
 #ifdef BUILD_CUDA_SUPPORT
         else
                 cuda::free(m_data, m_stream);
 #endif // BUILD_CUDA_SUPPORT
+
+        m_data = nullptr;
+        m_size = 0;
 }
 
 } // namespace nn

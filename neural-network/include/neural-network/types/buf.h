@@ -28,10 +28,12 @@ public:
         }; // enum location
 
         buf() = default;
+        buf(std::nullptr_t) : buf() {}
+
         /**
          * A invalid stream (null) will allocate the buffer on the cpu.
          */
-        explicit buf(uint32_t size, nn::stream stream = invalid_stream);
+        explicit buf(uint32_t size, stream_t stream = invalid_stream);
 
         buf(const buf &other);
         buf &operator= (const buf &other);
@@ -42,6 +44,11 @@ public:
         ~buf();
 
         [[nodiscard]] bool operator== (const buf &other) const;
+
+        // [[nodiscard]] operator bool () const noexcept
+        // {
+        //         return m_data != nullptr && m_size != 0;
+        // }
 
         [[nodiscard]] inline span<value_type> data(loc_type location = keep, bool update = false)
         {
@@ -85,27 +92,29 @@ public:
                 return m_device ? device : host;
         }
 
-        [[nodiscard]] constexpr stream stream() const noexcept
+        [[nodiscard]] constexpr stream_t stream() const noexcept
         {
                 return m_stream;
         }
 
-        void move(loc_type location, nn::stream stream);
+        void move(loc_type location, stream_t stream);
 
 protected:
-        float                       *m_data = nullptr;
+        value_type                *m_data = nullptr;
 
 #ifdef BUILD_CUDA_SUPPORT
-        nn::stream                  m_stream = invalid_stream;
-        bool                        m_device = false;
+        stream_t                  m_stream = invalid_stream;
+        bool                      m_device = false;
 #else // BUILD_CUDA_SUPPORT
-        static constexpr nn::stream m_stream = invalid_stream;
-        static constexpr bool       m_device = false;
-#endif // BUILD_CUDA_SUPPORT
+        static constexpr stream_t m_stream = invalid_stream;
+        static constexpr bool     m_device = false;
+#endif // !BUILD_CUDA_SUPPORT
 
-        size_type                   m_size = 0;
+        size_type                 m_size = 0;
 
 private:
+        inline value_type *_alloc_cpu(uint32_t count);
+        inline void _free_cpu();
         void _free() noexcept;
 
 }; // class buf
