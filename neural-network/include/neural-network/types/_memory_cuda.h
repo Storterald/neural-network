@@ -489,7 +489,7 @@ public:
                 return m_owning;
         }
 
-        [[nodiscard]] stream stream() const noexcept
+        [[nodiscard]] stream_t stream() const noexcept
         {
                 return m_stream;
         }

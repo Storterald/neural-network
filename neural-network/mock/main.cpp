@@ -51,7 +51,7 @@ static void _train(
         std::vector<float> inputs, outputs;
         _get_inputs("mnist_train.nntv", sampleCount, inputs, outputs);
 
-        nn::network network(std::forward<Args>(args)..., fs::exists(encoded) ? encoded : "");
+        nn::network<float> network(std::forward<Args>(args)..., fs::exists(encoded) ? encoded : "");
         const auto start = ch::high_resolution_clock::now();
 
         for (uint32_t i = 0; i < MAX_ITERATIONS; ++i) {
@@ -77,7 +77,7 @@ static void _test(
         std::vector<float> inputs, outputs;
         _get_inputs("mnist_test.nntv", sampleCount, inputs, outputs);
 
-        const nn::network network(args..., fs::exists(encoded) ? encoded : "");
+        const nn::network<float> network(args..., fs::exists(encoded) ? encoded : "");
 
         long long us = 0;
 
@@ -85,8 +85,8 @@ static void _test(
         for (uint32_t i = 0; i < sampleCount; ++i) {
                 const auto start = ch::high_resolution_clock::now();
                 std::span tmp(&outputs[(size_t)i * 10], 10);
-                nn::vector in(784, &inputs[(size_t)i * 784]);
-                nn::vector out = network.forward(in);
+                nn::vector<float> in(&inputs[(size_t)i * 784], &inputs[(size_t)(i + 1) * 784]);
+                nn::vector<float> out = network.forward(in);
                 const auto end = ch::high_resolution_clock::now();
 
                 us += ch::duration_cast<ch::microseconds>(end - start).count();

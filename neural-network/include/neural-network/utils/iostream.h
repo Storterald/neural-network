@@ -4,8 +4,10 @@
 
 #include <neural-network/types/matrix.h>
 #include <neural-network/types/vector.h>
+#include <neural-network/base.h>
 
-inline std::ostream &operator<< (std::ostream &os, const nn::matrix &mat)
+template<nn::floating_type _type>
+inline std::ostream &operator<< (std::ostream &os, const nn::matrix<_type> &mat)
 {
         os << '[';
         for (uint32_t i = 0; i < mat.height(); ++i) {
@@ -20,7 +22,8 @@ inline std::ostream &operator<< (std::ostream &os, const nn::matrix &mat)
         return os;
 }
 
-inline std::ostream &operator<< (std::ostream &os, const nn::vector &vec)
+template<nn::floating_type _type>
+inline std::ostream &operator<< (std::ostream &os, const nn::vector<_type> &vec)
 {
         os << '[';
         for (uint32_t i = 0; i < vec.size() - 1; ++i)

@@ -39,7 +39,7 @@ public:
 
         inline ptr() noexcept : m_pointer(nullptr) {}
 
-        ptr(T *ptr, bool, stream = invalid_stream) noexcept : m_pointer(ptr) {}
+        ptr(T *ptr, bool, stream_t = invalid_stream) noexcept : m_pointer(ptr) {}
 
         template<typename other_type>
         [[nodiscard]] constexpr bool operator== (const ptr<other_type> &other) const noexcept
@@ -178,7 +178,7 @@ public:
         using value_type       = T;
         using const_value_type = std::add_const_t<T>;
 
-        ref(T *pValue, bool, stream = invalid_stream) : m_ptr(pValue, false) {
+        ref(T *pValue, bool, stream_t = invalid_stream) : m_ptr(pValue, false) {
                 if (!pValue)
                         throw fatal_error("Cannot create null reference.");
         }
@@ -247,7 +247,7 @@ public:
         using value_type       = T;
         using const_value_type = std::add_const_t<T>;
 
-        span(uint32_t size, bool, T *src, bool, bool = false, stream = invalid_stream) noexcept :
+        span(uint32_t size, bool, T *src, bool, bool = false, stream_t = invalid_stream) noexcept :
                 m_ptr(src), m_size(size) {}
 
         [[nodiscard]] constexpr operator value_type *() noexcept
@@ -295,12 +295,12 @@ public:
                 return m_size;
         }
 
-        [[nodiscard]] constexpr bool is_owning() const noexcept
+        [[nodiscard]] consteval bool is_owning() const noexcept
         {
                 return false;
         }
 
-        [[nodiscard]] stream stream() const noexcept
+        [[nodiscard]] consteval stream_t stream() const noexcept
         {
                 return invalid_stream;
         }

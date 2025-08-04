@@ -1,10 +1,10 @@
 #pragma once
 
-#include <iostream>
+#include <ostream>
 #include <cstdint>
-#include <memory>
 
 #include <neural-network/types/vector.h>
+#include <neural-network/types/matrix.h>
 #include <neural-network/base.h>
 
 namespace nn {
@@ -30,24 +30,16 @@ struct layer_create_info {
 
 }; // struct layer_create_info
 
+template<floating_type _type>
 class layer {
 public:
-        static std::unique_ptr<layer> create(
-                uint32_t                       prev,
-                const layer_create_info        &info,
-                stream                         stream = invalid_stream);
+        [[nodiscard]] virtual vector<_type> forward(const vector<_type> &input) const = 0;
+        virtual vector<_type> backward(const vector<_type> &cost, const vector<_type> &input) = 0;
 
-        static std::unique_ptr<layer> create(
-                uint32_t                       prev,
-                const layer_create_info        &info,
-                std::istream                   &in,
-                stream                         stream = invalid_stream);
-
-        [[nodiscard]] virtual vector forward(const vector &input) const = 0;
-        virtual vector backward(const vector &cost, const vector &input) = 0;
+        [[nodiscard]] virtual matrix<_type> forward(const matrix<_type> &inputs) const = 0;
+        virtual matrix<_type> backward(const matrix<_type> &costs, const matrix<_type> &inputs) = 0;
 
         virtual void encode(std::ostream &file) const = 0;
-
         [[nodiscard]] virtual uint32_t size() const = 0;
 
         virtual ~layer() = default;

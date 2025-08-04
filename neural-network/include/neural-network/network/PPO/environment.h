@@ -3,14 +3,18 @@
 #include <utility>
 
 #include <neural-network/types/vector.h>
+#include <neural-network/base.h>
 
 namespace nn {
 
+template<floating_type _type>
 class environment {
 public:
-        [[nodiscard]] virtual vector get_state() const = 0;
+        using value_type = _type;
 
-        virtual std::pair<float, bool> step(const vector &action) = 0;
+        [[nodiscard]] virtual vector<value_type> get_state() const = 0;
+
+        virtual std::pair<float, bool> step(const vector<value_type> &action) = 0;
 
         virtual void reset() = 0;
 

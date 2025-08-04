@@ -6,7 +6,6 @@
 
 #include <neural-network/types/matrix.h>
 #include <neural-network/types/vector.h>
-#include "../src/math/_math_normal.h"
 
 #if SIMD_SUPPORT_LEVEL   >= 1
 #include <neural-network/utils/_simd128.h>
@@ -20,6 +19,8 @@
 #include <neural-network/utils/_simd512.h>
 #endif // SIMD_SUPPORT_LEVEL >= 3
 
+#include "../src/math/_math_normal.h"
+
 #ifdef TARGET_X86_64
 #include "../src/math/_math_simd.h"
 namespace simd = nn::simd;
@@ -28,6 +29,8 @@ namespace simd = nn::simd;
 #ifdef BUILD_CUDA_SUPPORT
 #include "../src/math/_math_cuda.h"
 #endif // BUILD_CUDA_SUPPORT
+
+#include "printers.h"
 
 #define EXPECT_EQ_FLOAT_VEC(expected, actual, thresh)                   \
 do {                                                                    \
@@ -237,16 +240,16 @@ TEST(CudaTest, Sum) {
 #else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
-        const nn::vector v1 = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
-        const nn::vector v2 = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
+        const nn::vector<float> v1 = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
+        const nn::vector<float> v2 = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
 
-        nn::vector result(COUNT);
+        nn::vector<float> result(COUNT);
         nn::_math_cuda::sum(
-                COUNT, v1.view(nn::buf::loc_type::device),
-                v2.view(nn::buf::loc_type::device),
-                result.data(nn::buf::loc_type::device, true), v1.stream());
+                COUNT, v1.data(nn::loc_type::device),
+                v2.data(nn::loc_type::device),
+                result.data(nn::loc_type::device, true), v1.stream());
 
-        nn::vector expected(COUNT);
+        nn::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] + v2[i];
 
@@ -456,16 +459,16 @@ TEST(CudaTest, Sub) {
 #else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
-        const nn::vector v1 = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
-        const nn::vector v2 = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
+        const nn::vector<float> v1 = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
+        const nn::vector<float> v2 = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
 
-        nn::vector result(COUNT);
+        nn::vector<float> result(COUNT);
         nn::_math_cuda::sub(
-                COUNT, v1.view(nn::buf::loc_type::device),
-                v2.view(nn::buf::loc_type::device),
-                result.data(nn::buf::loc_type::device, true), v1.stream());
+                COUNT, v1.data(nn::loc_type::device),
+                v2.data(nn::loc_type::device),
+                result.data(nn::loc_type::device, true), v1.stream());
 
-        nn::vector expected(COUNT);
+        nn::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] - v2[i];
 
@@ -675,16 +678,16 @@ TEST(CudaTest, Mul) {
 #else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
-        const nn::vector v1 = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
-        const nn::vector v2 = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
+        const nn::vector<float> v1 = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
+        const nn::vector<float> v2 = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
 
-        nn::vector result(COUNT);
+        nn::vector<float> result(COUNT);
         nn::_math_cuda::mul(
-                COUNT, v1.view(nn::buf::loc_type::device),
-                v2.view(nn::buf::loc_type::device),
-                result.data(nn::buf::loc_type::device, true), v1.stream());
+                COUNT, v1.data(nn::loc_type::device),
+                v2.data(nn::loc_type::device),
+                result.data(nn::loc_type::device, true), v1.stream());
 
-        nn::vector expected(COUNT);
+        nn::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] * v2[i];
 
@@ -894,16 +897,16 @@ TEST(CudaTest, Div) {
 #else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
-        const nn::vector v1 = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
-        const nn::vector v2 = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
+        const nn::vector<float> v1 = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
+        const nn::vector<float> v2 = { 9, 10, 11, 12, 13, 14, 15, 16, 9, 10, 11, 12, 13, 14, 15, 16 };
 
-        nn::vector result(COUNT);
+        nn::vector<float> result(COUNT);
         nn::_math_cuda::div(
-                COUNT, v1.view(nn::buf::loc_type::device),
-                v2.view(nn::buf::loc_type::device),
-                result.data(nn::buf::loc_type::device, true), v1.stream());
+                COUNT, v1.data(nn::loc_type::device),
+                v2.data(nn::loc_type::device),
+                result.data(nn::loc_type::device, true), v1.stream());
 
-        nn::vector expected(COUNT);
+        nn::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = v1[i] / v2[i];
 
@@ -1113,15 +1116,15 @@ TEST(CudaTest, SumScalar) {
 #else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
-        const nn::vector data  = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
-        constexpr float scalar = 3.0f;
+        const nn::vector<float> data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
+        constexpr float scalar       = 3.0f;
 
-        nn::vector result(COUNT);
+        nn::vector<float> result(COUNT);
         nn::_math_cuda::sum(
-                COUNT, data.view(nn::buf::loc_type::device),
-                scalar, result.data(nn::buf::loc_type::device, true), data.stream());
+                COUNT, data.data(nn::loc_type::device),
+                scalar, result.data(nn::loc_type::device, true), data.stream());
 
-        nn::vector expected(COUNT);
+        nn::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] + scalar;
 
@@ -1331,15 +1334,15 @@ TEST(CudaTest, SubScalar) {
 #else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
-        const nn::vector data  = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
-        constexpr float scalar = 3.0f;
+        const nn::vector<float> data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
+        constexpr float scalar       = 3.0f;
 
-        nn::vector result(COUNT);
+        nn::vector<float> result(COUNT);
         nn::_math_cuda::sub(
-                COUNT, data.view(nn::buf::loc_type::device),
-                scalar, result.data(nn::buf::loc_type::device, true), data.stream());
+                COUNT, data.data(nn::loc_type::device),
+                scalar, result.data(nn::loc_type::device, true), data.stream());
 
-        nn::vector expected(COUNT);
+        nn::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] - scalar;
 
@@ -1549,15 +1552,15 @@ TEST(CudaTest, MulScalar) {
 #else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
-        const nn::vector data  = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
-        constexpr float scalar = 3.0f;
+        const nn::vector<float> data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
+        constexpr float scalar       = 3.0f;
 
-        nn::vector result(COUNT);
+        nn::vector<float> result(COUNT);
         nn::_math_cuda::mul(
-                COUNT, data.view(nn::buf::loc_type::device),
-                scalar, result.data(nn::buf::loc_type::device, true), data.stream());
+                COUNT, data.data(nn::loc_type::device),
+                scalar, result.data(nn::loc_type::device, true), data.stream());
 
-        nn::vector expected(COUNT);
+        nn::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] * scalar;
 
@@ -1767,15 +1770,15 @@ TEST(CudaTest, DivScalar) {
 #else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
-        const nn::vector data  = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
-        constexpr float scalar = 3.0f;
+        const nn::vector<float> data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
+        constexpr float scalar       = 3.0f;
 
-        nn::vector result(COUNT);
+        nn::vector<float> result(COUNT);
         nn::_math_cuda::div(
-                COUNT, data.view(nn::buf::loc_type::device),
-                scalar, result.data(nn::buf::loc_type::device, true), data.stream());
+                COUNT, data.data(nn::loc_type::device),
+                scalar, result.data(nn::loc_type::device, true), data.stream());
 
-        nn::vector expected(COUNT);
+        nn::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] / scalar;
 
@@ -1975,14 +1978,14 @@ TEST(CudaTest, Tanh) {
 #else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
-        const nn::vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
+        const nn::vector<float> data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
-        nn::vector result(COUNT);
+        nn::vector<float> result(COUNT);
         nn::_math_cuda::tanh(
-                COUNT, data.view(nn::buf::loc_type::device),
-                result.data(nn::buf::loc_type::device, true), data.stream());
+                COUNT, data.data(nn::loc_type::device),
+                result.data(nn::loc_type::device, true), data.stream());
 
-        nn::vector expected(COUNT);
+        nn::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::tanh(data[i]);
 
@@ -2202,14 +2205,14 @@ TEST(CudaTest, TanhDerivative) {
 #else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
-        const nn::vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
+        const nn::vector<float> data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
-        nn::vector result(COUNT);
+        nn::vector<float> result(COUNT);
         nn::_math_cuda::tanh_derivative(
-                COUNT, data.view(nn::buf::loc_type::device),
-                result.data(nn::buf::loc_type::device, true), data.stream());
+                COUNT, data.data(nn::loc_type::device),
+                result.data(nn::loc_type::device, true), data.stream());
 
-        nn::vector expected(COUNT);
+        nn::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i) {
                 const float tanh = std::tanh(data[i]);
                 expected[i]      = 1 - tanh * tanh;
@@ -2411,14 +2414,14 @@ TEST(CudaTest, ReLU) {
 #else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
-        const nn::vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
+        const nn::vector<float> data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
-        nn::vector result(COUNT);
+        nn::vector<float> result(COUNT);
         nn::_math_cuda::ReLU(
-                COUNT, data.view(nn::buf::loc_type::device),
-                result.data(nn::buf::loc_type::device, true), data.stream());
+                COUNT, data.data(nn::loc_type::device),
+                result.data(nn::loc_type::device, true), data.stream());
 
-        nn::vector expected(COUNT);
+        nn::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max((float)data[i], 0.0f);
 
@@ -2618,14 +2621,14 @@ TEST(CudaTest, ReLUDerivative) {
 #else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
-        const nn::vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
+        const nn::vector<float> data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
-        nn::vector result(COUNT);
+        nn::vector<float> result(COUNT);
         nn::_math_cuda::ReLU_derivative(
-                COUNT, data.view(nn::buf::loc_type::device),
-                result.data(nn::buf::loc_type::device, true), data.stream());
+                COUNT, data.data(nn::loc_type::device),
+                result.data(nn::loc_type::device, true), data.stream());
 
-        nn::vector expected(COUNT);
+        nn::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = data[i] >= 0.0f ? 1.0f : 0.0f;
 
@@ -2835,15 +2838,15 @@ TEST(CudaTest, MinScalar) {
 #else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
-        const nn::vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
-        constexpr float min   = 3.0f;
+        const nn::vector<float> data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
+        constexpr float min          = 3.0f;
 
-        nn::vector result(COUNT);
+        nn::vector<float> result(COUNT);
         nn::_math_cuda::min(
-                COUNT, data.view(nn::buf::loc_type::device),
-                min, result.data(nn::buf::loc_type::device, true), data.stream());
+                COUNT, data.data(nn::loc_type::device),
+                min, result.data(nn::loc_type::device, true), data.stream());
 
-        nn::vector expected(COUNT);
+        nn::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min((float)data[i], min);
 
@@ -3053,15 +3056,15 @@ TEST(CudaTest, MaxScalar) {
 #else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
-        const nn::vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
-        constexpr float max   = 3.0f;
+        const nn::vector<float> data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
+        constexpr float max          = 3.0f;
 
-        nn::vector result(COUNT);
+        nn::vector<float> result(COUNT);
         nn::_math_cuda::max(
-                COUNT, data.view(nn::buf::loc_type::device),
-                max, result.data(nn::buf::loc_type::device, true), data.stream());
+                COUNT, data.data(nn::loc_type::device),
+                max, result.data(nn::loc_type::device, true), data.stream());
 
-        nn::vector expected(COUNT);
+        nn::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max((float)data[i], max);
 
@@ -3281,16 +3284,16 @@ TEST(CudaTest, ClampScalar) {
 #else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
-        const nn::vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
-        constexpr float min   = 3.0f;
-        constexpr float max   = 4.0f;
+        const nn::vector<float> data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
+        constexpr float min          = 3.0f;
+        constexpr float max          = 4.0f;
 
-        nn::vector result(COUNT);
+        nn::vector<float> result(COUNT);
         nn::_math_cuda::clamp(
-                COUNT, data.view(nn::buf::loc_type::device),
-                min, max, result.data(nn::buf::loc_type::device, true), data.stream());
+                COUNT, data.data(nn::loc_type::device),
+                min, max, result.data(nn::loc_type::device, true), data.stream());
 
-        nn::vector expected(COUNT);
+        nn::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::clamp((float)data[i], min, max);
 
@@ -3500,16 +3503,16 @@ TEST(CudaTest, Min) {
 #else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
-        const nn::vector v1 = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
-        const nn::vector v2 = { 8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1 };
+        const nn::vector<float> v1 = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
+        const nn::vector<float> v2 = { 8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1 };
 
-        nn::vector result(COUNT);
+        nn::vector<float> result(COUNT);
         nn::_math_cuda::min(
-                COUNT, v1.view(nn::buf::loc_type::device),
-                v2.view(nn::buf::loc_type::device),
-                result.data(nn::buf::loc_type::device, true), v1.stream());
+                COUNT, v1.data(nn::loc_type::device),
+                v2.data(nn::loc_type::device),
+                result.data(nn::loc_type::device, true), v1.stream());
 
-        nn::vector expected(COUNT);
+        nn::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::min(v1[i], v2[i]);
 
@@ -3719,16 +3722,16 @@ TEST(CudaTest, Max) {
 #else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
-        const nn::vector v1 = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
-        const nn::vector v2 = { 8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1 };
+        const nn::vector<float> v1 = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
+        const nn::vector<float> v2 = { 8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1 };
 
-        nn::vector result(COUNT);
+        nn::vector<float> result(COUNT);
         nn::_math_cuda::max(
-                COUNT, v1.view(nn::buf::loc_type::device),
-                v2.view(nn::buf::loc_type::device),
-                result.data(nn::buf::loc_type::device, true), v1.stream());
+                COUNT, v1.data(nn::loc_type::device),
+                v2.data(nn::loc_type::device),
+                result.data(nn::loc_type::device, true), v1.stream());
 
-        nn::vector expected(COUNT);
+        nn::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::max(v1[i], v2[i]);
 
@@ -3948,16 +3951,16 @@ TEST(CudaTest, Clamp) {
 #else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 16;
 
-        const nn::vector data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
-        const nn::vector min  = { 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1 };
-        const nn::vector max  = { 4, 3, 3, 4, 3, 3, 4, 4, 3, 3, 4, 4, 3, 3, 4, 3 };
+        const nn::vector<float> data = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
+        const nn::vector<float> min  = { 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1 };
+        const nn::vector<float> max  = { 4, 3, 3, 4, 3, 3, 4, 4, 3, 3, 4, 4, 3, 3, 4, 3 };
 
-        nn::vector result(COUNT);
+        nn::vector<float> result(COUNT);
         nn::_math_cuda::clamp(
-                COUNT, data.view(nn::buf::loc_type::device), min.view(nn::buf::loc_type::device),
-                max.view(nn::buf::loc_type::device), result.data(nn::buf::loc_type::device, true), data.stream());
+                COUNT, data.data(nn::loc_type::device), min.data(nn::loc_type::device),
+                max.data(nn::loc_type::device), result.data(nn::loc_type::device, true), data.stream());
 
-        nn::vector expected(COUNT);
+        nn::vector<float> expected(COUNT);
         for (uint32_t i = 0; i < COUNT; ++i)
                 expected[i] = std::clamp(data[i], min[i], max[i]);
 
@@ -4283,13 +4286,13 @@ TEST(CudaTest, CompareTrue) {
 #else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 4;
 
-        const nn::vector first = { 1, 2, 3, 4 };
-        const nn::vector second = { 1, 2, 3, 4 };
+        const nn::vector<float> first = { 1, 2, 3, 4 };
+        const nn::vector<float> second = { 1, 2, 3, 4 };
 
         bool ans;
         nn::_math_cuda::compare(
-                COUNT, first.view(nn::buf::loc_type::device),
-                second.view(nn::buf::loc_type::device), &ans, first.stream());
+                COUNT, first.data(nn::loc_type::device),
+                second.data(nn::loc_type::device), &ans, first.stream());
 
         EXPECT_TRUE(ans);
 #endif // !BUILD_CUDA_SUPPORT
@@ -4301,117 +4304,132 @@ TEST(CudaTest, CompareFalse) {
 #else // !BUILD_CUDA_SUPPORT
         constexpr uint32_t COUNT = 4;
 
-        const nn::vector first = { 1, 2, 3, 4 };
-        const nn::vector second = { 1, 5, 3, 4 };
+        const nn::vector<float> first = { 1, 2, 3, 4 };
+        const nn::vector<float> second = { 1, 5, 3, 4 };
 
         bool ans;
         nn::_math_cuda::compare(
-                COUNT, first.view(nn::buf::loc_type::device),
-                second.view(nn::buf::loc_type::device), &ans, first.stream());
+                COUNT, first.data(nn::loc_type::device),
+                second.data(nn::loc_type::device), &ans, first.stream());
 
         EXPECT_FALSE(ans);
 #endif // !BUILD_CUDA_SUPPORT
 }
 
-TEST(MathTest, MatrixVectorMul) {
-        const nn::matrix mat = {
+TEST(MathTest, MatrixMulRC) {
+        const nn::matrix<float> first = {
                 { 1, 2, 4, 1, 5 },
                 { 0, 3, 0, 2, 9 },
                 { 2, 3, 4, 1, 3 }
         };
 
-        const nn::vector vec = { 2, 6, 0, 4, 7 };
+        const nn::matrix<float> second({
+                { 2, 6, 0, 4, 7 },
+                { 5, 7, 8, 3, 1 }
+        }, nn::column_major);
 
-        nn::vector result(mat.height());
-        nn::_math_normal::matvec_mul(
-                mat.width(), mat.height(), mat.view(nn::buf::loc_type::host),
-                vec.view(nn::buf::loc_type::host), result.data(nn::buf::loc_type::host, true));
+        nn::matrix<float> result(second.width(), first.height());
+        nn::_math_normal::matmul_rc(
+                first.width(), first.height(), second.width(), first.data(nn::loc_type::host),
+                second.data(nn::loc_type::host), result.data(nn::loc_type::host, true));
 
-        EXPECT_EQ(result, nn::vector({ 53, 89, 47 }));
+        EXPECT_EQ(result, nn::matrix<float>({{ 53, 59 }, { 89, 36 }, { 47, 69 }}));
 }
 
-TEST(SSETest, MatrixVectorMul) {
+TEST(SSETest, MatrixMulRC) {
 #if SIMD_SUPPORT_LEVEL < 1
         GTEST_SKIP() << "Skipping SSE3 tests as it's not supported.";
 #else // SIMD_SUPPORT_LEVEL < 1
-        const nn::matrix mat = {
+        const nn::matrix<float> first = {
                 { 1, 2, 4, 1, 5 },
                 { 0, 3, 0, 2, 9 },
                 { 2, 3, 4, 1, 3 }
         };
 
-        const nn::vector vec = { 2, 6, 0, 4, 7 };
+        const nn::matrix<float> second({
+                { 2, 6, 0, 4, 7 },
+                { 5, 7, 8, 3, 1 }
+        }, nn::column_major);
 
-        nn::vector result(mat.height());
-        nn::_math_simd::matvec_mul<simd::_m128>(
-                mat.width(), mat.height(), mat.view(nn::buf::loc_type::host),
-                vec.view(nn::buf::loc_type::host), result.data(nn::buf::loc_type::host, true));
+        nn::matrix<float> result(second.width(), first.height());
+        nn::_math_simd::matmul_rc<simd::_m128>(
+                first.width(), first.height(), second.width(), first.data(nn::loc_type::host),
+                second.data(nn::loc_type::host), result.data(nn::loc_type::host, true));
 
-        EXPECT_EQ(result, nn::vector({ 53, 89, 47 }));
+        EXPECT_EQ(result, nn::matrix<float>({{ 53, 59 }, { 89, 36 }, { 47, 69 }}));
 #endif // SIMD_SUPPORT_LEVEL < 1
 }
 
-TEST(AVXTest, MatrixVectorMul) {
+TEST(AVXTest, MatrixMulRC) {
 #if SIMD_SUPPORT_LEVEL < 2
         GTEST_SKIP() << "Skipping AVX tests as it's not supported.";
 #else // SIMD_SUPPORT_LEVEL < 2
-        const nn::matrix mat = {
+        const nn::matrix<float> first = {
                 { 1, 2, 4, 1, 5, 4, 1, 2, 8 },
                 { 0, 3, 0, 2, 9, 8, 3, 0, 6 },
                 { 2, 3, 4, 2, 3, 1, 6, 2, 0 },
                 { 1, 6, 4, 1, 1, 3, 1, 5, 1 }
         };
 
-        const nn::vector vec = { 2, 6, 0, 4, 7, 6, 1, 2, 9 };
+        const nn::matrix<float> second({
+                { 2, 6, 0, 4, 7, 6, 1, 2, 9 },
+                { 5, 7, 8, 3, 1, 8, 2, 1, 3 }
+        }, nn::column_major);
 
-        nn::vector result(mat.height());
-        nn::_math_simd::matvec_mul<simd::_m256>(
-                mat.width(), mat.height(), mat.view(nn::buf::loc_type::host),
-                vec.view(nn::buf::loc_type::host), result.data(nn::buf::loc_type::host, true));
+        nn::matrix<float> result(second.width(), first.height());
+        nn::_math_simd::matmul_rc<simd::_m256>(
+                first.width(), first.height(), second.width(), first.data(nn::loc_type::host),
+                second.data(nn::loc_type::host), result.data(nn::loc_type::host, true));
 
-        EXPECT_EQ(result, nn::vector({ 154, 194, 67, 87 }));
+        EXPECT_EQ(result, nn::matrix<float>({{ 154, 119 }, { 194, 124 }, { 67, 94 }, { 87, 117 }}));
 #endif // SIMD_SUPPORT_LEVEL < 2
 }
 
-TEST(AVX512Test, MatrixVectorMul) {
+TEST(AVX512Test, MatrixMulRC) {
 #if SIMD_SUPPORT_LEVEL < 3
         GTEST_SKIP() << "Skipping AVX512 tests as it's not supported.";
 #else // SIMD_SUPPORT_LEVEL < 3
-        const nn::matrix mat = {
+        const nn::matrix<float> first = {
                 { 1, 2, 4, 1, 5, 4, 1, 2, 8, 1, 2, 1, 4, 1, 9, 1, 5, 3 },
                 { 0, 3, 0, 2, 9, 8, 3, 0, 6, 1, 1, 8, 6, 3, 2, 8, 1, 1 },
-                { 2, 3, 4, 2, 3, 1, 6, 2, 0, 1, 2, 1, 9, 5, 3, 2, 2, 8 },
-                { 1, 6, 4, 1, 1, 3, 1, 5, 9, 1, 1, 3, 0, 1, 8, 4, 3, 9 }
+                { 2, 3, 4, 2, 3, 1, 6, 2, 0, 9, 2, 1, 9, 5, 3, 2, 2, 8 },
+                { 1, 6, 4, 1, 1, 3, 1, 5, 1, 1, 1, 3, 0, 1, 8, 4, 3, 9 }
         };
 
-        const nn::vector vec = { 2, 6, 0, 4, 7, 6, 1, 2, 9, 7, 1, 1, 0, 1, 2, 1, 4, 3 };
+        const nn::matrix<float> second({
+                { 2, 6, 0, 4, 7, 6, 1, 2, 9, 7, 1, 1, 0, 1, 2, 1, 4, 3 },
+                { 5, 7, 8, 3, 1, 8, 2, 1, 3, 6, 5, 0, 1, 3, 3, 2, 6, 7 }
+        }, nn::column_major);
 
-        nn::vector result(mat.height());
-        nn::_math_simd::matvec_mul<simd::_m512>(
-                mat.width(), mat.height(), mat.view(nn::buf::loc_type::host),
-                vec.view(nn::buf::loc_type::host), result.data(nn::buf::loc_type::host, true));
+        nn::matrix<float> result(second.width(), first.height());
+        nn::_math_simd::matmul_rc<simd::_m512>(
+                first.width(), first.height(), second.width(), first.data(nn::loc_type::host),
+                second.data(nn::loc_type::host), result.data(nn::loc_type::host, true));
 
-        EXPECT_EQ(result, nn::vector({ 213, 232, 122, 230 }));
+        EXPECT_EQ(result, nn::matrix<float>({{ 213, 222 }, { 232, 185 }, { 178, 263 }, { 158, 244 }}));
 #endif // SIMD_SUPPORT_LEVEL < 3
 }
 
-TEST(CudaTest, MatrixVectorMul) {
+TEST(CudaTest, MatrixMulRC) {
 #ifndef BUILD_CUDA_SUPPORT
         GTEST_SKIP() << "Skipping CUDA tests as it's not supported.";
 #else // !BUILD_CUDA_SUPPORT
-        const nn::matrix mat = {
-                { 1, 2, 1, 1 },
-                { 0, 1, 0, 1 },
-                { 2, 3, 4, 1 }
+        const nn::matrix<float> first = {
+                { 1, 2, 4, 1, 5 },
+                { 0, 3, 0, 2, 9 },
+                { 2, 3, 4, 1, 3 }
         };
-        
-        const nn::vector vec = { 2, 6, 1, 1 };
 
-        nn::vector result(mat.height());
-        nn::_math_cuda::matvec_mul(
-                mat.width(), mat.height(), mat.view(nn::buf::loc_type::device),
-                vec.view(nn::buf::loc_type::device), result.data(nn::buf::loc_type::device, true), mat.stream());
+        const nn::matrix<float> second({
+                { 2, 6, 0, 4, 7 },
+                { 5, 7, 8, 3, 1 }
+        }, nn::column_major);
 
-        EXPECT_EQ(result, nn::vector({ 16, 7, 27 }));
+        nn::matrix<float> result(second.width(), first.height());
+        nn::_math_cuda::matmul_rc(
+                first.width(), first.height(), second.width(), first.data(nn::loc_type::device),
+                second.data(nn::loc_type::device), result.data(nn::loc_type::device, true), first.stream());
+
+        EXPECT_EQ(result, nn::matrix<float>({{ 53, 59 }, { 89, 36 }, { 47, 69 }}));
 #endif // !BUILD_CUDA_SUPPORT
 }

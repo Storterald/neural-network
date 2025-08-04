@@ -1,0 +1,2 @@
+  - [ ] Matrix and vector class \_\_device__ support
+  - [ ] direct access with nn::host and nn::device for \_\_host__ and \_\_device__ functions

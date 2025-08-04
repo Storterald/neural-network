@@ -13,13 +13,14 @@ if (MSVC)
         #   C4548 comma expression has no effect
         #   C4625 copy constructor implicitly deleted
         #   C4626 copy assignment op implicitly deleted
+        #   C4702 unreachable code
         #   C4710 function not inlined
         #   C4711 function inlined
         #   C4820 implicit padding
         #   C5026 move constructor implicitly deleted
         #   C5027 move assignment op implicitly deleted
         #   C5045 spectre mitigation
-        set(CMAKE_CXX_FLAGS         "/Zc:preprocessor /EHa /Wall /WX /wd4464 /wd4514 /wd4548 /wd4625 /wd4626 /wd4710 /wd4711 /wd4820 /wd5026 /wd5027 /wd5045")
+        set(CMAKE_CXX_FLAGS         "/Zc:preprocessor /EHa /openmp /Wall /WX /wd4464 /wd4514 /wd4548 /wd4625 /wd4626 /wd4702 /wd4710 /wd4711 /wd4820 /wd5026 /wd5027 /wd5045")
         set(CMAKE_CXX_FLAGS_DEBUG   "/MTd /Zi /Od")
         set(CMAKE_CXX_FLAGS_RELEASE "/O2 /MT")
 
@@ -28,7 +29,7 @@ if (MSVC)
                 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4746")
         endif ()
 else ()
-        set(CMAKE_CXX_FLAGS         "-Wall -Wextra -Wpedantic -Werror")
+        set(CMAKE_CXX_FLAGS         "-Wall -Wextra -Wpedantic -Werror -fopenmp")
         set(CMAKE_CXX_FLAGS_DEBUG   "-gdwarf-4")
         set(CMAKE_CXX_FLAGS_RELEASE "-O3 -static")
 
@@ -60,7 +61,7 @@ if (BUILD_CUDA_SUPPORT)
         set(CMAKE_CUDA_COMPILER               "$ENV{CUDA_PATH}/bin/nvcc.exe")
         set(CMAKE_CUDA_STANDARD               20)
         set(CMAKE_CUDA_STANDARD_REQUIRED      ON)
-        set(CMAKE_CUDA_ARCHITECTURES          "native")
+        set(CMAKE_CUDA_ARCHITECTURES          80 89 120)
         set(CMAKE_CUDA_SEPARABLE_COMPILATION  ON)
         set(CMAKE_CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 
@@ -76,7 +77,7 @@ if (BUILD_CUDA_SUPPORT)
                 #   C4668 not defined as preprocessor macro
                 #   C5031 #pragma warning(pop) mismatch
                 #   C5039 C++ exception in extern "C"
-                set(CMAKE_CUDA_FLAGS         "${CMAKE_CUDA_FLAGS} -Xcompiler=/Zc:preprocessor,/EHs,/Wall,/WX,/wd4100,/wd4464,/wd4505,/wd4514,/wd4548,/wd4619,/wd4625,/wd4626,/wd4668,/wd4710,/wd4711,/wd4820,/wd5026,/wd5027,/wd5031,/wd5039,/wd5045")
+                set(CMAKE_CUDA_FLAGS         "${CMAKE_CUDA_FLAGS} -Xcompiler=/Zc:preprocessor,/EHs,/Wall,/WX,/wd4100,/wd4464,/wd4505,/wd4514,/wd4548,/wd4619,/wd4625,/wd4626,/wd4668,/wd4702,/wd4710,/wd4711,/wd4820,/wd5026,/wd5027,/wd5031,/wd5039,/wd5045")
                 set(CMAKE_CUDA_FLAGS_DEBUG   "${CMAKE_CUDA_FLAGS} -Xcompiler=/MTd,/Zi,/Od")
                 set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS} -Xcompiler=/MT")
         endif ()
